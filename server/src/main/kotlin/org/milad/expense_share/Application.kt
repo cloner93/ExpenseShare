@@ -38,14 +38,15 @@ fun Application.module() {
 }
 
 fun Application.configureSecurity() {
+    JwtConfig.init(environment.config)
+
     install(Authentication) {
         jwt("auth-jwt") {
-            realm = "expense-share"
+            realm = JwtConfig.getRealm()
             verifier(
                 JWT
                     .require(JwtConfig.getAlgorithm())
                     .withIssuer(JwtConfig.getIssuer())
-                    .withAudience(JwtConfig.getAudience())
                     .build()
             )
             validate { credential ->

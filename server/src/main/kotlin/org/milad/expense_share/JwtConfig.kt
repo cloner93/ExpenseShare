@@ -2,26 +2,38 @@ package org.milad.expense_share
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import io.ktor.server.config.ApplicationConfig
+import org.milad.expense_share.model.User
 import java.util.*
 
 object JwtConfig {
-    private const val secret = "super_secret_jwt_key"
-    private const val issuer = "expense-share-server"
-    private const val audience = "expense-share-client"
-    private const val validityInMs = 36_000_00 * 10
+    private lateinit var secret: String
+    private lateinit var issuer: String
+    private lateinit var realm: String
+    private var validityInMs: Long = 0
 
-    private val algorithm = Algorithm.HMAC256(secret)
+    private lateinit var algorithm: Algorithm
 
-    fun makeToken(phone: String): String {
+
+    fun init(config: ApplicationConfig) {
+        secret = config.property("ktor.jwt.secret").getString()
+        issuer = config.propertyOrNull("ktor.jwt.issuer")?.getString() ?:""
+        realm = config.propertyOrNull("ktor.jwt.realm")?.getString()?:""
+        validityInMs = config.propertyOrNull("ktor.jwt.validityMs")?.getString()?.toLong() ?: 0
+
+        algorithm = Algorithm.HMAC256(secret)
+    }
+    fun generateToken(user: User): String {
         return JWT.create()
+            .withSubject("Authentication")
             .withIssuer(issuer)
-            .withAudience(audience)
-            .withClaim("phone", phone)
+            .withClaim("id", user.id)
+            .withClaim("username", user.username)
+            .withClaim("phone", user.phone)
             .withExpiresAt(Date(System.currentTimeMillis() + validityInMs))
             .sign(algorithm)
     }
-
+    fun getRealm() = realm
     fun getAlgorithm() = algorithm
     fun getIssuer() = issuer
-    fun getAudience() = audience
 }

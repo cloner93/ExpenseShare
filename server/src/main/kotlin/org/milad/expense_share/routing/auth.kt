@@ -14,16 +14,33 @@ internal fun Routing.authRoutes() {
         post("/register") {
             val req = call.receive<RegisterRequest>()
             logIt(req.toString())
-            val res = FakeDatabase.register(req.username, req.phone, req.password)
-            call.respond(res)
+
+            val registerRes = FakeDatabase.register(req.username, req.phone, req.password)
+
+            if (registerRes.success) {
+                registerRes.user?.let {
+                    call.respond(registerRes)
+                }
+            } else {
+                call.respond(registerRes)
+            }
         }
+
         post("/login") {
             val req = call.receive<LoginRequest>()
             logIt(req.toString())
 
-            val res = FakeDatabase.login(req.phone, req.password)
-            call.respond(res)
+            val loginRes = FakeDatabase.login(req.phone, req.password)
+
+            if (loginRes.success) {
+                loginRes.user?.let {
+                    call.respond(loginRes)
+                }
+            } else {
+                call.respond(loginRes)
+            }
         }
     }
 }
-fun logIt(msg: String) = println("@@@@-> $msg")
+
+fun logIt(msg: String) = println("LOG -> $msg")

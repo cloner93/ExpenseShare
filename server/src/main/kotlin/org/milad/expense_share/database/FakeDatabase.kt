@@ -1,5 +1,6 @@
 package org.milad.expense_share.database
 
+import org.milad.expense_share.JwtConfig
 import org.milad.expense_share.model.AuthResponse
 import org.milad.expense_share.model.User
 
@@ -15,13 +16,22 @@ object FakeDatabase {
         }
         val user = User(++lastId, username, phone)
         users.add(user to password)
-        return AuthResponse(true, "Registered successfully", user)
+
+        val token = JwtConfig.generateToken(user)
+
+        return AuthResponse(
+            true,
+            "Registered successfully",
+            token,
+            user
+        )
     }
 
     fun login(phone: String, password: String): AuthResponse {
         val match = users.find { it.first.phone == phone && it.second == password }
         return if (match != null) {
-            AuthResponse(true, "Login successful", match.first)
+            val token = JwtConfig.generateToken(match.first)
+            AuthResponse(true, "Login successful", token, match.first)
         } else {
             AuthResponse(false, "Invalid phone or password")
         }
