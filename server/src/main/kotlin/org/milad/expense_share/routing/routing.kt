@@ -7,5 +7,6 @@ internal fun Application.routing() {
     routing {
         authRoutes()
         groupsRoutes()
+        friendRoutes()
     }
 }

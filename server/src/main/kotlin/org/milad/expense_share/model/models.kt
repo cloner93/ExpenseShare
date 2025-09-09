@@ -36,3 +36,19 @@ data class DashboardData(
 
 @Serializable
 data class CreateGroupRequest(val name: String)
+
+@Serializable
+data class FriendRelation(
+    val userId: Int,
+    val friendId: Int,
+    var status: String // "pending", "accepted", "rejected"
+)
+
+@Serializable
+data class FriendRequestDto(val phone: String)
+
+@Serializable
+data class FriendRequestsResponse(
+    val incoming: List<User>,
+    val outgoing: List<User>
+)

@@ -3,12 +3,14 @@ package org.milad.expense_share.database
 import org.milad.expense_share.JwtConfig
 import org.milad.expense_share.model.AuthResponse
 import org.milad.expense_share.model.DashboardData
+import org.milad.expense_share.model.FriendRelation
 import org.milad.expense_share.model.Group
 import org.milad.expense_share.model.User
 
 object FakeDatabase {
     private val users = mutableListOf<Pair<User, String>>()
     private val groups = mutableListOf<Group>()
+    private val friends = mutableListOf<FriendRelation>()
     private var lastId = 0
 
     fun register(username: String, phone: String, password: String): AuthResponse {
@@ -52,5 +54,61 @@ object FakeDatabase {
         }
 
         return DashboardData(list, totalDebt, totalCredit)
+    }
+
+    fun getUserByPhone(phone: String): User? {
+        return users.find { it.first.phone == phone }?.first
+    }
+
+    fun sendFriendRequest(fromId: Int, toPhone: String): Boolean {
+        val toUser = getUserByPhone(toPhone) ?: return false
+        if (friends.any { it.userId == fromId && it.friendId == toUser.id }) return false
+        friends.add(FriendRelation(fromId, toUser.id, "pending"))
+        return true
+    }
+
+    fun getIncomingRequests(userId: Int): List<User> {
+        val incomingIds = friends.filter { it.friendId == userId && it.status == "pending" }
+            .map { it.userId }
+        return users.map { it.first }.filter { it.id in incomingIds }
+    }
+
+    fun getOutgoingRequests(userId: Int): List<User> {
+        val outgoingIds = friends.filter { it.userId == userId && it.status == "pending" }
+            .map { it.friendId }
+        return users.map { it.first }.filter { it.id in outgoingIds }
+    }
+
+    fun acceptFriendRequest(userId: Int, friendPhone: String): Boolean {
+        val friendUser = getUserByPhone(friendPhone) ?: return false
+        val relation = friends.find { it.userId == friendUser.id && it.friendId == userId && it.status == "pending" }
+        return if (relation != null) {
+            relation.status = "accepted"
+            true
+        } else false
+    }
+
+    fun rejectFriendRequest(userId: Int, friendPhone: String): Boolean {
+        val friendUser = getUserByPhone(friendPhone) ?: return false
+        val relation = friends.find { it.userId == friendUser.id && it.friendId == userId && it.status == "pending" }
+        return if (relation != null) {
+            relation.status = "rejected"
+            true
+        } else false
+    }
+
+    fun getFriends(userId: Int): List<User> {
+        val friendIds = friends.filter {
+            (it.userId == userId || it.friendId == userId) && it.status == "accepted"
+        }.map { if (it.userId == userId) it.friendId else it.userId }
+        return users.map { it.first }.filter { it.id in friendIds }
+    }
+
+    fun removeFriend(userId: Int, friendPhone: String): Boolean {
+        val friendUser = getUserByPhone(friendPhone) ?: return false
+        return friends.removeIf {
+            (it.userId == userId && it.friendId == friendUser.id) ||
+                    (it.friendId == userId && it.userId == friendUser.id)
+        }
     }
 }
