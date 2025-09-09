@@ -18,7 +18,6 @@ internal fun Routing.authRoutes() {
     route("/auth") {
         post("/register") {
             val req = call.receive<RegisterRequest>()
-            logIt(req.toString())
 
             val registerRes = FakeDatabase.register(req.username, req.phone, req.password)
 
@@ -33,7 +32,6 @@ internal fun Routing.authRoutes() {
 
         post("/login") {
             val req = call.receive<LoginRequest>()
-            logIt(req.toString())
 
             val loginRes = FakeDatabase.login(req.phone, req.password)
 
@@ -56,5 +54,3 @@ internal fun Routing.authRoutes() {
         }
     }
 }
-
-fun logIt(msg: String) = println("LOG -> $msg")

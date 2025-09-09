@@ -6,5 +6,6 @@ import io.ktor.server.routing.routing
 internal fun Application.routing() {
     routing {
         authRoutes()
+        groupsRoutes()
     }
 }

@@ -16,3 +16,23 @@ data class AuthResponse(
 
 @Serializable
 data class User(val id: Int, val username: String, val phone: String)
+
+@Serializable
+data class Group(
+    val id: Int,
+    val name: String,
+    val ownerId: Int,
+    val members: List<User> = emptyList(),
+    val totalDebt: Double = 0.0,
+    val totalCredit: Double = 0.0
+)
+
+@Serializable
+data class DashboardData(
+    val groups: List<Group> = emptyList(),
+    val totalDebt: Double = 0.0,
+    val totalCredit: Double = 0.0
+)
+
+@Serializable
+data class CreateGroupRequest(val name: String)
