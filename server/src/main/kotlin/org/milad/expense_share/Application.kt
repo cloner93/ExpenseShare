@@ -7,25 +7,12 @@ import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import org.milad.expense_share.routing.routing
 import org.slf4j.event.Level
 
-fun main() {
-    embeddedServer(
-        factory = Netty,
-        port = 8080,
-        host = "0.0.0.0",
-        module = Application::module
-    ).start(wait = true)
-}
-
-fun Application.module() {
-    configureSecurity()
-
+fun Application.main() {
     install(ContentNegotiation) {
         json()
     }
@@ -34,10 +21,13 @@ fun Application.module() {
         filter { call -> true }
     }
 
+    configureSecurity()
+
     routing()
 }
 
 fun Application.configureSecurity() {
+
     JwtConfig.init(environment.config)
 
     install(Authentication) {

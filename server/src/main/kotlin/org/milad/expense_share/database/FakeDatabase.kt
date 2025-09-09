@@ -6,7 +6,7 @@ import org.milad.expense_share.model.User
 
 object FakeDatabase {
     private val users = mutableListOf<Pair<User, String>>(
-        User(0,"cloner93","09137511005") to "1234"
+//        User(0,"cloner93","09137511005") to "1234"
     )
     private var lastId = 0
 

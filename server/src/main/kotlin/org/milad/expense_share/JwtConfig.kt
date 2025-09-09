@@ -14,12 +14,12 @@ object JwtConfig {
 
     private lateinit var algorithm: Algorithm
 
-
     fun init(config: ApplicationConfig) {
-        secret = config.property("ktor.jwt.secret").getString()
-        issuer = config.propertyOrNull("ktor.jwt.issuer")?.getString() ?:""
-        realm = config.propertyOrNull("ktor.jwt.realm")?.getString()?:""
-        validityInMs = config.propertyOrNull("ktor.jwt.validityMs")?.getString()?.toLong() ?: 0
+
+        secret = config.property("jwt.secret").getString()
+        issuer = config.property("jwt.issuer").getString()
+        realm = config.property("jwt.realm").getString()
+        validityInMs = config.property("jwt.validityMs").getString().toLong()
 
         algorithm = Algorithm.HMAC256(secret)
     }

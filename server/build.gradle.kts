@@ -8,7 +8,7 @@ plugins {
 group = "org.milad.expense_share"
 version = "1.0.0"
 application {
-    mainClass.set("org.milad.expense_share.ApplicationKt")
+    mainClass.set("io.ktor.server.netty.EngineMain")
     
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
