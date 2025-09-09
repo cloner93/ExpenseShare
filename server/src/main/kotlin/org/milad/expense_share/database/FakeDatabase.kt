@@ -8,9 +8,29 @@ import org.milad.expense_share.model.Group
 import org.milad.expense_share.model.User
 
 object FakeDatabase {
-    private val users = mutableListOf<Pair<User, String>>()
-    private val groups = mutableListOf<Group>()
-    private val friends = mutableListOf<FriendRelation>()
+    private val users = mutableListOf<Pair<User, String>>(
+        User(1, "Alice", "1234567890") to "password123",
+        User(2, "Bob", "0987654321") to "securepass",
+        User(3, "Charlie", "1122334455") to "charliepass",
+        User(4, "cloner93", "09137511005") to "12345"
+    )
+    private val groups = mutableListOf<Group>(
+        Group(
+            1,
+            "Trip to Berlin",
+            1,
+            listOf(users[0].first, users[1].first, users[2].first),
+            50.0,
+            20.0
+        ),
+        Group(2, "Dinner with Friends", 2, listOf(users[1].first, users[2].first), 15.0, 0.0),
+        Group(3, "Roommates", 1, listOf(users[0].first, users[2].first), 0.0, 30.0)
+    )
+    private val friends = mutableListOf<FriendRelation>(
+        FriendRelation(1, 2, "accepted"),
+        FriendRelation(1, 3, "pending"),
+        FriendRelation(2, 3, "rejected")
+    )
     private var lastId = 0
 
     fun register(username: String, phone: String, password: String): AuthResponse {
@@ -81,7 +101,8 @@ object FakeDatabase {
 
     fun acceptFriendRequest(userId: Int, friendPhone: String): Boolean {
         val friendUser = getUserByPhone(friendPhone) ?: return false
-        val relation = friends.find { it.userId == friendUser.id && it.friendId == userId && it.status == "pending" }
+        val relation =
+            friends.find { it.userId == friendUser.id && it.friendId == userId && it.status == "pending" }
         return if (relation != null) {
             relation.status = "accepted"
             true
@@ -90,7 +111,8 @@ object FakeDatabase {
 
     fun rejectFriendRequest(userId: Int, friendPhone: String): Boolean {
         val friendUser = getUserByPhone(friendPhone) ?: return false
-        val relation = friends.find { it.userId == friendUser.id && it.friendId == userId && it.status == "pending" }
+        val relation =
+            friends.find { it.userId == friendUser.id && it.friendId == userId && it.status == "pending" }
         return if (relation != null) {
             relation.status = "rejected"
             true

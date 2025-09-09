@@ -1,6 +1,5 @@
 package org.milad.expense_share.routing
 
-import com.sun.tools.jdeprscan.Main.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
