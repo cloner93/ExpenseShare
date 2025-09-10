@@ -19,12 +19,19 @@ object FakeDatabase {
             1,
             "Trip to Berlin",
             1,
-            listOf(users[0].first, users[1].first, users[2].first),
+            mutableListOf(users[0].first.id, users[1].first.id, users[2].first.id),
             50.0,
             20.0
         ),
-        Group(2, "Dinner with Friends", 2, listOf(users[1].first, users[2].first), 15.0, 0.0),
-        Group(3, "Roommates", 1, listOf(users[0].first, users[2].first), 0.0, 30.0)
+        Group(
+            2,
+            "Dinner with Friends",
+            2,
+            mutableListOf(users[1].first.id, users[2].first.id),
+            15.0,
+            0.0
+        ),
+        Group(3, "Roommates", 1, mutableListOf(users[0].first.id, users[2].first.id), 0.0, 30.0)
     )
     private val friends = mutableListOf<FriendRelation>(
         FriendRelation(1, 2, "accepted"),
@@ -57,10 +64,33 @@ object FakeDatabase {
         }
     }
 
-    fun createGroup(ownerId: Int, name: String): Group {
-        val group = Group(groups.size + 1, name, ownerId)
+    fun createGroup(ownerId: Int, name: String, members: List<Int>): Group {
+        val group = Group(
+            id = groups.size + 1,
+            name = name,
+            ownerId = ownerId,
+            members = mutableListOf(ownerId)
+        )
+
+        members.forEach { friends ->
+            if (!group.members.contains(friends))
+                group.members.add(friends)
+        }
+
         groups.add(group)
         return group
+    }
+
+    fun addUserToGroup(ownerId: Int, groupId: Int, memberIds: List<Int>) {
+        val group = groups.find { it.id == groupId && it.ownerId == ownerId }
+            ?: throw IllegalArgumentException("Group not found")
+
+        group.members.clear()
+        group.members.add(ownerId)
+
+        memberIds.forEach { friends ->
+            group.members.add(friends)
+        }
     }
 
     fun getGroupsOfUser(userId: Int): DashboardData {
@@ -132,5 +162,11 @@ object FakeDatabase {
             (it.userId == userId && it.friendId == friendUser.id) ||
                     (it.friendId == userId && it.userId == friendUser.id)
         }
+    }
+
+    fun removeGroup(ownerId: Int, groupId: Int): Boolean {
+        val group = groups.find { it.ownerId == ownerId && it.id == groupId }
+
+        return groups.remove(group)
     }
 }

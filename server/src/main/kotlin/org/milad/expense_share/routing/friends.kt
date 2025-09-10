@@ -26,7 +26,7 @@ fun Routing.friendRoutes() {
                 call.respond(friends)
             }
 
-            // لیست درخواست‌های دوستی (pending)
+            // لیست درخواست‌های دوستی ارسال شده (pending)
             get("/requests") {
                 val principal = call.principal<JWTPrincipal>()!!
                 val userId = principal.payload.getClaim("id").asInt()

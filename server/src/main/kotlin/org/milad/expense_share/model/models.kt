@@ -22,7 +22,7 @@ data class Group(
     val id: Int,
     val name: String,
     val ownerId: Int,
-    val members: List<User> = emptyList(),
+    val members: MutableList<Int>,
     val totalDebt: Double = 0.0,
     val totalCredit: Double = 0.0
 )
@@ -35,7 +35,16 @@ data class DashboardData(
 )
 
 @Serializable
-data class CreateGroupRequest(val name: String)
+data class CreateGroupRequest(
+    val name: String,
+    val memberIds: List<Int> = emptyList()
+)
+
+
+@Serializable
+data class AddUserRequest(
+    val memberIds: List<Int> = emptyList()
+)
 
 @Serializable
 data class FriendRelation(
