@@ -61,3 +61,31 @@ data class FriendRequestsResponse(
     val incoming: List<User>,
     val outgoing: List<User>
 )
+
+@Serializable
+enum class TransactionStatus {
+    PENDING,
+    APPROVED,
+    REJECTED
+}
+
+@Serializable
+data class Transaction(
+    val id: Int,
+    val groupId: Int,
+    val title: String,
+    val amount: Double,
+    val description: String,
+    val createdBy: Int,
+    var status: TransactionStatus = TransactionStatus.PENDING,
+    val createdAt: Long = System.currentTimeMillis(),
+    val transactionDate: Long = System.currentTimeMillis(),
+    var approvedBy: Int? = null
+)
+
+@Serializable
+data class CreateTransactionRequest(
+    val title: String,
+    val amount: Double,
+    val description: String
+)
