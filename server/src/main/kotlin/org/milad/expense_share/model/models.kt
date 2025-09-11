@@ -22,9 +22,13 @@ data class Group(
     val id: Int,
     val name: String,
     val ownerId: Int,
-    val members: MutableList<Int>,
     val totalDebt: Double = 0.0,
     val totalCredit: Double = 0.0
+)
+@Serializable
+data class GroupMember(
+    val groupId: Int,
+    val userId: Int
 )
 
 @Serializable

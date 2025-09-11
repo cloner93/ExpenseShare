@@ -5,6 +5,7 @@ import org.milad.expense_share.model.AuthResponse
 import org.milad.expense_share.model.DashboardData
 import org.milad.expense_share.model.FriendRelation
 import org.milad.expense_share.model.Group
+import org.milad.expense_share.model.GroupMember
 import org.milad.expense_share.model.Transaction
 import org.milad.expense_share.model.TransactionStatus
 import org.milad.expense_share.model.User
@@ -17,8 +18,15 @@ object FakeDatabase {
         User(4, "Niloofar", "09120000004") to "pass4"
     )
     private val groups = mutableListOf<Group>(
-        Group(id = 1, name = "Trip to North", ownerId = 1, members = mutableListOf(1, 2, 3)),
-        Group(id = 2, name = "Work Lunch", ownerId = 2, members = mutableListOf(2, 4))
+        Group(id = 1, name = "Trip to North", ownerId = 1),
+        Group(id = 2, name = "Work Lunch", ownerId = 2)
+    )
+    private val groupMembers = mutableListOf<GroupMember>(
+        GroupMember(groupId = 1, userId = 1),
+        GroupMember(groupId = 1, userId = 2),
+        GroupMember(groupId = 1, userId = 3),
+        GroupMember(groupId = 2, userId = 2),
+        GroupMember(groupId = 2, userId = 4)
     )
     private val friends = mutableListOf<FriendRelation>(
         FriendRelation(1, 2, "accepted"),
@@ -81,32 +89,38 @@ object FakeDatabase {
         }
     }
 
-    fun createGroup(ownerId: Int, name: String, members: List<Int>): Group {
+    fun createGroup(ownerId: Int, name: String, memberIds: List<Int>): Group {
         val group = Group(
             id = groups.size + 1,
             name = name,
-            ownerId = ownerId,
-            members = mutableListOf(ownerId)
+            ownerId = ownerId
         )
 
-        members.forEach { friends ->
-            if (!group.members.contains(friends))
-                group.members.add(friends)
+        groups.add(group)
+
+        groupMembers.add(GroupMember(groupId = group.id, userId = ownerId))
+
+        memberIds.forEach { memberId ->
+            if (!groupMembers.any { it.groupId == group.id && it.userId == memberId }) {
+                groupMembers.add(GroupMember(groupId = group.id, userId = memberId))
+            }
         }
 
-        groups.add(group)
         return group
     }
 
-    fun addUserToGroup(ownerId: Int, groupId: Int, memberIds: List<Int>) : Boolean{
-        val group = groups.find { it.id == groupId && it.ownerId == ownerId }
-            ?: throw IllegalArgumentException("Group not found")
+    fun addUserToGroup(ownerId: Int, groupId: Int, memberIds: List<Int>): Boolean {
+        groups.find { it.id == groupId && it.ownerId == ownerId }
+            ?: throw IllegalArgumentException("Group not found or you are not the owner")
 
-        group.members.clear()
-        group.members.add(ownerId)
+        groupMembers.removeIf { it.groupId == groupId }
 
-        memberIds.forEach { friends ->
-            group.members.add(friends)
+        groupMembers.add(GroupMember(groupId = groupId, userId = ownerId))
+
+        memberIds.forEach { memberId ->
+            if (!groupMembers.any { it.groupId == groupId && it.userId == memberId }) {
+                groupMembers.add(GroupMember(groupId = groupId, userId = memberId))
+            }
         }
 
         return true
