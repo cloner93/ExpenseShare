@@ -89,3 +89,9 @@ data class CreateTransactionRequest(
     val amount: Double,
     val description: String
 )
+
+@Serializable
+data class ErrorResponse(val error: String, val code: String? = null)
+
+@Serializable
+data class SuccessResponse(val message: String, val success: Boolean = true)

@@ -15,139 +15,168 @@ import org.milad.expense_share.database.FakeDatabase
 import org.milad.expense_share.model.AddUserRequest
 import org.milad.expense_share.model.CreateGroupRequest
 import org.milad.expense_share.model.CreateTransactionRequest
+import org.milad.expense_share.model.ErrorResponse
+import org.milad.expense_share.utils.getIntParameter
+import org.milad.expense_share.utils.getUserId
 
 internal fun Routing.groupsRoutes() {
     route("/groups") {
         authenticate("auth-jwt") {
+
             post("/create") {
+                val userId = call.principal<JWTPrincipal>().getUserId()
+                    ?: return@post call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid token"))
 
-                val principal = call.principal<JWTPrincipal>()
-                val userId = principal!!.payload.getClaim("id").asInt()
-
-                val req = call.receive<CreateGroupRequest>()
-
-                val group = FakeDatabase.createGroup(userId, req.name, req.memberIds)
-
-                call.respond(group)
+                try {
+                    val request = call.receive<CreateGroupRequest>()
+                    val group = FakeDatabase.createGroup(userId, request.name, request.memberIds)
+                    call.respond(HttpStatusCode.Created, group)
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request format: ${e.message}"))
+                }
             }
 
             get {
-                val principal = call.principal<JWTPrincipal>()
-                val userId = principal!!.payload.getClaim("id").asInt()
+                val userId = call.principal<JWTPrincipal>().getUserId()
+                    ?: return@get call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid token"))
 
-                val groups = FakeDatabase.getGroupsOfUser(userId)
-                call.respond(groups)
+                try {
+                    val groups = FakeDatabase.getGroupsOfUser(userId)
+                    call.respond(HttpStatusCode.OK, groups)
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Failed to fetch groups: ${e.message}"))
+                }
             }
 
             post("/{groupId}/updateMembers") {
-                val principal = call.principal<JWTPrincipal>()
-                val userId = principal!!.payload.getClaim("id").asInt()
+                val userId = call.principal<JWTPrincipal>().getUserId()
+                    ?: return@post call.respond(HttpStatusCode.Unauthorized,
+                        ErrorResponse("Invalid token")
+                    )
 
-                val groupId = call.parameters["groupId"]?.toIntOrNull()
-                    ?: return@post call.respond(HttpStatusCode.BadRequest, "Invalid groupId")
+                val groupId = call.getIntParameter("groupId")
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid group ID"))
 
-                val req = call.receive<AddUserRequest>()
-                FakeDatabase.addUserToGroup(userId, groupId, req.memberIds)
+                try {
+                    val request = call.receive<AddUserRequest>()
+                    val success = FakeDatabase.addUserToGroup(userId, groupId, request.memberIds)
 
-                call.respond(HttpStatusCode.OK, "User added successfully")
+                    if (success) {
+                        call.respond(HttpStatusCode.OK, mapOf("message" to "Users added successfully"))
+                    } else {
+                        call.respond(HttpStatusCode.Forbidden, ErrorResponse("Only group owner can add members"))
+                    }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request format: ${e.message}"))
+                }
             }
 
             delete("/{groupId}") {
-                val principal = call.principal<JWTPrincipal>()!!
-                val userId = principal.payload.getClaim("id").asInt()
+                val userId = call.principal<JWTPrincipal>().getUserId()
+                    ?: return@delete call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid token"))
 
-                val groupId = call.parameters["groupId"]?.toIntOrNull()
-                    ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid groupId")
+                val groupId = call.getIntParameter("groupId")
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid group ID"))
 
-                val success = FakeDatabase.removeGroup(userId, groupId)
-                if (success) {
-                    call.respond(HttpStatusCode.OK, "Group deleted successfully")
-                } else {
-                    call.respond(HttpStatusCode.Forbidden, "Only the owner can delete the group")
+                try {
+                    val success = FakeDatabase.removeGroup(userId, groupId)
+                    if (success) {
+                        call.respond(HttpStatusCode.OK, mapOf("message" to "Group deleted successfully"))
+                    } else {
+                        call.respond(HttpStatusCode.Forbidden, ErrorResponse("Only group owner can delete the group"))
+                    }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Failed to delete group: ${e.message}"))
                 }
             }
 
             route("/{groupId}/transactions") {
+
                 post {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.getClaim("id").asInt()
-                    val groupId = call.parameters["groupId"]?.toIntOrNull()
-                    val req = call.receive<CreateTransactionRequest>()
-                    if (groupId == null) {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid groupId")
-                    } else {
-                        val tx = FakeDatabase.createTransaction(
-                            groupId,
-                            userId,
-                            req.title,
-                            req.amount,
-                            req.description
+                    val userId = call.principal<JWTPrincipal>().getUserId()
+                        ?: return@post call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid token"))
+
+                    val groupId = call.getIntParameter("groupId")
+                        ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid group ID"))
+
+                    try {
+                        val request = call.receive<CreateTransactionRequest>()
+                        val transaction = FakeDatabase.createTransaction(
+                            groupId = groupId,
+                            userId = userId,
+                            title = request.title,
+                            amount = request.amount,
+                            description = request.description
                         )
-                        if (tx != null) call.respond(tx) else call.respond(
-                            HttpStatusCode.BadRequest,
-                            "Group not found"
-                        )
+
+                        if (transaction != null) {
+                            call.respond(HttpStatusCode.Created, transaction)
+                        } else {
+                            call.respond(HttpStatusCode.NotFound, ErrorResponse("Group not found or access denied"))
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request format: ${e.message}"))
                     }
                 }
 
                 get {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.getClaim("id").asInt()
-                    val groupId = call.parameters["groupId"]?.toIntOrNull()
+                    val userId = call.principal<JWTPrincipal>().getUserId()
+                        ?: return@get call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid token"))
 
-                    if (groupId == null) {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid groupId")
-                    } else {
-                        val txs = FakeDatabase.getTransactions(userId,groupId)
-                        call.respond(txs)
+                    val groupId = call.getIntParameter("groupId")
+                        ?: return@get call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid group ID"))
+
+                    try {
+                        val transactions = FakeDatabase.getTransactions(userId, groupId)
+                        call.respond(HttpStatusCode.OK, transactions)
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Failed to fetch transactions: ${e.message}"))
                     }
                 }
 
                 post("/{transactionId}/approve") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val managerId = principal!!.payload.getClaim("id").asInt()
-                    val transactionId = call.parameters["transactionId"]?.toIntOrNull()
-                    if (transactionId == null) {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid transactionId")
-                    } else {
-                        val success = FakeDatabase.approveTransaction(transactionId, managerId)
-                        if (success) call.respond(
-                            HttpStatusCode.OK,
-                            "Transaction approved"
-                        ) else call.respond(HttpStatusCode.Forbidden, "Only owner can approve")
-                    }
+                    handleTransactionAction(
+                        actionName = "approve",
+                        action = FakeDatabase::approveTransaction
+                    )
                 }
 
                 post("/{transactionId}/reject") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val managerId = principal!!.payload.getClaim("id").asInt()
-                    val transactionId = call.parameters["transactionId"]?.toIntOrNull()
-                    if (transactionId == null) {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid transactionId")
-                    } else {
-                        val success = FakeDatabase.rejectTransaction(transactionId, managerId)
-                        if (success) call.respond(
-                            HttpStatusCode.OK,
-                            "Transaction rejected"
-                        ) else call.respond(HttpStatusCode.Forbidden, "Only owner can reject")
-                    }
+                    handleTransactionAction(
+                        actionName = "reject",
+                        action = FakeDatabase::rejectTransaction
+                    )
                 }
 
                 delete("/{transactionId}") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val managerId = principal!!.payload.getClaim("id").asInt()
-                    val transactionId = call.parameters["transactionId"]?.toIntOrNull()
-                    if (transactionId == null) {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid transactionId")
-                    } else {
-                        val success = FakeDatabase.deleteTransaction(transactionId, managerId)
-                        if (success) call.respond(
-                            HttpStatusCode.OK,
-                            "Transaction deleted"
-                        ) else call.respond(HttpStatusCode.Forbidden, "Only owner can delete")
-                    }
+                    handleTransactionAction(
+                        actionName = "delete",
+                        action = FakeDatabase::deleteTransaction
+                    )
                 }
             }
         }
+    }
+}
+
+private suspend fun io.ktor.server.routing.RoutingContext.handleTransactionAction(
+    actionName: String,
+    action: (Int, Int) -> Boolean
+) {
+    val userId = call.principal<JWTPrincipal>().getUserId()
+        ?: return call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid token"))
+
+    val transactionId = call.getIntParameter("transactionId")
+        ?: return call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid transaction ID"))
+
+    try {
+        val success = action(transactionId, userId)
+        if (success) {
+            call.respond(HttpStatusCode.OK, mapOf("message" to "Transaction ${actionName}d successfully"))
+        } else {
+            call.respond(HttpStatusCode.Forbidden, ErrorResponse("Only group owner can $actionName transactions"))
+        }
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Failed to $actionName transaction: ${e.message}"))
     }
 }
