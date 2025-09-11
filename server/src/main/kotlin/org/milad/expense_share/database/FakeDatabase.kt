@@ -98,7 +98,7 @@ object FakeDatabase {
         return group
     }
 
-    fun addUserToGroup(ownerId: Int, groupId: Int, memberIds: List<Int>) {
+    fun addUserToGroup(ownerId: Int, groupId: Int, memberIds: List<Int>) : Boolean{
         val group = groups.find { it.id == groupId && it.ownerId == ownerId }
             ?: throw IllegalArgumentException("Group not found")
 
@@ -108,6 +108,8 @@ object FakeDatabase {
         memberIds.forEach { friends ->
             group.members.add(friends)
         }
+
+        return true
     }
 
     fun getGroupsOfUser(userId: Int): DashboardData {
