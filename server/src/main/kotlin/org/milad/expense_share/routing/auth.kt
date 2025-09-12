@@ -11,13 +11,16 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import org.milad.expense_share.database.FakeDatabase
+import org.milad.expense_share.database.InMemoryUserRepository
+import org.milad.expense_share.database.UserRepository
 import org.milad.expense_share.model.ErrorResponse
 import org.milad.expense_share.model.LoginRequest
 import org.milad.expense_share.model.RegisterRequest
 import org.milad.expense_share.utils.validate
 
 internal fun Routing.authRoutes() {
+    val userRepository : UserRepository= InMemoryUserRepository()
+
     route("/auth") {
         post("/register") {
             try {
@@ -32,7 +35,7 @@ internal fun Routing.authRoutes() {
                     )
                 }
 
-                val registerResult = FakeDatabase.register(
+                val registerResult = userRepository.register(
                     username = request.username.trim(),
                     phone = request.phone.trim(),
                     password = request.password
@@ -43,7 +46,7 @@ internal fun Routing.authRoutes() {
                 } else {
 
                     val statusCode = when {
-                        registerResult.message.contains("already exists", true) -> HttpStatusCode.Conflict
+                        registerResult.message.contains("Phone already registered", true) -> HttpStatusCode.Conflict
                         else -> HttpStatusCode.BadRequest
                     }
                     call.respond(statusCode, registerResult)
@@ -68,7 +71,7 @@ internal fun Routing.authRoutes() {
                     )
                 }
 
-                val loginResult = FakeDatabase.login(
+                val loginResult = userRepository.login(
                     phone = request.phone.trim(),
                     password = request.password
                 )

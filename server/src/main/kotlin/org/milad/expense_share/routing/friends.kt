@@ -11,7 +11,8 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import org.milad.expense_share.database.FakeDatabase
+import org.milad.expense_share.database.FriendRepository
+import org.milad.expense_share.database.InMemoryFriendRepository
 import org.milad.expense_share.model.ErrorResponse
 import org.milad.expense_share.model.FriendRequestDto
 import org.milad.expense_share.model.FriendRequestsResponse
@@ -20,6 +21,7 @@ import org.milad.expense_share.utils.getStringParameter
 import org.milad.expense_share.utils.getUserId
 
 internal fun Routing.friendRoutes() {
+    val friendRepository: FriendRepository = InMemoryFriendRepository()
     authenticate("auth-jwt") {
         route("/friends") {
 
@@ -30,7 +32,7 @@ internal fun Routing.friendRoutes() {
                     )
 
                 try {
-                    val friends = FakeDatabase.getFriends(userId)
+                    val friends = friendRepository.getFriends(userId)
                     call.respond(HttpStatusCode.OK, friends)
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Failed to fetch friends: ${e.message}"))
@@ -42,8 +44,8 @@ internal fun Routing.friendRoutes() {
                     ?: return@get call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid token"))
 
                 try {
-                    val incoming = FakeDatabase.getIncomingRequests(userId)
-                    val outgoing = FakeDatabase.getOutgoingRequests(userId)
+                    val incoming = friendRepository.getIncomingRequests(userId)
+                    val outgoing = friendRepository.getOutgoingRequests(userId)
 
                     call.respond(HttpStatusCode.OK, FriendRequestsResponse(incoming, outgoing))
                 } catch (e: Exception) {
@@ -63,7 +65,7 @@ internal fun Routing.friendRoutes() {
                         return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Phone number is required"))
                     }
 
-                    val success = FakeDatabase.sendFriendRequest(userId, request.phone)
+                    val success = friendRepository.sendFriendRequest(userId, request.phone)
 
                     if (success) {
                         call.respond(HttpStatusCode.OK,
@@ -81,7 +83,7 @@ internal fun Routing.friendRoutes() {
                 handleFriendRequestAction(
                     actionName = "accept",
                     successMessage = "Friend request accepted successfully",
-                    action = FakeDatabase::acceptFriendRequest
+                    action = friendRepository::acceptFriendRequest
                 )
             }
 
@@ -89,7 +91,7 @@ internal fun Routing.friendRoutes() {
                 handleFriendRequestAction(
                     actionName = "reject",
                     successMessage = "Friend request rejected successfully",
-                    action = FakeDatabase::rejectFriendRequest
+                    action = friendRepository::rejectFriendRequest
                 )
             }
 
@@ -101,7 +103,7 @@ internal fun Routing.friendRoutes() {
                     ?: return@delete call.respond(HttpStatusCode.BadRequest, ErrorResponse("Phone number is required"))
 
                 try {
-                    val success = FakeDatabase.removeFriend(userId, phone)
+                    val success = friendRepository.removeFriend(userId, phone)
 
                     if (success) {
                         call.respond(HttpStatusCode.OK, SuccessResponse("Friend removed successfully"))

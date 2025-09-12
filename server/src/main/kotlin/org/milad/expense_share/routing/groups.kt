@@ -11,7 +11,10 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import org.milad.expense_share.database.FakeDatabase
+import org.milad.expense_share.database.GroupRepository
+import org.milad.expense_share.database.InMemoryGroupRepository
+import org.milad.expense_share.database.InMemoryTransactionRepository
+import org.milad.expense_share.database.TransactionRepository
 import org.milad.expense_share.model.AddUserRequest
 import org.milad.expense_share.model.CreateGroupRequest
 import org.milad.expense_share.model.CreateTransactionRequest
@@ -20,8 +23,11 @@ import org.milad.expense_share.utils.getIntParameter
 import org.milad.expense_share.utils.getUserId
 
 internal fun Routing.groupsRoutes() {
-    route("/groups") {
-        authenticate("auth-jwt") {
+    val groupRepository: GroupRepository = InMemoryGroupRepository()
+    val transactionRepository: TransactionRepository = InMemoryTransactionRepository()
+
+    authenticate("auth-jwt") {
+        route("/groups") {
 
             post("/create") {
                 val userId = call.principal<JWTPrincipal>().getUserId()
@@ -29,7 +35,7 @@ internal fun Routing.groupsRoutes() {
 
                 try {
                     val request = call.receive<CreateGroupRequest>()
-                    val group = FakeDatabase.createGroup(userId, request.name, request.memberIds)
+                    val group = groupRepository.createGroup(userId, request.name, request.memberIds)
                     call.respond(HttpStatusCode.Created, group)
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request format: ${e.message}"))
@@ -41,7 +47,7 @@ internal fun Routing.groupsRoutes() {
                     ?: return@get call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid token"))
 
                 try {
-                    val groups = FakeDatabase.getGroupsOfUser(userId)
+                    val groups = groupRepository.getGroupsOfUser(userId)
                     call.respond(HttpStatusCode.OK, groups)
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Failed to fetch groups: ${e.message}"))
@@ -59,7 +65,8 @@ internal fun Routing.groupsRoutes() {
 
                 try {
                     val request = call.receive<AddUserRequest>()
-                    val success = FakeDatabase.addUserToGroup(userId, groupId, request.memberIds)
+                    val success =
+                        groupRepository.addUsersToGroup(userId, groupId, request.memberIds)
 
                     if (success) {
                         call.respond(HttpStatusCode.OK, mapOf("message" to "Users added successfully"))
@@ -79,7 +86,7 @@ internal fun Routing.groupsRoutes() {
                     ?: return@delete call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid group ID"))
 
                 try {
-                    val success = FakeDatabase.removeGroup(userId, groupId)
+                    val success = groupRepository.deleteGroup(userId, groupId)
                     if (success) {
                         call.respond(HttpStatusCode.OK, mapOf("message" to "Group deleted successfully"))
                     } else {
@@ -101,7 +108,7 @@ internal fun Routing.groupsRoutes() {
 
                     try {
                         val request = call.receive<CreateTransactionRequest>()
-                        val transaction = FakeDatabase.createTransaction(
+                        val transaction = transactionRepository.createTransaction(
                             groupId = groupId,
                             userId = userId,
                             title = request.title,
@@ -127,7 +134,7 @@ internal fun Routing.groupsRoutes() {
                         ?: return@get call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid group ID"))
 
                     try {
-                        val transactions = FakeDatabase.getTransactions(userId, groupId)
+                        val transactions = transactionRepository.getTransactions(userId, groupId)
                         call.respond(HttpStatusCode.OK, transactions)
                     } catch (e: Exception) {
                         call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Failed to fetch transactions: ${e.message}"))
@@ -137,21 +144,21 @@ internal fun Routing.groupsRoutes() {
                 post("/{transactionId}/approve") {
                     handleTransactionAction(
                         actionName = "approve",
-                        action = FakeDatabase::approveTransaction
+                        action = transactionRepository::approveTransaction
                     )
                 }
 
                 post("/{transactionId}/reject") {
                     handleTransactionAction(
                         actionName = "reject",
-                        action = FakeDatabase::rejectTransaction
+                        action = transactionRepository::rejectTransaction
                     )
                 }
 
                 delete("/{transactionId}") {
                     handleTransactionAction(
                         actionName = "delete",
-                        action = FakeDatabase::deleteTransaction
+                        action = transactionRepository::deleteTransaction
                     )
                 }
             }
