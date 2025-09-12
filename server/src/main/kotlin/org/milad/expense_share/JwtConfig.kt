@@ -3,7 +3,7 @@ package org.milad.expense_share
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.server.config.ApplicationConfig
-import org.milad.expense_share.model.User
+import org.milad.expense_share.database.models.User
 import java.util.*
 
 object JwtConfig {
