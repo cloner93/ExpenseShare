@@ -1,10 +1,10 @@
-package org.milad.expense_share
+package org.milad.expense_share.security
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.server.config.ApplicationConfig
-import org.milad.expense_share.database.models.User
-import java.util.*
+import org.milad.expense_share.data.models.User
+import java.util.Date
 
 object JwtConfig {
     private lateinit var secret: String
@@ -23,6 +23,7 @@ object JwtConfig {
 
         algorithm = Algorithm.HMAC256(secret)
     }
+
     fun generateToken(user: User): String {
         return JWT.create()
             .withSubject("Authentication")

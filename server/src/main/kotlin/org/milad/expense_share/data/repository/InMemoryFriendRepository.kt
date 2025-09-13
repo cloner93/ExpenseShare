@@ -1,20 +1,11 @@
-package org.milad.expense_share.database
+package org.milad.expense_share.data.repository
 
-import org.milad.expense_share.database.FakeDatabase.friends
-import org.milad.expense_share.database.FakeDatabase.users
-import org.milad.expense_share.database.models.FriendRelation
-import org.milad.expense_share.database.models.FriendRelationStatus
-import org.milad.expense_share.database.models.User
-
-interface FriendRepository {
-    fun sendFriendRequest(fromId: Int, toPhone: String): Boolean
-    fun removeFriend(userId: Int, friendPhone: String): Boolean
-    fun getFriends(userId: Int): List<User>
-    fun rejectFriendRequest(userId: Int, friendPhone: String): Boolean
-    fun acceptFriendRequest(userId: Int, friendPhone: String): Boolean
-    fun getIncomingRequests(userId: Int): List<User>
-    fun getOutgoingRequests(userId: Int): List<User>
-}
+import org.milad.expense_share.data.db.FakeDatabase.friends
+import org.milad.expense_share.data.db.FakeDatabase.users
+import org.milad.expense_share.data.models.FriendRelation
+import org.milad.expense_share.data.models.FriendRelationStatus
+import org.milad.expense_share.data.models.User
+import org.milad.expense_share.domain.repository.FriendRepository
 class InMemoryFriendRepository : FriendRepository {
 
     fun getUserByPhone(phone: String): User? {
@@ -70,14 +61,16 @@ class InMemoryFriendRepository : FriendRepository {
     }
 
     override fun getIncomingRequests(userId: Int): List<User> {
-        val incomingIds = friends.filter { it.friendId == userId && it.status == FriendRelationStatus.PENDING }
-            .map { it.userId }
+        val incomingIds =
+            friends.filter { it.friendId == userId && it.status == FriendRelationStatus.PENDING }
+                .map { it.userId }
         return users.map { it.first }.filter { it.id in incomingIds }
     }
 
     override fun getOutgoingRequests(userId: Int): List<User> {
-        val outgoingIds = friends.filter { it.userId == userId && it.status == FriendRelationStatus.PENDING }
-            .map { it.friendId }
+        val outgoingIds =
+            friends.filter { it.userId == userId && it.status == FriendRelationStatus.PENDING }
+                .map { it.friendId }
         return users.map { it.first }.filter { it.id in outgoingIds }
     }
 }

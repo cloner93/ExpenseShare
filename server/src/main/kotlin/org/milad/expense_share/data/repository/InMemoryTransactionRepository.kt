@@ -1,24 +1,10 @@
-package org.milad.expense_share.database
+package org.milad.expense_share.data.repository
 
-import org.milad.expense_share.database.FakeDatabase.groups
-import org.milad.expense_share.database.FakeDatabase.transactions
-import org.milad.expense_share.database.models.Transaction
-import org.milad.expense_share.database.models.TransactionStatus
-
-interface TransactionRepository {
-    fun createTransaction(
-        groupId: Int,
-        userId: Int,
-        title: String,
-        amount: Double,
-        description: String
-    ): Transaction?
-
-    fun getTransactions(userId: Int, groupId: Int): List<Transaction>
-    fun approveTransaction(transactionId: Int, managerId: Int): Boolean
-    fun rejectTransaction(transactionId: Int, managerId: Int): Boolean
-    fun deleteTransaction(transactionId: Int, managerId: Int): Boolean
-}
+import org.milad.expense_share.data.db.FakeDatabase.groups
+import org.milad.expense_share.data.db.FakeDatabase.transactions
+import org.milad.expense_share.data.models.Transaction
+import org.milad.expense_share.data.models.TransactionStatus
+import org.milad.expense_share.domain.repository.TransactionRepository
 
 class InMemoryTransactionRepository : TransactionRepository {
     override fun createTransaction(

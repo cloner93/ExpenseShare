@@ -1,7 +1,7 @@
 package org.milad.expense_share.model
 
 import kotlinx.serialization.Serializable
-import org.milad.expense_share.database.models.User
+import org.milad.expense_share.data.models.User
 
 @Serializable
 data class RegisterRequest(val username: String, val phone: String, val password: String)
@@ -9,13 +9,6 @@ data class RegisterRequest(val username: String, val phone: String, val password
 @Serializable
 data class LoginRequest(val phone: String, val password: String)
 
-@Serializable
-data class AuthResponse(
-    val success: Boolean,
-    val message: String,
-    val token: String? = null,
-    val user: User? = null
-)
 
 @Serializable
 data class CreateGroupRequest(

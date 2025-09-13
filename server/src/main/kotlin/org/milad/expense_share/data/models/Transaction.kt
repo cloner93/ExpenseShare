@@ -1,4 +1,4 @@
-package org.milad.expense_share.database.models
+package org.milad.expense_share.data.models
 
 import kotlinx.serialization.Serializable
 

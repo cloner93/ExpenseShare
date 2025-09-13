@@ -1,12 +1,12 @@
-package org.milad.expense_share.database
+package org.milad.expense_share.data.db
 
-import org.milad.expense_share.database.models.FriendRelation
-import org.milad.expense_share.database.models.FriendRelationStatus
-import org.milad.expense_share.database.models.Group
-import org.milad.expense_share.database.models.GroupMember
-import org.milad.expense_share.database.models.Transaction
-import org.milad.expense_share.database.models.TransactionStatus
-import org.milad.expense_share.database.models.User
+import org.milad.expense_share.data.models.FriendRelation
+import org.milad.expense_share.data.models.FriendRelationStatus
+import org.milad.expense_share.data.models.Group
+import org.milad.expense_share.data.models.GroupMember
+import org.milad.expense_share.data.models.Transaction
+import org.milad.expense_share.data.models.TransactionStatus
+import org.milad.expense_share.data.models.User
 
 object FakeDatabase {
     val users = mutableListOf<Pair<User, String>>(

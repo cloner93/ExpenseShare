@@ -1,16 +1,10 @@
-package org.milad.expense_share.database
+package org.milad.expense_share.data.repository
 
-import org.milad.expense_share.database.FakeDatabase.groupMembers
-import org.milad.expense_share.database.FakeDatabase.groups
-import org.milad.expense_share.database.models.Group
-import org.milad.expense_share.database.models.GroupMember
-
-interface GroupRepository {
-    fun createGroup(ownerId: Int, name: String, memberIds: List<Int>): Group
-    fun addUsersToGroup(ownerId: Int, groupId: Int, memberIds: List<Int>): Boolean
-    fun getGroupsOfUser(userId: Int): List<Group>
-    fun deleteGroup(ownerId: Int, groupId: Int): Boolean
-}
+import org.milad.expense_share.data.db.FakeDatabase.groupMembers
+import org.milad.expense_share.data.db.FakeDatabase.groups
+import org.milad.expense_share.data.models.Group
+import org.milad.expense_share.data.models.GroupMember
+import org.milad.expense_share.domain.repository.GroupRepository
 
 class InMemoryGroupRepository : GroupRepository {
 
