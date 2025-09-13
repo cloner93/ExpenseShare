@@ -1,14 +1,14 @@
 package org.milad.expense_share.domain.service
 
-import org.milad.expense_share.security.JwtConfig
 import org.milad.expense_share.data.models.User
 import org.milad.expense_share.domain.model.AuthResponse
 import org.milad.expense_share.domain.repository.UserRepository
+import org.milad.expense_share.security.JwtConfig
 
 class AuthService(
     private val userRepository: UserRepository,
 ) {
-    suspend fun register(username: String, phone: String, password: String): Result<AuthResponse> {
+    fun register(username: String, phone: String, password: String): Result<AuthResponse> {
         return try {
             if (userRepository.findByPhone(phone) != null) {
                 return Result.failure(IllegalArgumentException("Phone already registered"))
@@ -34,7 +34,7 @@ class AuthService(
         }
     }
 
-    suspend fun login(phone: String, password: String): Result<AuthResponse> {
+    fun login(phone: String, password: String): Result<AuthResponse> {
         return try {
             val passwordHash = hashPassword(password)
             val user = userRepository.verifyUser(phone, passwordHash)

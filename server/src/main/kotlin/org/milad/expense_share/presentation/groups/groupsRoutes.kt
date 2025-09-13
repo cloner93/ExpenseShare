@@ -14,11 +14,11 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import org.milad.expense_share.domain.service.GroupService
 import org.milad.expense_share.domain.service.TransactionService
+import org.milad.expense_share.presentation.api_model.ErrorResponse
+import org.milad.expense_share.presentation.api_model.SuccessResponse
 import org.milad.expense_share.presentation.groups.model.AddUserRequest
 import org.milad.expense_share.presentation.groups.model.CreateGroupRequest
 import org.milad.expense_share.presentation.groups.model.CreateTransactionRequest
-import org.milad.expense_share.presentation.api_model.ErrorResponse
-import org.milad.expense_share.presentation.api_model.SuccessResponse
 import org.milad.expense_share.utils.getIntParameter
 import org.milad.expense_share.utils.getUserId
 
@@ -57,10 +57,21 @@ internal fun Routing.groupsRoutes(
                         ErrorResponse("Invalid token", "INVALID_TOKEN")
                     )
 
-                call.respond(
-                    HttpStatusCode.OK,
-                    SuccessResponse(data = groupService.getUserGroups(userId))
-                )
+                groupService.getUserGroups(userId).onSuccess {
+                    call.respond(
+                        HttpStatusCode.OK,
+                        SuccessResponse(data = it)
+                    )
+                }.onFailure {
+                    call.respond(
+                        HttpStatusCode.Forbidden,
+                        ErrorResponse(
+                            it.message ?: "Only group owner can add members",
+                            "NOT_GROUP_OWNER"
+                        )
+                    )
+                }
+
             }
 
             post("/{groupId}/updateMembers") {
@@ -83,8 +94,8 @@ internal fun Routing.groupsRoutes(
                         call.respond(
                             HttpStatusCode.Forbidden,
                             ErrorResponse(
-                                it.message ?: "Only group owner can add members",
-                                "NOT_GROUP_OWNER"
+                                it.message ?: "Filed to fetch data.",
+                                "FETCH_DATA_FAILED"
                             )
                         )
                     }

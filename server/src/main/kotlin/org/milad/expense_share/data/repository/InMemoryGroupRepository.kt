@@ -53,6 +53,10 @@ class InMemoryGroupRepository : GroupRepository {
         return true
     }
 
+    override fun getUsersOfGroup(groupId: Int): List<Int> {
+        return groupMembers.filter { it.groupId == groupId }.map { it.userId }
+    }
+
     override fun getGroupsOfUser(userId: Int): List<Group> {
         val list = groups.filter { it.ownerId == userId }
 

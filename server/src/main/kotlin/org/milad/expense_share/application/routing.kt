@@ -15,16 +15,25 @@ import org.milad.expense_share.presentation.friends.friendRoutes
 import org.milad.expense_share.presentation.groups.groupsRoutes
 
 internal fun Application.routing() {
+    val userRepository = InMemoryUserRepository()
+    val groupRepository = InMemoryGroupRepository()
+    val transactionRepository = InMemoryTransactionRepository()
+    val friendRepository = InMemoryFriendRepository()
+
     routing {
         authRoutes(
-            AuthService(InMemoryUserRepository())
+            AuthService(userRepository)
         )
         groupsRoutes(
-            GroupService(InMemoryGroupRepository()),
-            TransactionService(InMemoryTransactionRepository())
+            GroupService(
+                groupRepository = groupRepository,
+                userRepository = userRepository,
+                transactionRepository = transactionRepository
+            ),
+            TransactionService(transactionRepository)
         )
         friendRoutes(
-            FriendsService(InMemoryFriendRepository())
+            FriendsService(friendRepository)
         )
     }
 }

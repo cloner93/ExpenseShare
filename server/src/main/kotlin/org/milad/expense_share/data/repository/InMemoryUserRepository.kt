@@ -5,20 +5,24 @@ import org.milad.expense_share.data.models.User
 import org.milad.expense_share.domain.repository.UserRepository
 
 class InMemoryUserRepository : UserRepository {
-    override suspend fun create(user: User, passwordHash: String): User {
+    override fun create(user: User, passwordHash: String): User {
         users.add(user to passwordHash)
         return user
     }
 
-    override suspend fun findByPhone(phone: String): User? {
+    override fun findByPhone(phone: String): User? {
         return users.firstOrNull { it.first.phone == phone }?.first
     }
 
-    override suspend fun verifyUser(phone: String, passwordHash: String): User? {
+    override fun findById(id: Int): User? {
+        return users.firstOrNull { it.first.id == id }?.first
+    }
+
+    override fun verifyUser(phone: String, passwordHash: String): User? {
         return users.find { it.first.phone == phone && it.second == passwordHash }?.first
     }
 
-    override suspend fun lastIndexOfUser(): Int {
+    override fun lastIndexOfUser(): Int {
         return users.size
     }
 }
