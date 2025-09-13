@@ -3,7 +3,7 @@ package org.milad.expense_share.domain.service
 import org.milad.expense_share.data.models.User
 import org.milad.expense_share.domain.repository.FriendRepository
 
-class FriendService(private val repository: FriendRepository) {
+class FriendsService(private val repository: FriendRepository) {
 
     fun sendRequest(userId: Int, phone: String): Result<String> {
         return if (repository.sendFriendRequest(userId, phone)) {

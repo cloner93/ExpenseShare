@@ -8,27 +8,48 @@ import org.milad.expense_share.domain.repository.UserRepository
 class AuthService(
     private val userRepository: UserRepository,
 ) {
-    suspend fun register(username: String, phone: String, password: String): AuthResponse {
-        if (userRepository.findByPhone(phone) != null) {
-            return AuthResponse(false, "Phone already registered")
+    suspend fun register(username: String, phone: String, password: String): Result<AuthResponse> {
+        return try {
+            if (userRepository.findByPhone(phone) != null) {
+                return Result.failure(IllegalArgumentException("Phone already registered"))
+            }
+
+            val passwordHash = hashPassword(password)
+            val user = User(
+                id = userRepository.lastIndexOfUser() + 1,
+                username = username,
+                phone = phone
+            )
+            userRepository.create(user, passwordHash)
+
+            val token = JwtConfig.generateToken(user)
+            Result.success(
+                AuthResponse(
+                    token = token,
+                    user = user
+                )
+            )
+        } catch (e: Exception) {
+            Result.failure(e)
         }
-
-        val passwordHash = hashPassword(password)
-        val user =
-            User(id = userRepository.lastIndexOfUser() + 1, username = username, phone = phone)
-        userRepository.create(user, passwordHash)
-
-        val token = JwtConfig.generateToken(user)
-        return AuthResponse(true, "Registered successfully", token, user)
     }
 
-    suspend fun login(phone: String, password: String): AuthResponse {
-        val passwordHash = hashPassword(password)
-        val user = userRepository.verifyUser(phone, passwordHash)
-            ?: return AuthResponse(false, "Invalid phone or password")
+    suspend fun login(phone: String, password: String): Result<AuthResponse> {
+        return try {
+            val passwordHash = hashPassword(password)
+            val user = userRepository.verifyUser(phone, passwordHash)
+                ?: return Result.failure(IllegalArgumentException("Invalid phone or password"))
 
-        val token = JwtConfig.generateToken(user)
-        return AuthResponse(true, "Login successful", token, user)
+            val token = JwtConfig.generateToken(user)
+            Result.success(
+                AuthResponse(
+                    token = token,
+                    user = user
+                )
+            )
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     private fun hashPassword(password: String): String {

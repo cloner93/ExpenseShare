@@ -7,20 +7,24 @@ import org.milad.expense_share.data.repository.InMemoryGroupRepository
 import org.milad.expense_share.data.repository.InMemoryTransactionRepository
 import org.milad.expense_share.data.repository.InMemoryUserRepository
 import org.milad.expense_share.domain.service.AuthService
-import org.milad.expense_share.domain.service.FriendService
+import org.milad.expense_share.domain.service.FriendsService
 import org.milad.expense_share.domain.service.GroupService
 import org.milad.expense_share.domain.service.TransactionService
-import org.milad.expense_share.presentation.authRoutes
-import org.milad.expense_share.presentation.friendRoutes
-import org.milad.expense_share.presentation.groupsRoutes
+import org.milad.expense_share.presentation.auth.authRoutes
+import org.milad.expense_share.presentation.friends.friendRoutes
+import org.milad.expense_share.presentation.groups.groupsRoutes
 
 internal fun Application.routing() {
     routing {
-        authRoutes(AuthService(InMemoryUserRepository()))
+        authRoutes(
+            AuthService(InMemoryUserRepository())
+        )
         groupsRoutes(
             GroupService(InMemoryGroupRepository()),
             TransactionService(InMemoryTransactionRepository())
         )
-        friendRoutes(FriendService(InMemoryFriendRepository()))
+        friendRoutes(
+            FriendsService(InMemoryFriendRepository())
+        )
     }
 }
