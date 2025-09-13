@@ -1,8 +1,8 @@
 package org.milad.expense_share.utils
 
 import io.ktor.server.auth.jwt.JWTPrincipal
-import org.milad.expense_share.model.LoginRequest
-import org.milad.expense_share.model.RegisterRequest
+import org.milad.expense_share.presentation.auth.model.LoginRequest
+import org.milad.expense_share.presentation.auth.model.RegisterRequest
 
 internal fun JWTPrincipal?.getUserId(): Int? {
     return this?.payload?.getClaim("id")?.asInt()
