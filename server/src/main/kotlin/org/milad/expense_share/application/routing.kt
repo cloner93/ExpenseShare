@@ -13,6 +13,7 @@ import org.milad.expense_share.domain.service.TransactionService
 import org.milad.expense_share.presentation.auth.authRoutes
 import org.milad.expense_share.presentation.friends.friendRoutes
 import org.milad.expense_share.presentation.groups.groupsRoutes
+import org.milad.expense_share.presentation.transactions.transactionsRoutes
 
 internal fun Application.routing() {
     val userRepository = InMemoryUserRepository()
@@ -29,8 +30,10 @@ internal fun Application.routing() {
                 groupRepository = groupRepository,
                 userRepository = userRepository,
                 transactionRepository = transactionRepository
-            ),
-            TransactionService(transactionRepository)
+            )
+        )
+        transactionsRoutes(
+            transactionService = TransactionService(transactionRepository)
         )
         friendRoutes(
             FriendsService(friendRepository)

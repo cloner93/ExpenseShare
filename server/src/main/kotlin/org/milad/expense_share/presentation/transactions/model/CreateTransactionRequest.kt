@@ -1,4 +1,4 @@
-package org.milad.expense_share.presentation.groups.model
+package org.milad.expense_share.presentation.transactions.model
 
 import kotlinx.serialization.Serializable
 

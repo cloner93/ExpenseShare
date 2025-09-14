@@ -18,13 +18,12 @@ import org.milad.expense_share.presentation.api_model.ErrorResponse
 import org.milad.expense_share.presentation.api_model.SuccessResponse
 import org.milad.expense_share.presentation.groups.model.AddUserRequest
 import org.milad.expense_share.presentation.groups.model.CreateGroupRequest
-import org.milad.expense_share.presentation.groups.model.CreateTransactionRequest
+import org.milad.expense_share.presentation.transactions.model.CreateTransactionRequest
 import org.milad.expense_share.utils.getIntParameter
 import org.milad.expense_share.utils.getUserId
 
 internal fun Routing.groupsRoutes(
-    groupService: GroupService,
-    transactionService: TransactionService
+    groupService: GroupService
 ) {
     authenticate("auth-jwt") {
         route("/groups") {
@@ -126,107 +125,6 @@ internal fun Routing.groupsRoutes(
                         )
                     }
             }
-
-            route("/{groupId}/transactions") {
-
-                post {
-                    val userId = call.principal<JWTPrincipal>().getUserId()
-                        ?: return@post call.respond(
-                            HttpStatusCode.Unauthorized,
-                            ErrorResponse("Invalid token", "INVALID_TOKEN")
-                        )
-
-                    val groupId = call.getIntParameter("groupId")
-                        ?: return@post call.respond(
-                            HttpStatusCode.BadRequest,
-                            ErrorResponse("Invalid group ID", "INVALID_GROUP_ID")
-                        )
-
-                    val request = call.receive<CreateTransactionRequest>()
-                    transactionService.createTransaction(groupId, userId, request.title, request.amount, request.description)
-                        .onSuccess {
-                            call.respond(
-                                HttpStatusCode.Created,
-                                SuccessResponse(data = it)
-                            )
-                        }
-                        .onFailure {
-                            call.respond(
-                                HttpStatusCode.NotFound,
-                                ErrorResponse(
-                                    it.message ?: "Group not found or access denied",
-                                    "GROUP_NOT_FOUND"
-                                )
-                            )
-                        }
-                }
-
-                get {
-                    val userId = call.principal<JWTPrincipal>().getUserId()
-                        ?: return@get call.respond(
-                            HttpStatusCode.Unauthorized,
-                            ErrorResponse("Invalid token", "INVALID_TOKEN")
-                        )
-
-                    val groupId = call.getIntParameter("groupId")
-                        ?: return@get call.respond(
-                            HttpStatusCode.BadRequest,
-                            ErrorResponse("Invalid group ID", "INVALID_GROUP_ID")
-                        )
-
-                    call.respond(
-                        HttpStatusCode.OK,
-                        SuccessResponse(data = transactionService.getTransactions(userId, groupId))
-                    )
-                }
-
-                post("/{transactionId}/approve") {
-                    call.handleTransactionAction("approve") { id, uid ->
-                        transactionService.approve(id, uid)
-                    }
-                }
-
-                post("/{transactionId}/reject") {
-                    call.handleTransactionAction("reject") { id, uid ->
-                        transactionService.reject(id, uid)
-                    }
-                }
-
-                delete("/{transactionId}") {
-                    call.handleTransactionAction("delete") { id, uid ->
-                        transactionService.delete(id, uid)
-                    }
-                }
-            }
         }
     }
-}
-
-private suspend fun ApplicationCall.handleTransactionAction(
-    actionName: String,
-    block: (Int, Int) -> Result<String>
-) {
-    val userId = principal<JWTPrincipal>().getUserId()
-        ?: return respond(
-            HttpStatusCode.Unauthorized,
-            ErrorResponse("Invalid token", "INVALID_TOKEN")
-        )
-
-    val transactionId = getIntParameter("transactionId")
-        ?: return respond(
-            HttpStatusCode.BadRequest,
-            ErrorResponse("Invalid transaction ID", "INVALID_TRANSACTION_ID")
-        )
-
-    block(transactionId, userId)
-        .onSuccess { respond(HttpStatusCode.OK, SuccessResponse(data = it)) }
-        .onFailure {
-            respond(
-                HttpStatusCode.Forbidden,
-                ErrorResponse(
-                    it.message ?: "Failed to $actionName",
-                    "${actionName.uppercase()}_FAILED"
-                )
-            )
-        }
 }
