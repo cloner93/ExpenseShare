@@ -15,7 +15,7 @@ import org.milad.expense_share.presentation.friends.friendRoutes
 import org.milad.expense_share.presentation.groups.groupsRoutes
 import org.milad.expense_share.presentation.transactions.transactionsRoutes
 
-internal fun Application.routing() {
+internal fun Application.configureRouting() {
     val userRepository = InMemoryUserRepository()
     val groupRepository = InMemoryGroupRepository()
     val transactionRepository = InMemoryTransactionRepository()
