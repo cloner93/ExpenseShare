@@ -18,8 +18,8 @@ class InMemoryUserRepository : UserRepository {
         return users.firstOrNull { it.first.id == id }?.first
     }
 
-    override fun verifyUser(phone: String, passwordHash: String): User? {
-        return users.find { it.first.phone == phone && it.second == passwordHash }?.first
+    override fun verifyUser(phone: String, checkPassword: (String) -> Boolean): User? {
+        return users.find { it.first.phone == phone && checkPassword(it.second) }?.first
     }
 
     override fun lastIndexOfUser(): Int {

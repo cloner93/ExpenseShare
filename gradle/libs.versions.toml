@@ -18,6 +18,7 @@ ktor = "3.2.2"
 ktor-servers-aAuth = "3.0.0"
 logback = "1.5.18"
 materialIconsExtended = "1.7.3"
+jbcrypt = "0.4"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -43,6 +44,8 @@ ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor-se
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor-servers-aAuth" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+
+jbcrypt = { module = "org.mindrot:jbcrypt", version.ref = "jbcrypt" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
