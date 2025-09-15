@@ -4,6 +4,7 @@ import org.milad.expense_share.data.models.User
 import org.milad.expense_share.domain.model.AuthResponse
 import org.milad.expense_share.domain.repository.UserRepository
 import org.milad.expense_share.security.JwtConfig
+import org.mindrot.jbcrypt.BCrypt
 
 class AuthService(
     private val userRepository: UserRepository,
@@ -36,9 +37,9 @@ class AuthService(
 
     fun login(phone: String, password: String): Result<AuthResponse> {
         return try {
-            val passwordHash = hashPassword(password)
-            val user = userRepository.verifyUser(phone, passwordHash)
-                ?: return Result.failure(IllegalArgumentException("Invalid phone or password"))
+            val user =
+                userRepository.verifyUser(phone, checkPassword = { checkPassword(password, it) })
+                    ?: return Result.failure(IllegalArgumentException("Invalid phone or password"))
 
             val token = JwtConfig.generateToken(user)
             Result.success(
@@ -52,7 +53,9 @@ class AuthService(
         }
     }
 
-    private fun hashPassword(password: String): String {
-        return password
-    }
+    private fun hashPassword(password: String): String =
+        BCrypt.hashpw(password, BCrypt.gensalt())
+
+    private fun checkPassword(password: String, hash: String): Boolean =
+        BCrypt.checkpw(password, hash)
 }

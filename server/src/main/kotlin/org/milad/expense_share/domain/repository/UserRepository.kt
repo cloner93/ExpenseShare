@@ -6,6 +6,6 @@ interface UserRepository {
     fun create(user: User, passwordHash: String): User
     fun findByPhone(phone: String): User?
     fun findById(id: Int): User?
-    fun verifyUser(phone: String, passwordHash: String): User?
+    fun verifyUser(phone: String, checkPassword: (String) -> Boolean): User?
     fun lastIndexOfUser(): Int
 }
