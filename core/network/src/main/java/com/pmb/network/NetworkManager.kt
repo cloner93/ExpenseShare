@@ -1,16 +1,34 @@
 package com.pmb.network
 
 import android.content.Context
-import android.os.Build
 import android.util.Log
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.headers
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.URLProtocol
+import io.ktor.http.path
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.Json
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.util.logging.Logger
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
 class NetworkManger(
     val context: Context
+
 ) {
     val client: HttpClient = HttpClient(Android) {
         defaultRequest {
@@ -67,11 +85,11 @@ class NetworkManger(
             socketTimeoutMillis = 20_000
         }
 
-        installErrorHandler()
+//        installErrorHandler()
     }
 
 
-    inline fun <reified Request, reified Response> request(
+/*    inline fun <reified Request, reified Response> request(
         endpoint: String,
         data: Request? = null,
         queryParams: Map<String, String> = emptyMap()
@@ -100,7 +118,7 @@ class NetworkManger(
                 setBody(request)
             }.body()
         }
-    }
+    }*/
 }
 
 class AllCertsTrustManager : X509TrustManager {
