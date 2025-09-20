@@ -36,3 +36,4 @@ include(":composeApp")
 
 include(":server")
 include(":core:network")
+include(":core:data")
