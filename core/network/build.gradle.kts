@@ -6,7 +6,6 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -17,9 +16,16 @@ kotlin {
         }
     }
 
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+    }
 
     jvm()
 
@@ -43,33 +49,22 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.auth)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.ktor.client.logging)
-            implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.serialization.json)
         }
-
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(libs.ktor.client.mock)
-        }
-
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
-            implementation(libs.kotlinx.coroutines.android)
         }
-
-        jvmMain.dependencies {
-            implementation(libs.ktor.client.cio)
-        }
-
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
-
+        jvmMain.dependencies {
+            implementation(libs.ktor.client.cio)
+        }
         wasmJsMain.dependencies {
-            implementation(libs.ktor.client.js)
+            implementation(libs.ktor.client.cio)
         }
     }
 }
@@ -77,13 +72,11 @@ kotlin {
 android {
     namespace = "org.milad.expense_share.network"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+    defaultConfig {
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
 }
