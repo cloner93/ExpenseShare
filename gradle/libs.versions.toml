@@ -37,7 +37,7 @@ jbcrypt = "0.4"
 junit = "4.13.2"
 androidx-testExt = "1.2.1"
 androidx-espresso = "3.6.1"
-material = "1.13.0"
+koin-bom = "4.1.1"
 
 [libraries]
 # Kotlin
@@ -94,6 +94,13 @@ material-icons-extended = { module = "org.jetbrains.compose.material:material-ic
 
 # Security
 jbcrypt = { module = "org.mindrot:jbcrypt", version.ref = "jbcrypt" }
+
+# Koin DI
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
+koin-core = { module = "io.insert-koin:koin-core" }
+koin-android = { module = "io.insert-koin:koin-android" }
+koin-compose = { module = "io.insert-koin:koin-androidx-compose" }
+koin-test = { module = "io.insert-koin:koin-test" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
