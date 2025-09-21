@@ -12,9 +12,10 @@ import io.ktor.http.URLProtocol
 import io.ktor.http.encodedPath
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import plugin.installErrorHandler
 import token.TokenProvider
 
-fun createHttpClient(tokenProvider: TokenProvider)= HttpClient(getKtorEngine()) {
+internal fun createHttpClient(tokenProvider: TokenProvider)= HttpClient(getKtorEngine()) {
     defaultRequest {
         url {
             host = "localhost:8080"
@@ -42,4 +43,6 @@ fun createHttpClient(tokenProvider: TokenProvider)= HttpClient(getKtorEngine()) 
             refreshTokens { null }
         }
     }
+
+    installErrorHandler()
 }
