@@ -48,15 +48,14 @@ kotlin {
     }
 
     sourceSets {
-        commonMain.dependencies { }
+        commonMain.dependencies {
+            implementation(projects.core.network)
+        }
         androidMain.dependencies { }
         iosMain.dependencies { }
         jvmMain.dependencies { }
         wasmJsMain.dependencies { }
-
-        commonTest.dependencies {
-            implementation(kotlin("test"))
-        }
+        commonTest.dependencies { }
     }
 }
 
