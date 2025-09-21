@@ -1,37 +1,38 @@
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.DefaultRequest
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.auth.Auth
-import io.ktor.client.plugins.auth.providers.BearerTokens
-import io.ktor.client.plugins.auth.providers.bearer
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.plugins.logging.DEFAULT
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.request.delete
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.headers
-import io.ktor.client.request.post
-import io.ktor.client.request.put
-import io.ktor.client.request.setBody
-import io.ktor.http.URLProtocol
+import io.ktor.client.request.*
 import io.ktor.http.path
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.flow.*
+import kotlinx.serialization.Serializable
 
-internal class NetworkManager(
-    private val client: HttpClient
+
+@Serializable
+data class SuccessResponse<T>(
+    val success: Boolean = true,
+    val data: T
+)
+
+typealias ApiResult<T> = Flow<Result<T>>
+
+class NetworkManager(
+    val client: HttpClient
 ) {
-    suspend inline fun <reified T> get(
+     fun <T> safeNetworkCall(block: suspend () -> SuccessResponse<T>): Flow<Result<T>> =
+        flow {
+            val response = block()
+            if (response.success) {
+                emit(Result.success(response.data))
+            } else {
+                emit(Result.failure(IllegalStateException("Request failed")))
+            }
+        }.catch { e -> emit(Result.failure(e)) }
+
+    inline fun <reified T> get(
         endpoint: String,
         params: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap()
-    ): T {
-        return client.get {
+    ): ApiResult<T> = safeNetworkCall {
+        client.get {
             url {
                 path(endpoint)
                 params.forEach { (k, v) -> parameters.append(k, v) }
@@ -40,36 +41,36 @@ internal class NetworkManager(
         }.body()
     }
 
-    suspend inline fun <reified T> post(
+    inline fun <reified Req, reified Res> post(
         endpoint: String,
-        body: Any? = null,
+        body: Req? = null,
         headers: Map<String, String> = emptyMap()
-    ): T {
-        return client.post {
+    ): ApiResult<Res> = safeNetworkCall {
+        client.post {
             url { path(endpoint) }
             headers.forEach { (k, v) -> header(k, v) }
             body?.let { setBody(it) }
         }.body()
     }
 
-    suspend inline fun <reified T> put(
+    inline fun <reified Req, reified Res> put(
         endpoint: String,
-        body: Any? = null,
+        body: Req? = null,
         headers: Map<String, String> = emptyMap()
-    ): T {
-        return client.put {
+    ): ApiResult<Res> = safeNetworkCall {
+        client.put {
             url { path(endpoint) }
             headers.forEach { (k, v) -> header(k, v) }
             body?.let { setBody(it) }
         }.body()
     }
 
-    suspend inline fun <reified T> delete(
+    inline fun <reified T> delete(
         endpoint: String,
         params: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap()
-    ): T {
-        return client.delete {
+    ): ApiResult<T> = safeNetworkCall {
+        client.delete {
             url {
                 path(endpoint)
                 params.forEach { (k, v) -> parameters.append(k, v) }
