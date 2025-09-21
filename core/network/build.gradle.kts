@@ -48,6 +48,7 @@ kotlin {
     }
 
     sourceSets {
+
         commonMain.dependencies {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.logging)
@@ -60,19 +61,15 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
-            implementation(libs.koin.android)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
-            implementation(libs.koin.core)
         }
         jvmMain.dependencies {
             implementation(libs.ktor.client.cio)
-            implementation(libs.koin.core)
         }
         wasmJsMain.dependencies {
             implementation(libs.ktor.client.cio)
-            implementation(libs.koin.core)
         }
 
         commonTest.dependencies {
