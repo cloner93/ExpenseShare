@@ -2,7 +2,6 @@ package repository
 
 import kotlinx.coroutines.flow.Flow
 import model.Group
-import utils.Result
 
 interface GroupsRepository {
     suspend fun getGroups(): Flow<Result<List<Group>>>
