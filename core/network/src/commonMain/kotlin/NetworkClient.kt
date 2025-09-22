@@ -15,7 +15,7 @@ import kotlinx.serialization.json.Json
 import plugin.installErrorHandler
 import token.TokenProvider
 
-internal fun createHttpClient(tokenProvider: TokenProvider)= HttpClient(getKtorEngine()) {
+fun createHttpClient(tokenProvider: TokenProvider)= HttpClient(getKtorEngine()) {
     defaultRequest {
         url {
             host = "localhost:8080"
