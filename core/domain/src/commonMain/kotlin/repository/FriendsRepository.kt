@@ -1,8 +1,10 @@
 package repository
 
+import io.mockative.Mockable
 import kotlinx.coroutines.flow.Flow
 import model.User
 
+@Mockable
 interface FriendsRepository {
     suspend fun getFriends(): Flow<Result<List<User>>>
     suspend fun getFriendRequests(): Flow<Result<List<User>>>
