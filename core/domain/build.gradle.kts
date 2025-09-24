@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
     kotlin("plugin.serialization") version "2.0.20"
+    alias(libs.plugins.kotest)
+    alias(libs.plugins.ksp)
 }
 
 kotlin {
@@ -48,5 +50,23 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
         }
+
+        commonTest {
+            dependencies {
+                implementation(libs.kotest.framework.engine)
+                implementation(libs.kotest.assertions.core)
+            }
+        }
+        jvmTest {
+            dependencies {
+                implementation(libs.kotest.runner.junit5)
+            }
+        }
+    }
+}
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
+    filter {
+        isFailOnNoMatchingTests = false
     }
 }
