@@ -7,6 +7,7 @@ plugins {
     kotlin("plugin.serialization") version "2.0.20"
     alias(libs.plugins.kotest)
     alias(libs.plugins.ksp)
+    id("io.mockative") version "3.0.1"
 }
 
 kotlin {
@@ -49,21 +50,27 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
+            implementation("io.mockative:mockative:3.0.1")
         }
 
         commonTest {
             dependencies {
                 implementation(libs.kotest.framework.engine)
                 implementation(libs.kotest.assertions.core)
+                implementation("io.mockative:mockative:3.0.1")
             }
         }
-        jvmTest {
-            dependencies {
-                implementation(libs.kotest.runner.junit5)
-            }
+        jvmMain.dependencies {
+            implementation(kotlin("reflect"))
         }
+        jvmTest.dependencies {
+            implementation(libs.kotest.runner.junit5)
+            implementation(kotlin("reflect"))
+        }
+
     }
 }
+
 tasks.named<Test>("jvmTest") {
     useJUnitPlatform()
     filter {
