@@ -1,4 +1,4 @@
-package usecase
+package usecase.auth
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import model.User
 import repository.AuthRepository
-import usecase.auth.RegisterUserUseCase
 
 class RegisterUserUseCaseTest : StringSpec({
 
