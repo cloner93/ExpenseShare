@@ -7,7 +7,6 @@ plugins {
     kotlin("plugin.serialization") version "2.0.20"
     alias(libs.plugins.kotest)
     alias(libs.plugins.ksp)
-    id("io.mockative") version "3.0.1"
 }
 
 kotlin {
@@ -52,7 +51,6 @@ kotlin {
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
-            implementation("io.mockative:mockative:3.0.1")
 
             implementation(projects.core.domain)
             implementation(projects.core.network)
@@ -60,14 +58,30 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotest.framework.engine)
             implementation(libs.kotest.assertions.core)
-            implementation("io.mockative:mockative:3.0.1")
+            implementation(libs.kotest.extensions.koin)
+
         }
         jvmMain.dependencies {
             implementation(kotlin("reflect"))
         }
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
-            implementation(kotlin("reflect"))
+            implementation("io.insert-koin:koin-test-junit5:3.5.6")
+        }
+        tasks.withType<Test>().configureEach {
+            useJUnitPlatform()
+            filter {
+                isFailOnNoMatchingTests = false
+            }
+            testLogging {
+                showExceptions = true
+                showStandardStreams = true
+                events = setOf(
+                    org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+                    org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
+                )
+                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            }
         }
     }
 }
