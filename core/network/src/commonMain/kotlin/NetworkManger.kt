@@ -29,7 +29,7 @@ class NetworkManager(
             }
         }.catch { e -> emit(Result.failure(e)) }
 
-    fun <T> get(
+    suspend fun <T> get(
         endpoint: String,
         params: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap()
@@ -43,7 +43,7 @@ class NetworkManager(
         }.body()
     }
 
-    fun <Req, Res> post(
+    suspend fun <Req, Res> post(
         endpoint: String,
         body: Req? = null,
         headers: Map<String, String> = emptyMap()
@@ -55,7 +55,7 @@ class NetworkManager(
         }.body()
     }
 
-    fun <Req, Res> put(
+   suspend fun <Req, Res> put(
         endpoint: String,
         body: Req? = null,
         headers: Map<String, String> = emptyMap()
@@ -67,7 +67,7 @@ class NetworkManager(
         }.body()
     }
 
-    fun <T> delete(
+   suspend fun <T> delete(
         endpoint: String,
         params: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap()
