@@ -5,6 +5,9 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
     kotlin("plugin.serialization") version "2.0.20"
+    alias(libs.plugins.kotest)
+    alias(libs.plugins.ksp)
+    id("io.mockative")
 }
 
 kotlin {
@@ -55,6 +58,7 @@ kotlin {
 
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
+            implementation("io.mockative:mockative:3.0.1")
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
@@ -63,7 +67,12 @@ kotlin {
             implementation(libs.ktor.client.darwin)
         }
         jvmMain.dependencies {
+            implementation(kotlin("reflect"))
             implementation(libs.ktor.client.cio)
+        }
+        jvmTest.dependencies {
+            implementation(libs.kotest.runner.junit5)
+            implementation(kotlin("reflect"))
         }
         wasmJsMain.dependencies {
             implementation(libs.ktor.client.cio)
@@ -74,6 +83,23 @@ kotlin {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.koin.test)
+            implementation("io.mockative:mockative:3.0.1")
+        }
+
+        tasks.withType<Test>().configureEach {
+            useJUnitPlatform()
+            filter {
+                isFailOnNoMatchingTests = false
+            }
+            testLogging {
+                showExceptions = true
+                showStandardStreams = true
+                events = setOf(
+                    org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+                    org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
+                )
+                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            }
         }
     }
 }

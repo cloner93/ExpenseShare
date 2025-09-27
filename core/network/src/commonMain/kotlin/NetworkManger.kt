@@ -1,7 +1,8 @@
-import io.ktor.client.HttpClient
+import client.ApiClient
 import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.path
+import io.mockative.Mockable
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.Serializable
 
@@ -14,10 +15,11 @@ data class SuccessResponse<T>(
 
 typealias ApiResult<T> = Flow<Result<T>>
 
+@Mockable
 class NetworkManager(
-    val client: HttpClient
+    val client: ApiClient
 ) {
-     fun <T> safeNetworkCall(block: suspend () -> SuccessResponse<T>): Flow<Result<T>> =
+    fun <T> safeNetworkCall(block: suspend () -> SuccessResponse<T>): Flow<Result<T>> =
         flow {
             val response = block()
             if (response.success) {
@@ -27,7 +29,7 @@ class NetworkManager(
             }
         }.catch { e -> emit(Result.failure(e)) }
 
-    inline fun <reified T> get(
+    fun <T> get(
         endpoint: String,
         params: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap()
@@ -41,7 +43,7 @@ class NetworkManager(
         }.body()
     }
 
-    inline fun <reified Req, reified Res> post(
+    fun <Req, Res> post(
         endpoint: String,
         body: Req? = null,
         headers: Map<String, String> = emptyMap()
@@ -53,7 +55,7 @@ class NetworkManager(
         }.body()
     }
 
-    inline fun <reified Req, reified Res> put(
+    fun <Req, Res> put(
         endpoint: String,
         body: Req? = null,
         headers: Map<String, String> = emptyMap()
@@ -65,7 +67,7 @@ class NetworkManager(
         }.body()
     }
 
-    inline fun <reified T> delete(
+    fun <T> delete(
         endpoint: String,
         params: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap()
