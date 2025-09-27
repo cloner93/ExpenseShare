@@ -60,6 +60,10 @@ kotlin {
             implementation(libs.kotest.assertions.core)
             implementation(libs.kotest.extensions.koin)
 
+            implementation(libs.ktor.client.mock)
+            implementation(libs.ktor.client.content.negotiation)
+//            implementation("io.kotest:kotest-runner-junit5:5.9.1")
+
         }
         jvmMain.dependencies {
             implementation(kotlin("reflect"))
