@@ -1,3 +1,3 @@
-import io.ktor.client.engine.HttpClientEngineFactory
+import io.ktor.client.engine.HttpClientEngine
 
-expect fun getKtorEngine(): HttpClientEngineFactory<*>
+expect fun getKtorEngine(): HttpClientEngine
