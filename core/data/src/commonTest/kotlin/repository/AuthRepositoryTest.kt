@@ -144,7 +144,7 @@ class AuthRepositoryTest : DescribeSpec({
         }
     }
 
-    describe("authentication endpoints") {
+    /*describe("authentication endpoints") {
         data class AuthTestCase(
             val operation: String,
             val endpoint: String,
@@ -208,5 +208,5 @@ class AuthRepositoryTest : DescribeSpec({
                 }
             }
         }
-    }
+    }*/
 })

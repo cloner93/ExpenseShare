@@ -7,7 +7,7 @@ import model.User
 
 class FriendsRepositoryImpl(private val networkManager: NetworkManager) : FriendsRepository {
     override suspend fun getFriends(): Flow<Result<List<User>>> {
-        return networkManager.get<List<User>>("friends")
+        return networkManager.get<List<User>>("/friends")
     }
 
     override suspend fun getFriendRequests(): Flow<Result<List<User>>> {
