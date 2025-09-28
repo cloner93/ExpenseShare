@@ -80,10 +80,17 @@ kotlin {
 
         commonTest.dependencies {
             implementation(libs.ktor.client.mock)
+            implementation(libs.kotest.framework.engine)
+            implementation(libs.kotest.assertions.core)
+            implementation(libs.kotest.extensions.koin)
+            implementation(libs.kotest.property)
+            implementation(libs.ktor.client.content.negotiation)
+
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.koin.test)
             implementation("io.mockative:mockative:3.0.1")
+
         }
 
         tasks.withType<Test>().configureEach {

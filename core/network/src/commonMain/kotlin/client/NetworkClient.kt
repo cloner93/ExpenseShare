@@ -2,6 +2,8 @@ package client
 
 import getKtorEngine
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.bearer
@@ -11,34 +13,44 @@ import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.http.URLProtocol
-import io.ktor.http.encodedPath
+import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import plugin.installErrorHandler
 import token.TokenProvider
 
-fun createHttpClient(tokenProvider: TokenProvider)= HttpClient(getKtorEngine()) {
+data class HttpConfig(
+    val baseUrl: String = "https://localhost:8080/v1",
+    val timeoutMillis: Long = 15000,
+    val isDebug: Boolean = true,
+    val refreshTokenEndpoint: String = "/auth/refresh" // FIXME
+)
+
+fun createHttpClient(
+    tokenProvider: TokenProvider,
+    config: HttpConfig = HttpConfig(),
+    engine: HttpClientEngine? = null
+) = HttpClient(engine = engine ?: getKtorEngine()) {
     defaultRequest {
         url {
-            host = "localhost:8080"
-            encodedPath = "/v1"
-            protocol = URLProtocol.HTTPS
+            takeFrom(config.baseUrl)
         }
     }
     install(ContentNegotiation) {
         json(Json {
-            prettyPrint = true
+            prettyPrint = config.isDebug
             isLenient = true
             ignoreUnknownKeys = true
         })
     }
     install(HttpTimeout) {
-        requestTimeoutMillis = 15000
+        requestTimeoutMillis = config.timeoutMillis
+        connectTimeoutMillis = config.timeoutMillis
+        socketTimeoutMillis = config.timeoutMillis
     }
     install(Logging) {
         logger = Logger.DEFAULT
-        level = LogLevel.ALL
+        level = if (config.isDebug) LogLevel.ALL else LogLevel.INFO
     }
     install(Auth) {
         bearer {
