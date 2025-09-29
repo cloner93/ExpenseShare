@@ -11,7 +11,6 @@ import io.ktor.client.engine.mock.respondError
 import io.ktor.client.engine.mock.toByteArray
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.Logging
@@ -39,7 +38,7 @@ import plugin.ServerException
 import plugin.UnauthorizedException
 import token.InMemoryTokenProvider
 
-class KtorApiClientTest : DescribeSpec({
+class NetworkClientTest : DescribeSpec({
 
     describe("HttpClient Configuration") {
         context("when creating client with default configuration") {
