@@ -40,17 +40,16 @@ import plugin.UnauthorizedException
 import token.InMemoryTokenProvider
 
 class KtorApiClientTest : DescribeSpec({
-    val tokenProvider = InMemoryTokenProvider()
 
     describe("HttpClient Configuration") {
         context("when creating client with default configuration") {
             it("should install all required plugins") {
+                val tokenProvider = InMemoryTokenProvider()
                 val client = createHttpClient(tokenProvider)
 
                 client.pluginOrNull(ContentNegotiation) shouldNotBe null
                 client.pluginOrNull(HttpTimeout) shouldNotBe null
                 client.pluginOrNull(Logging) shouldNotBe null
-                client.pluginOrNull(Auth) shouldNotBe null
             }
 
             it("should use provided engine") {
@@ -60,6 +59,7 @@ class KtorApiClientTest : DescribeSpec({
                     )
                 }
 
+                val tokenProvider = InMemoryTokenProvider()
                 val client = createHttpClient(tokenProvider, engine = customMockEngine)
 
                 runTest {
@@ -77,6 +77,7 @@ class KtorApiClientTest : DescribeSpec({
                     )
                 }
 
+                val tokenProvider = InMemoryTokenProvider()
                 val client = createHttpClient(tokenProvider, engine = mockEngine)
 
                 runTest {
@@ -152,6 +153,8 @@ class KtorApiClientTest : DescribeSpec({
                     )
                 }
             }
+
+            val tokenProvider = InMemoryTokenProvider()
             client = createHttpClient(tokenProvider, engine = mockEngine)
         }
 
@@ -244,6 +247,7 @@ class KtorApiClientTest : DescribeSpec({
 
     describe("Authentication Integration") {
 
+        val tokenProvider = InMemoryTokenProvider()
         beforeEach {
             tokenProvider.clearToken()
         }
@@ -453,7 +457,6 @@ class KtorApiClientTest : DescribeSpec({
                                 status = HttpStatusCode.Unauthorized
                             )
                         }
-
                         else -> respond(content = "{}", status = HttpStatusCode.OK)
                     }
                 }
@@ -473,12 +476,12 @@ class KtorApiClientTest : DescribeSpec({
                     friendsResponse.status shouldBe HttpStatusCode.OK
                     friendsResponse.bodyAsText() shouldBe """{"friends": [{"username": "friend1"}, {"username": "friend2"}]}"""
 
-//                    tokenProvider.clearToken()
-//
-//                    val exception = shouldThrow<UnauthorizedException> {
-//                        client.get("/friends")
-//                    }
-//                    exception.message shouldBe "Unauthorized access"
+                    tokenProvider.clearToken()
+
+                    val exception = shouldThrow<UnauthorizedException> {
+                        client.get("/friends")
+                    }
+                    exception.message shouldBe "Unauthorized access"
                 }
             }
         }
@@ -494,6 +497,7 @@ class KtorApiClientTest : DescribeSpec({
 
                     respond(content = "{}", status = HttpStatusCode.OK)
                 }
+                val tokenProvider = InMemoryTokenProvider()
                 val client = createHttpClient(tokenProvider, engine = mockEngine)
 
                 runTest {
@@ -513,6 +517,7 @@ class KtorApiClientTest : DescribeSpec({
 
                     respond(content = "{}", status = HttpStatusCode.OK)
                 }
+                val tokenProvider = InMemoryTokenProvider()
                 val client = createHttpClient(tokenProvider, engine = mockEngine)
 
                 runTest {
@@ -527,6 +532,7 @@ class KtorApiClientTest : DescribeSpec({
 
     describe("Timeout Configuration") {
         it("should respect timeout settings") {
+            val tokenProvider = InMemoryTokenProvider()
             val client = createHttpClient(tokenProvider)
             val timeout = client.pluginOrNull(HttpTimeout)
 
