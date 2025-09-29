@@ -3,16 +3,15 @@ package client
 import getKtorEngine
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.auth.Auth
-import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -35,6 +34,10 @@ fun createHttpClient(
         url {
             takeFrom(config.baseUrl)
         }
+
+        tokenProvider.loadTokens()?.let {
+            header(HttpHeaders.Authorization, "Bearer ${it.accessToken}")
+        }
     }
     install(ContentNegotiation) {
         json(Json {
@@ -52,12 +55,14 @@ fun createHttpClient(
         logger = Logger.DEFAULT
         level = if (config.isDebug) LogLevel.ALL else LogLevel.INFO
     }
-    install(Auth) {
-        bearer {
-            loadTokens { tokenProvider.loadTokens() }
-            refreshTokens { null }
-        }
-    }
+
+    // remove handle token
+    /*  install(Auth) {
+          bearer {
+              loadTokens { tokenProvider.loadTokens() }
+              refreshTokens { null }
+          }
+      }*/
 
     installErrorHandler()
 }

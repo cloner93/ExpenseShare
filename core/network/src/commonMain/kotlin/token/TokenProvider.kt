@@ -1,25 +1,24 @@
 package token
 
 import io.ktor.client.plugins.auth.providers.BearerTokens
+import kotlinx.coroutines.flow.MutableStateFlow
 
 interface TokenProvider {
-    suspend fun loadTokens(): BearerTokens?
-    suspend fun setToken(tokens: BearerTokens)
-    suspend fun clearToken()
+    fun loadTokens(): BearerTokens?
+    fun setToken(tokens: BearerTokens)
+    fun clearToken()
 }
 
 internal class InMemoryTokenProvider : TokenProvider {
+    private val state = MutableStateFlow<BearerTokens?>(null)
 
-    private var tokens: BearerTokens? = null
+    override fun loadTokens(): BearerTokens? = state.value
 
-
-    override suspend fun loadTokens(): BearerTokens? = tokens
-
-    override suspend fun setToken(tokens: BearerTokens) {
-        this.tokens = tokens
+    override fun setToken(tokens: BearerTokens) {
+        state.value = tokens
     }
 
-    override suspend fun clearToken() {
-        this.tokens = null
+    override fun clearToken() {
+        state.value = null
     }
 }
