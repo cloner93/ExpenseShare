@@ -1,8 +1,8 @@
 package di
 
 import NetworkManager
+import NetworkManagerImpl
 import client.ApiClient
-import client.HttpConfig
 import client.KtorApiClient
 import client.createHttpClient
 import org.koin.core.module.Module
@@ -14,5 +14,5 @@ val networkModule: Module = module {
     single { InMemoryTokenProvider() as TokenProvider }
     single { createHttpClient(get<TokenProvider>()) }
     single { KtorApiClient(get()) as ApiClient }
-    single { NetworkManager(get()) }
+    single { NetworkManagerImpl(get()) as NetworkManager }
 }
