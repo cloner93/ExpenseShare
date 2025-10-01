@@ -5,6 +5,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import org.milad.expense_share.application.configureKoin
 import org.milad.expense_share.application.configureRouting
 import org.milad.expense_share.application.configureSecurity
 import org.milad.expense_share.application.configureStatusPages
@@ -21,5 +22,6 @@ fun Application.main() {
 
     configureStatusPages()
     configureSecurity()
+    configureKoin()
     configureRouting()
 }

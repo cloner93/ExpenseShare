@@ -1,6 +1,7 @@
 [versions]
 # Build tools
 agp = "8.7.3"
+koinTestJunit5 = "3.5.6"
 kotlin = "2.2.0"
 ksp = "2.2.0-2.0.2"
 kotest = "6.0.3"
@@ -100,6 +101,7 @@ jbcrypt = { module = "org.mindrot:jbcrypt", version.ref = "jbcrypt" }
 # Koin DI
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
 koin-core = { module = "io.insert-koin:koin-core" }
+koin-ktor = { module = "io.insert-koin:koin-ktor" }
 koin-android = { module = "io.insert-koin:koin-android" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose" }
 koin-test = { module = "io.insert-koin:koin-test" }

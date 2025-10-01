@@ -2,7 +2,8 @@ plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.ktor)
     application
-    kotlin("plugin.serialization") version "2.2.0"
+    kotlin("plugin.serialization") version "2.0.20"
+    alias(libs.plugins.kotest)
 }
 
 group = "org.milad.expense_share"
@@ -15,6 +16,10 @@ application {
 }
 
 dependencies {
+    implementation(project.dependencies.platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.koin.ktor)
+
     implementation(libs.logback)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.status.pages)
@@ -27,6 +32,11 @@ dependencies {
 
     implementation(libs.jbcrypt)
 
+    testImplementation(libs.kotest.framework.engine)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.extensions.koin)
+    testImplementation(libs.kotest.property)
+    testImplementation(libs.koin.test.junit5)
+
     testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.kotlin.testJunit)
 }
