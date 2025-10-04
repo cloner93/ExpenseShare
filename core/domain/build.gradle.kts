@@ -8,8 +8,12 @@ plugins {
     alias(libs.plugins.kotest)
     alias(libs.plugins.ksp)
     id("io.mockative")
+    alias(libs.plugins.jacoco)
 }
 
+jacoco {
+    toolVersion = libs.versions.jacoco.get()
+}
 kotlin {
     androidLibrary {
         namespace = "org.milad.expense_share.domain"
