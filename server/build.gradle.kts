@@ -4,6 +4,10 @@ plugins {
     application
     kotlin("plugin.serialization") version "2.0.20"
     alias(libs.plugins.kotest)
+    alias(libs.plugins.jacoco)
+}
+jacoco {
+    toolVersion = libs.versions.jacoco.get()
 }
 
 group = "org.milad.expense_share"
