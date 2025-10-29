@@ -1,8 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -16,7 +14,6 @@ jacoco {
     toolVersion = libs.versions.jacoco.get()
 }
 
-
 kotlin {
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -24,40 +21,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-//
-//    listOf(
-//        iosX64(),
-//        iosArm64(),
-//        iosSimulatorArm64()
-//    ).forEach { iosTarget ->
-//        iosTarget.binaries.framework {
-//            baseName = "ComposeApp"
-//            isStatic = true
-//        }
-//    }
-//
     jvm()
-//
-//    @OptIn(ExperimentalWasmDsl::class)
-//    wasmJs {
-//        outputModuleName.set("composeApp")
-//        browser {
-//            val rootDirPath = project.rootDir.path
-//            val projectDirPath = project.projectDir.path
-//            commonWebpackConfig {
-//                outputFileName = "composeApp.js"
-//                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-//                    static = (static ?: mutableListOf()).apply {
-//                        // Serve sources to debug inside browser
-//                        add(rootDirPath)
-//                        add(projectDirPath)
-//                    }
-//                }
-//            }
-//        }
-//        binaries.executable()
-//    }
-//
     sourceSets {
         androidMain.dependencies {
             implementation(compose.preview)
@@ -67,23 +31,20 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
-//            implementation(compose.materialIconsExtended)
-            implementation(libs.material.icons.extended)
-
+            implementation(compose.material3AdaptiveNavigationSuite)
             implementation(compose.ui)
+            implementation("androidx.compose.material3:material3:1.4.0")
+            implementation("androidx.compose.material3.adaptive:adaptive:1.2.0")
+            implementation("androidx.compose.material3.adaptive:adaptive-layout:1.2.0")
+            implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.2.0")
+            implementation("androidx.navigation:navigation-compose:2.9.5")
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+            implementation(libs.material.icons.extended)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-//            implementation(projects.shared)
+            implementation(compose.desktop.currentOs) to implementation(compose.desktop.macos_arm64)
         }
-//        commonTest.dependencies {
-//            implementation(libs.kotlin.test)
-//        }
-//        jvmMain.dependencies {
-//            implementation(compose.desktop.currentOs)
-//            implementation(libs.kotlinx.coroutinesSwing)
-//        }
     }
 }
 
@@ -109,8 +70,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 
