@@ -45,6 +45,8 @@ kotlin {
             implementation(libs.compose.material3.adaptive.layout)
             implementation(libs.jetbrains.navigation.compose)
             implementation(libs.material.icons.extended)
+
+            implementation(projects.core.domain)
         }
     }
 }
