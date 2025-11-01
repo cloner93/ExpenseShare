@@ -22,7 +22,11 @@ class GroupsRepositoryTest : DescribeSpec({
         context("when API call succeeds") {
             it("should return success with groups list") {
                 // Arrange
-                val expectedGroups = listOf(Group(id = 1, name = "Test Group", ownerId = 1))
+                val expectedGroups = listOf(Group(
+                    id = 1, name = "Test Group", ownerId = 1,
+                    members = listOf(),
+                    transactions = listOf()
+                ))
 
                 coEvery {
                     network.get<List<Group>>("/groups")
