@@ -19,16 +19,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Hotel
-import androidx.compose.material.icons.filled.Museum
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.ReceiptLong
-import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -40,8 +39,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import model.Group
+import model.Transaction
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.milad.expense_share.dashboard.model.ExpenseItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,25 +62,7 @@ fun GroupDetail() {
 @Preview
 @Composable
 fun GroupDetailPreview() {
-    val sampleExpenses = listOf(
-        ExpenseItem(
-            "Dinner at Le Jules Verne",
-            "You paid",
-            "€150.00",
-            Icons.Default.Restaurant,
-            "Today"
-        ),
-        ExpenseItem("Louvre Museum tickets", "You paid", "€50.00", Icons.Default.Museum, "Today"),
-        ExpenseItem("Hotel Booking", "You paid", "€300.00", Icons.Default.Hotel, "Yesterday")
-    )
 
-    GroupDetailScreen(
-        onBackClick = {},
-        onAddExpenseClick = {},
-        expenses = sampleExpenses,
-        onTabSelected = {},
-        selectedTab = GroupTab.Expenses
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,9 +71,11 @@ fun GroupDetailScreen(
     onBackClick: () -> Unit,
     selectedTab: GroupTab = GroupTab.Expenses,
     onTabSelected: (GroupTab) -> Unit,
-    expenses: List<ExpenseItem>,
+    expenses: List<Transaction>,
+    selectedGroup: Group?,
     onAddExpenseClick: () -> Unit,
 ) {
+    if (selectedGroup != null)
     Scaffold(
         floatingActionButton = {
             AddExpenseButton(onClick = onAddExpenseClick)
@@ -120,6 +104,12 @@ fun GroupDetailScreen(
             }
         }
     }
+    else
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize(),) {
+                Text("Select group.")
+            }
+        }
 }
 
 enum class GroupTab { Expenses, Members }
@@ -152,8 +142,8 @@ fun GroupTabs(selectedTab: GroupTab, onTabSelected: (GroupTab) -> Unit) {
 
 
 @Composable
-fun ExpenseList(expenses: List<ExpenseItem>) {
-    val grouped = expenses.groupBy { it.dateLabel }
+fun ExpenseList(expenses: List<Transaction>) {
+    val grouped = expenses.groupBy { it.status }
 
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
@@ -161,7 +151,7 @@ fun ExpenseList(expenses: List<ExpenseItem>) {
         grouped.forEach { (label, list) ->
             item {
                 Text(
-                    text = label,
+                    text = label.name,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -175,7 +165,7 @@ fun ExpenseList(expenses: List<ExpenseItem>) {
 }
 
 @Composable
-fun ExpenseCard(item: ExpenseItem) {
+fun ExpenseCard(item: Transaction) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -193,7 +183,7 @@ fun ExpenseCard(item: ExpenseItem) {
                     .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(item.icon, contentDescription = null)
+                Icon( Icons.Default.QuestionMark, contentDescription = null)// use icon
             }
 
             Spacer(Modifier.width(12.dp))
@@ -204,14 +194,14 @@ fun ExpenseCard(item: ExpenseItem) {
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
                 )
                 Text(
-                    text = item.subtitle,
+                    text = item.description,
                     style = MaterialTheme.typography.bodyMedium.copy(color = Color.DarkGray)
                 )
             }
         }
 
         Text(
-            text = item.amount,
+            text = item.amount.toString(),
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
         )
     }

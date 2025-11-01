@@ -31,17 +31,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import model.Group
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.milad.expense_share.dashboard.model.GroupUiModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Dashboard(
-    totalOwe: Double,
-    totalOwed: Double,
-    groups: List<GroupUiModel>,
-    onGroupClick: (GroupUiModel) -> Unit,
+    groups: List<Group>,
+    onGroupClick: (Group) -> Unit,
 ) {
+
+    val totalOwe: Double = 123.12
+    val totalOwed: Double = 321.21
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -125,8 +127,8 @@ private fun BalanceCard(
 }
 @Composable
 fun GroupSection(
-    groups: List<GroupUiModel>,
-    onGroupClick: (GroupUiModel) -> Unit,
+    groups: List<Group>,
+    onGroupClick: (Group) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -155,10 +157,11 @@ fun GroupSection(
 
 @Composable
 private fun GroupItem(
-    group: GroupUiModel,
+    group: Group,
     onClick: () -> Unit,
 ) {
-    val balanceColor = if (group.isOwed) Color(0xFF2E7D32) else Color(0xFFD32F2F)
+    val balanceColor = if (true) Color(0xFF2E7D32) else Color(0xFFD32F2F)
+//    val balanceColor = if (group.isOwed) Color(0xFF2E7D32) else Color(0xFFD32F2F)
 
     Card(
         modifier = Modifier
@@ -194,11 +197,11 @@ private fun GroupItem(
                     color = Color.Black
                 )
                 Text(
-                    text = "${group.membersCount} members",
+                    text = "${group.members.size+1} members",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
                 )
                 Text(
-                    text = group.balanceText,
+                    text = "group.balanceText",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = balanceColor,
                         fontWeight = FontWeight.Medium
@@ -218,17 +221,5 @@ private fun GroupItem(
 @Preview
 @Composable
 fun BalancePrev() {
-    val groups = listOf(
-        GroupUiModel("Trip to Paris", 4, "You owe $50", false),
-        GroupUiModel("Weekend Getaway", 3, "You are owed $75", true),
-        GroupUiModel("Ski Trip", 5, "You owe $100", false)
-    )
-
-    Dashboard(
-        totalOwe = 250.0,
-        totalOwed = 150.0,
-        groups = groups
-    ) {}
-
 }
 
