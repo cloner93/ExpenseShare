@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.jacoco)
 }
+
 jacoco {
     toolVersion = libs.versions.jacoco.get()
 }
@@ -33,17 +34,15 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.material3AdaptiveNavigationSuite)
             implementation(compose.ui)
-            implementation("androidx.compose.material3:material3:1.4.0")
-            implementation("androidx.compose.material3.adaptive:adaptive:1.2.0")
-            implementation("androidx.compose.material3.adaptive:adaptive-layout:1.2.0")
-            implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.2.0")
-            implementation("androidx.navigation:navigation-compose:2.9.5")
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+            implementation(compose.desktop.currentOs)
+
+            implementation(libs.compose.material3.adaptive)
+            implementation(libs.compose.material3.adaptive.navigation)
+            implementation(libs.compose.material3.adaptive.layout)
+            implementation(libs.jetbrains.navigation.compose)
             implementation(libs.material.icons.extended)
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation(compose.desktop.currentOs) to implementation(compose.desktop.macos_arm64)
         }
     }
 }
