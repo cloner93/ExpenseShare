@@ -1,28 +1,21 @@
 package org.milad.expense_share.dashboard
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Hotel
+import androidx.compose.material.icons.filled.Museum
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -37,6 +30,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.milad.expense_share.dashboard.groups.GroupDetailScreen
+import org.milad.expense_share.dashboard.groups.GroupTab
+import org.milad.expense_share.dashboard.model.ExpenseItem
+import org.milad.expense_share.dashboard.model.GroupUiModel
 import org.milad.expense_share.ui.AppScreenSize
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -46,7 +43,6 @@ fun DashboardScreen(
     taskList: List<String>,
     onAddTask: (String) -> Unit,
 ) {
-
     val navigator = rememberListDetailPaneScaffoldNavigator<Nothing>()
     val scope = rememberCoroutineScope()
     val isListAndDetailVisible =
@@ -55,99 +51,64 @@ fun DashboardScreen(
 
     var selectedTask by remember { mutableStateOf<String?>(taskList.firstOrNull()) }
 
+    val groups = listOf(
+        GroupUiModel("Trip to Paris", 4, "You owe $50", false),
+        GroupUiModel("Weekend Getaway", 3, "You are owed $75", true),
+        GroupUiModel("Ski Trip", 5, "You owe $100", false)
+    )
+    val sampleExpenses = listOf(
+        ExpenseItem(
+            "Dinner at Le Jules Verne",
+            "You paid",
+            "€150.00",
+            Icons.Default.Restaurant,
+            "Today"
+        ),
+        ExpenseItem("Louvre Museum tickets", "You paid", "€50.00", Icons.Default.Museum, "Today"),
+        ExpenseItem("Hotel Booking", "You paid", "€300.00", Icons.Default.Hotel, "Yesterday")
+    )
+
     ListDetailPaneScaffold(
         directive = navigator.scaffoldDirective,
         value = navigator.scaffoldValue,
         listPane = {
-            DashboardList(
-                appScreenSize = appScreenSize,
-                taskList = taskList,
-                selectedTask = { selectedTask = it },
-                onAddTask = onAddTask
-            )
+            Dashboard(
+                totalOwe = 250.0,
+                totalOwed = 150.0,
+                groups = groups
+            ) {}
         },
         detailPane = {
-            GroupDetail(
-                task = selectedTask
+            GroupDetailScreen(
+                onBackClick = {},
+                onAddExpenseClick = {},
+                expenses = sampleExpenses,
+                onTabSelected = {},
+                selectedTab = GroupTab.Expenses
             )
         },
 //        modifier = TODO(),
 //        extraPane = TODO(),
-        paneExpansionDragHandle = { state ->
-            val interactionSource =
-                remember { MutableInteractionSource() }
-            VerticalDragHandle(
-                modifier =
-                    Modifier.paneExpansionDraggable(
-                        state,
-                        LocalMinimumInteractiveComponentSize.current,
-                        interactionSource
-                    ), interactionSource = interactionSource
-            )
-        },
+//        paneExpansionDragHandle = { state ->
+//            val interactionSource =
+//                remember { MutableInteractionSource() }
+//            VerticalDragHandle(
+//                modifier =
+//                    Modifier.paneExpansionDraggable(
+//                        state,
+//                        LocalMinimumInteractiveComponentSize.current,
+//                        interactionSource
+//                    ), interactionSource = interactionSource
+//            )
+//        },
         paneExpansionState = rememberPaneExpansionState(navigator.scaffoldValue)
     )
 }
 
 @Composable
-fun DashboardList(
-    appScreenSize: AppScreenSize,
-    taskList: List<String>,
-    selectedTask: (String) -> Unit,
-    onAddTask: (String) -> Unit,
-) {
-
-    Row(modifier = Modifier.fillMaxSize()) {
-        Surface(
-            modifier = Modifier
-                .weight(0.3f)
-                .fillMaxHeight(),
-            color = MaterialTheme.colorScheme.surfaceContainerLow
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    "Master List (Desktop/Tablet View)",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Spacer(Modifier.height(16.dp))
-                TaskList(
-                    taskList = taskList,
-                    onTaskSelected = { selectedTask(it) }
-                )
-                Spacer(Modifier.height(16.dp))
-                AddTaskSection(onAddTask)
-            }
-        }
-    }
-}
-
-@Composable
-fun GroupDetail(task: String?) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-    ) {
-        if (task != null) {
-            Column {
-                Text("Task Detail", style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.height(8.dp))
-                Text(task, style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    "This is the detail content for the selected item. The complexity of this pane scales with the screen size.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        } else {
-            Text("Select a task from the list.", style = MaterialTheme.typography.bodyLarge)
-        }
-    }
-}
-
-@Composable
 fun TaskList(
     taskList: List<String>,
-    onTaskSelected: (String) -> Unit = {}
+    onTaskSelected: (String) -> Unit = {},
 ) {
     LazyColumn(modifier = Modifier.Companion.fillMaxWidth()) {
         items(taskList) { task ->
