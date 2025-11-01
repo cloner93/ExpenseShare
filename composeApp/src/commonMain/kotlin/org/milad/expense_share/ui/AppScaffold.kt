@@ -21,7 +21,7 @@ fun AppScaffold(
         val customSuiteType = when (appScreenSize) {
             AppScreenSize.Compact -> NavigationSuiteType.NavigationBar
             AppScreenSize.Medium -> NavigationSuiteType.NavigationRail
-            AppScreenSize.Expanded -> NavigationSuiteType.NavigationDrawer
+            AppScreenSize.Expanded -> NavigationSuiteType.WideNavigationRailExpanded
         }
 
         NavigationSuiteScaffold(
@@ -32,11 +32,7 @@ fun AppScaffold(
                         selected = selectedItem == navItem,
                         onClick = { onItemSelected(navItem) },
                         icon = { Icon(navItem.icon, contentDescription = navItem.title) },
-                        label = {
-                            if (appScreenSize == AppScreenSize.Compact) {
-                                Text(navItem.title)
-                            }
-                        }
+                        label = { Text(navItem.title) }
                     )
                 }
             }
