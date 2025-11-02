@@ -19,8 +19,8 @@ fun AppScaffold(
         val appScreenSize: AppScreenSize = calculateAppScreenSize(windowWidth)
 
         val customSuiteType = when (appScreenSize) {
-            AppScreenSize.Compact -> NavigationSuiteType.NavigationBar
-            AppScreenSize.Medium -> NavigationSuiteType.NavigationRail
+            AppScreenSize.Compact -> NavigationSuiteType.ShortNavigationBarCompact
+            AppScreenSize.Medium -> NavigationSuiteType.WideNavigationRailCollapsed
             AppScreenSize.Expanded -> NavigationSuiteType.WideNavigationRailExpanded
         }
 
