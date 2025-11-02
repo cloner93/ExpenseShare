@@ -1,5 +1,6 @@
 package org.milad.expense_share.dashboard
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,12 +11,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,9 +34,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import expenseshare.composeapp.generated.resources.Res
+import expenseshare.composeapp.generated.resources.paris
 import model.Group
+import model.TransactionStatus
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,12 +49,15 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun Dashboard(
     groups: List<Group>,
     onGroupClick: (Group) -> Unit,
+    isListAndDetailVisible: Boolean,
+    isDetailVisible: Boolean,
 ) {
 
     val totalOwe: Double = 123.12
     val totalOwed: Double = 321.21
 
     Scaffold(
+        floatingActionButton = { AddGroupButton { } },
         topBar = {
             TopAppBar(
                 title = { Text("Dashboard") }
@@ -125,6 +138,7 @@ private fun BalanceCard(
         )
     }
 }
+
 @Composable
 fun GroupSection(
     groups: List<Group>,
@@ -160,8 +174,7 @@ private fun GroupItem(
     group: Group,
     onClick: () -> Unit,
 ) {
-    val balanceColor = if (true) Color(0xFF2E7D32) else Color(0xFFD32F2F)
-//    val balanceColor = if (group.isOwed) Color(0xFF2E7D32) else Color(0xFFD32F2F)
+    val balance= group.transactions.filter { it.status == TransactionStatus.APPROVED }.sumOf { it.amount }
 
     Card(
         modifier = Modifier
@@ -177,14 +190,14 @@ private fun GroupItem(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-//            Image(
-//                imageVector = vectorResource(Res.drawable.paris),
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .size(56.dp)
-//                    .clip(RoundedCornerShape(12.dp)),
-//                contentScale = ContentScale.Crop
-//            )
+            Image(
+                painter = painterResource(Res.drawable.paris),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
 
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -197,14 +210,15 @@ private fun GroupItem(
                     color = Color.Black
                 )
                 Text(
-                    text = "${group.members.size+1} members",
+                    text = "${group.members.size + 1} members",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
                 )
+                Spacer(modifier = Modifier.padding(8.dp))
                 Text(
-                    text = "group.balanceText",
+                    text = "$${"%.2f".format(balance)}",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = balanceColor,
-                        fontWeight = FontWeight.Medium
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold
                     )
                 )
             }
@@ -220,6 +234,18 @@ private fun GroupItem(
 
 @Preview
 @Composable
-fun BalancePrev() {
+fun AddGroupButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.tertiary,
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Icon(Icons.Default.Add, contentDescription = "Add Group")
+        Spacer(Modifier.width(8.dp))
+        Text("Add Group")
+    }
 }
-
