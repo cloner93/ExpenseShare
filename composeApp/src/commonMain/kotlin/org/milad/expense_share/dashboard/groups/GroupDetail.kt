@@ -19,12 +19,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -33,6 +36,10 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,72 +48,63 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import model.Group
 import model.Transaction
-import org.jetbrains.compose.ui.tooling.preview.Preview
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun GroupDetail() {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Dashboard") }
-            )
-        }
-    ) { paddingValues ->
-        Column(Modifier.padding(paddingValues)) {
-
-        }
-    }
-}
-
-@Preview
-@Composable
-fun GroupDetailPreview() {
-
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupDetailScreen(
     onBackClick: () -> Unit,
     selectedTab: GroupTab = GroupTab.Expenses,
-    onTabSelected: (GroupTab) -> Unit,
+    isListAndDetailVisible: Boolean,
+    isDetailVisible: Boolean,
     expenses: List<Transaction>,
     selectedGroup: Group?,
     onAddExpenseClick: () -> Unit,
 ) {
+    var selectedTab by remember { mutableStateOf(GroupTab.Expenses) }
+
     if (selectedGroup != null)
-    Scaffold(
-        floatingActionButton = {
-            AddExpenseButton(onClick = onAddExpenseClick)
-        },
-        topBar = {
-            TopAppBar(
-                title = { Text("Trip to Paris", style = MaterialTheme.typography.titleLarge) },
-                navigationIcon = { },
-                actions = {}
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            GroupTabs(selectedTab, onTabSelected)
+        Scaffold(
+            floatingActionButton = {
+                AddExpenseButton(onClick = onAddExpenseClick)
+            },
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            selectedGroup.name,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    },
+                    navigationIcon = {
+                        if (isDetailVisible && !isListAndDetailVisible) {
+                            IconButton(onClick = onBackClick) {
+                                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                            }
+                        }
+                    },
+                    actions = {}
+                )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                GroupTabs(selectedTab) { selectedTab = it }
 
-            Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(16.dp))
 
-            when (selectedTab) {
-                GroupTab.Expenses -> ExpenseList(expenses)
-                GroupTab.Members -> ExpenseList(expenses)
+                when (selectedTab) {
+                    GroupTab.Expenses -> ExpenseList(expenses)
+                    GroupTab.Members -> ExpenseList(expenses)
+                }
             }
         }
-    }
     else
         Surface(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize(),) {
+            Column(modifier = Modifier.fillMaxSize()) {
                 Text("Select group.")
             }
         }
@@ -138,8 +136,6 @@ fun GroupTabs(selectedTab: GroupTab, onTabSelected: (GroupTab) -> Unit) {
         }
     }
 }
-
-
 
 @Composable
 fun ExpenseList(expenses: List<Transaction>) {
@@ -183,7 +179,7 @@ fun ExpenseCard(item: Transaction) {
                     .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon( Icons.Default.QuestionMark, contentDescription = null)// use icon
+                Icon(Icons.Default.QuestionMark, contentDescription = null)// use icon
             }
 
             Spacer(Modifier.width(12.dp))
@@ -211,10 +207,10 @@ fun ExpenseCard(item: Transaction) {
 fun AddExpenseButton(onClick: () -> Unit) {
     Button(
         onClick = onClick,
-//        colors = ButtonDefaults.buttonColors(
-//            backgroundColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
-//            contentColor = Color.DarkGray
-//        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.tertiary,
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        ),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.padding(16.dp)
     ) {
