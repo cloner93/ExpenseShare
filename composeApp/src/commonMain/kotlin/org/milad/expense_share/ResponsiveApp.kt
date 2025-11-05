@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import model.Group
 import org.milad.expense_share.dashboard.DashboardScreen
 import org.milad.expense_share.ui.AppScaffold
 import org.milad.expense_share.ui.NavItem
@@ -16,7 +15,6 @@ import org.milad.expense_share.ui.NavItem
 @Composable
 fun ResponsiveApp() {
     var selectedItem by remember { mutableStateOf(NavItem.Dashboard) }
-    var selectedGroup by remember { mutableStateOf<Group?>(null) }
 
     AppScaffold(
         selectedItem = selectedItem,
@@ -25,10 +23,6 @@ fun ResponsiveApp() {
         when (selectedItem) {
             NavItem.Dashboard -> DashboardScreen(
                 appScreenSize = appScreenSize,
-                groupList = FakeDataSource.getAllGroups(),
-                onGroupSelected = { selectedGroup = it },
-                selectedGroup = selectedGroup,
-                transactionList = FakeDataSource.getTransactionsByGroup(selectedGroup?.id),
             )
 
             NavItem.Settings -> Text("Settings Screen Content")
