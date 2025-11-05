@@ -10,6 +10,8 @@ kotlin {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
 
+    jvm()
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
