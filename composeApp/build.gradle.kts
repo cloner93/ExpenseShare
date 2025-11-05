@@ -1,4 +1,3 @@
-
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -26,6 +25,7 @@ kotlin {
     jvm()
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.koin.android)
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
         }
@@ -40,14 +40,26 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(compose.desktop.currentOs)
 
+            implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.compose.material3.adaptive)
             implementation(libs.compose.material3.adaptive.navigation)
             implementation(libs.compose.material3.adaptive.layout)
             implementation(libs.jetbrains.navigation.compose)
             implementation(libs.material.icons.extended)
 
+
+            implementation(project.dependencies.platform(libs.koin.bom))
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose.viewmodel)
+
             implementation(projects.core.domain)
+            implementation(projects.core.data)
+            implementation(projects.core.common)
         }
+        jvmMain.dependencies {
+            implementation(libs.kotlinx.coroutines.swing)
+        }
+
     }
 }
 
@@ -79,8 +91,6 @@ android {
 }
 
 dependencies {
-    implementation(project.dependencies.platform(libs.koin.bom))
-    implementation(libs.koin.android)
     debugImplementation(compose.uiTooling)
 }
 
