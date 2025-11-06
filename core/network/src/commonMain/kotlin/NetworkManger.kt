@@ -28,7 +28,9 @@ interface NetworkManager {
             } else {
                 emit(Result.failure(IllegalStateException("Request failed")))
             }
-        }.catch { e -> emit(Result.failure(e)) }
+        }.catch { e ->
+            emit(Result.failure(e))
+        }
 
     suspend fun <T> get(
         endpoint: String,

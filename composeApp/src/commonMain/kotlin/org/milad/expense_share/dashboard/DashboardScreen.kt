@@ -69,7 +69,13 @@ fun DashboardScreen(
     }
 
     if (state.error != null) {
-//        ErrorScreen(error = state.error) { viewModel.handle(DashboardAction.LoadData) }
+        Box(Modifier.fillMaxSize(), Alignment.Center) {
+            Column {
+                state.error?.let {
+                    Text(it.cause?.message?:"ERROR!")
+                }
+            }
+        }
         return
     }
 

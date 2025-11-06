@@ -12,14 +12,14 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
-import io.ktor.http.takeFrom
+import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import plugin.installErrorHandler
 import token.TokenProvider
 
 data class HttpConfig(
-    val baseUrl: String = "https://localhost:8080/v1",
+    val baseUrl: String = "192.168.0.3:8080",
     val timeoutMillis: Long = 15000,
     val isDebug: Boolean = true,
     val refreshTokenEndpoint: String = "/auth/refresh" // FIXME
@@ -31,8 +31,10 @@ fun createHttpClient(
     engine: HttpClientEngine? = null
 ) = HttpClient(engine = engine ?: getKtorEngine()) {
     defaultRequest {
+
+        host = config.baseUrl
         url {
-            takeFrom(config.baseUrl)
+            protocol = URLProtocol.HTTP
         }
 
         tokenProvider.loadTokens()?.let {
