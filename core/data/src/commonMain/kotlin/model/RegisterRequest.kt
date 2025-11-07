@@ -1,5 +1,8 @@
 package model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class RegisterRequest(
     val phone: String,
     val username: String,

@@ -1,29 +1,16 @@
 import client.ApiClient
-import client.KtorApiClient
-import client.createHttpClient
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import io.ktor.client.call.body
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
-import io.mockative.any
-import io.mockative.coEvery
 import io.mockative.mock
 import io.mockative.of
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.builtins.serializer
 import plugin.UnauthorizedException
-import token.InMemoryTokenProvider
 
 class NetworkManagerTest : DescribeSpec({
     val client = mock(of<ApiClient>())
-    val networkManager: NetworkManager = NetworkManagerImpl(client)
+    val networkManager: NetworkManager = NetworkManager(client)
 
     describe("Safe Network Call") {
         context("when request is successful") {
