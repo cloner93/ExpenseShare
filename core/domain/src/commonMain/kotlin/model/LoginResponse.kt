@@ -3,4 +3,7 @@ package model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class User(val id: Int, val username: String, val phone: String)
+data class LoginResponse(
+    val token: String,
+    val user: User
+)

@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
-    kotlin("plugin.serialization") version "2.0.20"
+    kotlin("plugin.serialization") version "2.2.21"
     alias(libs.plugins.kotest)
     alias(libs.plugins.ksp)
     id("io.mockative")
@@ -55,6 +55,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
             implementation("io.mockative:mockative:3.0.1")
+            implementation(libs.kotlinx.serialization.json)
         }
         commonTest {
             dependencies {

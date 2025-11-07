@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
-    kotlin("plugin.serialization") version "2.0.20"
+    kotlin("plugin.serialization") version "2.2.21"
     alias(libs.plugins.kotest)
     alias(libs.plugins.ksp)
     id("io.mockative")
@@ -60,6 +60,7 @@ kotlin {
             implementation(libs.ktor.client.auth)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.kotlinx.serialization.json)
 
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)

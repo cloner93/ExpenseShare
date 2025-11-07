@@ -1,5 +1,8 @@
 package model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Transaction(
     val id: Int,
     val groupId: Int,
@@ -13,6 +16,7 @@ data class Transaction(
     var approvedBy: Int? = null
 )
 
+@Serializable
 enum class TransactionStatus {
     PENDING,
     APPROVED,

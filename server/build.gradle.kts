@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.ktor)
     application
-    kotlin("plugin.serialization") version "2.0.20"
+    kotlin("plugin.serialization") version "2.2.21"
     alias(libs.plugins.kotest)
     alias(libs.plugins.jacoco)
 }
