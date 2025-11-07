@@ -12,7 +12,7 @@ import repository.TransactionsRepositoryImpl
 
 val dataModule = module {
 
-    single { AuthRepositoryImpl(get()) as AuthRepository }
+    single { AuthRepositoryImpl(get(),get()) as AuthRepository }
     single { FriendsRepositoryImpl(get()) as FriendsRepository }
     single { GroupsRepositoryImpl(get()) as GroupsRepository }
     single { TransactionsRepositoryImpl(get()) as TransactionsRepository }
