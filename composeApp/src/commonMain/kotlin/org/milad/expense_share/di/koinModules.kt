@@ -3,18 +3,38 @@ package org.milad.expense_share.di
 import di.dataAggregator
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
+import org.milad.expense_share.auth.login.LoginViewModel
+import org.milad.expense_share.auth.register.RegisterViewModel
 import org.milad.expense_share.dashboard.DashboardViewModel
+import usecase.auth.LoginUserUseCase
+import usecase.auth.RegisterUserUseCase
 import usecase.groups.GetGroupsUseCase
 import usecase.transactions.GetTransactionsUseCase
 
 val domainModule = module {
     factory { GetGroupsUseCase(get()) }
     factory { GetTransactionsUseCase(get()) }
+    factory { RegisterUserUseCase(get()) }
+    factory { LoginUserUseCase(get()) }
 }
-val presentationModule = module {
+val dashboardModule = module {
     viewModel {
         DashboardViewModel(
             get(),
+            get()
+        )
+    }
+}
+val registerModule = module {
+    viewModel {
+        RegisterViewModel(
+            get()
+        )
+    }
+}
+val loginModule = module {
+    viewModel {
+        LoginViewModel(
             get()
         )
     }
@@ -23,5 +43,5 @@ val presentationModule = module {
 val appModules = module{
     includes(domainModule)
     includes(dataAggregator)
-    includes(presentationModule)
+    includes(dashboardModule, registerModule, loginModule)
 }

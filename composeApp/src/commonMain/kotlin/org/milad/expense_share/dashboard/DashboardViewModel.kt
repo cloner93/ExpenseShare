@@ -55,7 +55,9 @@ class DashboardViewModel(
 
             } catch (e: Exception) {
                 setState { it.copy(isLoading = false, error = e) }
-                postEvent(DashboardEvent.ShowToast("Error loading data: ${e.message}"))
+                postEvent(
+                    DashboardEvent.ShowToast("Error loading data: ${e.message}")
+                )
             }
         }
     }

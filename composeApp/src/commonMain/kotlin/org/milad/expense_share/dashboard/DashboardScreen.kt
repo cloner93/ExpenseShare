@@ -74,6 +74,13 @@ fun DashboardScreen(
                 state.error?.let {
                     Text(it.cause?.message?:"ERROR!")
                 }
+
+                Button(
+                    content = { Text("Load") },
+                    onClick = {
+                        viewModel.handle(DashboardAction.LoadData)
+                    }
+                )
             }
         }
         return
