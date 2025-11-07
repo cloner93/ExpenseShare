@@ -31,6 +31,7 @@ inline fun <reified T> safeNetworkCall(
 }
 
 class NetworkManager(val client: ApiClient) {
+
     suspend inline fun <reified T> get(
         endpoint: String,
         params: Map<String, String> = mapOf(),
@@ -42,31 +43,31 @@ class NetworkManager(val client: ApiClient) {
                 params.forEach { (k, v) -> parameters.append(k, v) }
             }
             headers.forEach { (k, v) -> header(k, v) }
-        }.body()
+        }.body<SuccessResponse<T>>()
     }
 
     suspend inline fun <Req, reified Res> post(
         endpoint: String,
-        body: Req?,
+        body: Req? = null,
         headers: Map<String, String> = mapOf()
     ): ApiResult<Res> = safeNetworkCall {
         client.post {
             url { path(endpoint) }
             headers.forEach { (k, v) -> header(k, v) }
             body?.let { setBody(it) }
-        }.body()
+        }.body<SuccessResponse<Res>>()
     }
 
     suspend inline fun <Req, reified Res> put(
         endpoint: String,
-        body: Req?,
+        body: Req? = null,
         headers: Map<String, String> = mapOf()
     ): ApiResult<Res> = safeNetworkCall {
         client.put {
             url { path(endpoint) }
             headers.forEach { (k, v) -> header(k, v) }
             body?.let { setBody(it) }
-        }.body()
+        }.body<SuccessResponse<Res>>()
     }
 
     suspend inline fun <reified T> delete(
@@ -80,6 +81,6 @@ class NetworkManager(val client: ApiClient) {
                 params.forEach { (k, v) -> parameters.append(k, v) }
             }
             headers.forEach { (k, v) -> header(k, v) }
-        }.body()
+        }.body<SuccessResponse<T>>()
     }
 }

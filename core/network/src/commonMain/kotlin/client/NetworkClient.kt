@@ -21,7 +21,7 @@ import plugin.installErrorHandler
 import token.TokenProvider
 
 data class HttpConfig(
-    val baseUrl: String = "192.168.0.3:8080",
+    val baseUrl: String = "http://localhost:8080",
     val timeoutMillis: Long = 15000,
     val isDebug: Boolean = true,
     val refreshTokenEndpoint: String = "/auth/refresh" // FIXME
@@ -33,12 +33,7 @@ fun createHttpClient(
     engine: HttpClientEngine? = null
 ) = HttpClient(engine = engine ?: getKtorEngine()) {
     defaultRequest {
-
-        host = config.baseUrl
-        url {
-            protocol = URLProtocol.HTTP
-        }
-
+        url(config.baseUrl)
         contentType(ContentType.Application.Json)
 
         tokenProvider.loadTokens()?.let {
@@ -58,8 +53,12 @@ fun createHttpClient(
         socketTimeoutMillis = config.timeoutMillis
     }
     install(Logging) {
-        logger = Logger.DEFAULT
-        level = if (config.isDebug) LogLevel.ALL else LogLevel.INFO
+        logger = object : Logger {
+            override fun log(message: String) {
+                print("ktor: $message")
+            }
+        }
+        level = LogLevel.ALL
     }
 
     // remove handle token
