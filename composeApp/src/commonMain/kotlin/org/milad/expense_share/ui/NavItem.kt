@@ -3,6 +3,7 @@ package org.milad.expense_share.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -11,7 +12,8 @@ import androidx.compose.ui.unit.dp
 
 enum class NavItem(val title: String, val icon: ImageVector) {
     Dashboard("Dashboard", Icons.Default.Dashboard),
-    Settings("Settings", Icons.Default.Settings)
+    Friends("Friends", Icons.Default.People),
+    Profile("Profile", Icons.Default.Settings)
 }
 
 enum class AppScreenSize {
