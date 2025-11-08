@@ -39,8 +39,9 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel(),
+    showBackButton: Boolean = true,
     onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
 ) {
     val state by viewModel.viewState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -55,24 +56,17 @@ fun LoginScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Login") },
-                navigationIcon = {
-                    IconButton(onClick = { viewModel.handle(LoginAction.NavigateBack) }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
+    Scaffold(topBar = {
+        TopAppBar(title = { Text("Login") }, navigationIcon = {
+            if (showBackButton) {
+                IconButton(onClick = { viewModel.handle(LoginAction.NavigateBack) }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
+            }
+        })
+    }, snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
         Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
-                .fillMaxSize(),
+            modifier = Modifier.padding(paddingValues).padding(16.dp).fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -85,8 +79,7 @@ fun LoginScreen(
                     label = { Text("Phone") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     isError = state.phoneError != null,
-                    supportingText = { if (state.phoneError != null) Text(state.phoneError!!) }
-                )
+                    supportingText = { if (state.phoneError != null) Text(state.phoneError!!) })
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = state.password,
@@ -95,12 +88,10 @@ fun LoginScreen(
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     isError = state.passwordError != null,
-                    supportingText = { if (state.passwordError != null) Text(state.passwordError!!) }
-                )
+                    supportingText = { if (state.passwordError != null) Text(state.passwordError!!) })
                 Spacer(Modifier.height(16.dp))
                 Button(
-                    onClick = { viewModel.handle(LoginAction.Login) },
-                    enabled = !state.isLoading
+                    onClick = { viewModel.handle(LoginAction.Login) }, enabled = !state.isLoading
                 ) {
                     Text("Login")
                 }
@@ -116,8 +107,5 @@ fun LoginScreen(
 @Preview
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen(
-        onLoginSuccess = {},
-        onNavigateToRegister = {}
-    )
+    LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {})
 }

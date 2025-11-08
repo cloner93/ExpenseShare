@@ -87,6 +87,7 @@ kotlin {
             implementation(projects.core.domain)
             implementation(projects.core.data)
             implementation(projects.core.common)
+            implementation(projects.core.navigation)
         }
         jvmMain.dependencies {
             implementation(libs.kotlinx.coroutines.swing)
