@@ -24,6 +24,18 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_21)
         }
     }
+
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+    }
+    
     jvm()
 
     @OptIn(ExperimentalWasmDsl::class)
@@ -58,6 +70,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+//            implementation(compose.desktop.currentOs) enable it for jvm
 
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.compose.material3.adaptive)
