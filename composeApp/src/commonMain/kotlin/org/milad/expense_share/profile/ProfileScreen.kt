@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,24 +20,27 @@ fun ProfileScreen(
 //            viewModel: ProfileViewModel = koinViewModel()
     onLogout: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Profile & Settings")
-        Spacer(Modifier.height(16.dp))
-
-
-        Spacer(Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-                onLogout()
-            }
+    Scaffold {paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Logout")
+            Text("Profile & Settings")
+            Spacer(Modifier.height(16.dp))
+
+
+            Spacer(Modifier.height(32.dp))
+
+            Button(
+                onClick = {
+                    onLogout()
+                }
+            ) {
+                Text("Logout")
+            }
         }
     }
+
 }

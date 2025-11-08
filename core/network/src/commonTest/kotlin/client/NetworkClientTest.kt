@@ -11,7 +11,6 @@ import io.ktor.client.engine.mock.respondError
 import io.ktor.client.engine.mock.toByteArray
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.pluginOrNull
@@ -253,7 +252,7 @@ class NetworkClientTest : DescribeSpec({
 
         context("when token is available") {
             it("should add Authorization header to requests") {
-                tokenProvider.setToken(BearerTokens("test-bearer-token", null))
+                tokenProvider.setToken("test-bearer-token")
 
                 val mockEngine = MockEngine { request ->
                     val authHeader = request.headers[HttpHeaders.Authorization]
@@ -276,7 +275,7 @@ class NetworkClientTest : DescribeSpec({
             }
 
             it("should work with different API endpoints when authenticated") {
-                tokenProvider.setToken(BearerTokens("valid-token", null))
+                tokenProvider.setToken("valid-token")
 
                 val mockEngine = MockEngine { request ->
                     val authHeader = request.headers[HttpHeaders.Authorization]
@@ -317,7 +316,7 @@ class NetworkClientTest : DescribeSpec({
             }
 
             it("should handle token in POST requests (after login/register)") {
-                tokenProvider.setToken(BearerTokens("new-user-token", null))
+                tokenProvider.setToken("new-user-token")
 
                 val mockEngine = MockEngine { request ->
                     val authHeader = request.headers[HttpHeaders.Authorization]
@@ -469,7 +468,7 @@ class NetworkClientTest : DescribeSpec({
                     }
                     loginResponse.status shouldBe HttpStatusCode.OK
 
-                    tokenProvider.setToken(BearerTokens("user-session-token", null))
+                    tokenProvider.setToken("user-session-token")
 
                     val friendsResponse = client.get("/friends")
                     friendsResponse.status shouldBe HttpStatusCode.OK

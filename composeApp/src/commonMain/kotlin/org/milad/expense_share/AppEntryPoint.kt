@@ -16,7 +16,7 @@ fun AppEntryPoint() {
     MaterialTheme {
         NavHost(
             navController = navController,
-            startDestination = RootRoute.Main
+            startDestination = RootRoute.Auth
         ) {
 
             composable<RootRoute.Auth> {

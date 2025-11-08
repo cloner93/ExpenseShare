@@ -18,9 +18,9 @@ class DashboardViewModel(
     initialState = DashboardState()
 ) {
 
-//    init {
-//        handle(DashboardAction.LoadData)
-//    }
+    init {
+        handle(DashboardAction.LoadData)
+    }
 
     override fun handle(action: DashboardAction) {
         when (action) {

@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 interface TokenProvider {
     fun loadTokens(): BearerTokens?
-    fun setToken(tokens: BearerTokens)
+    fun setToken(accessToken: String)
     fun clearToken()
 }
 
@@ -14,8 +14,8 @@ internal class InMemoryTokenProvider : TokenProvider {
 
     override fun loadTokens(): BearerTokens? = state.value
 
-    override fun setToken(tokens: BearerTokens) {
-        state.value = tokens
+    override fun setToken(accessToken: String) {
+        state.value = BearerTokens(accessToken , refreshToken = null)
     }
 
     override fun clearToken() {
