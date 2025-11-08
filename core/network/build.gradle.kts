@@ -81,7 +81,7 @@ kotlin {
             implementation(kotlin("reflect"))
         }
         wasmJsMain.dependencies {
-            implementation(libs.ktor.client.cio)
+            implementation(libs.ktor.client.js)
         }
 
         commonTest.dependencies {
