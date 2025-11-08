@@ -130,7 +130,7 @@ private fun BalanceCard(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "$${"%.2f".format(amount)}",
+            text = "$",
             style = MaterialTheme.typography.headlineSmall.copy(
                 color = textColor,
                 fontWeight = FontWeight.Bold
@@ -215,7 +215,7 @@ private fun GroupItem(
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
                 Text(
-                    text = "$${"%.2f".format(balance)}",
+                    text = "$",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = Color.Black,
                         fontWeight = FontWeight.Bold

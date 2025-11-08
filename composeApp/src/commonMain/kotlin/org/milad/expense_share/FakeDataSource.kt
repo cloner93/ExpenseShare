@@ -24,8 +24,8 @@ object FakeDataSource {
             description = "Restaurant bill shared among group members",
             createdBy = 1,
             status = TransactionStatus.APPROVED,
-            createdAt = System.currentTimeMillis() - 86_400_000L, // 1 day ago
-            transactionDate = System.currentTimeMillis() - 86_400_000L / 2,
+            createdAt = 86_400_000L, // 1 day ago
+            transactionDate = 86_400_000L / 2,
             approvedBy = 2
         ),
         Transaction(
@@ -36,8 +36,8 @@ object FakeDataSource {
             description = "Entry tickets for everyone",
             createdBy = 2,
             status = TransactionStatus.APPROVED,
-            createdAt = System.currentTimeMillis() - 172_800_000L, // 2 days ago
-            transactionDate = System.currentTimeMillis() - 172_800_000L / 2,
+            createdAt = 259_200_000L, // 2 days ago
+            transactionDate = 259_200_000L,
             approvedBy = 1
         ),
         Transaction(
@@ -48,8 +48,8 @@ object FakeDataSource {
             description = "Hotel for 2 nights",
             createdBy = 3,
             status = TransactionStatus.PENDING,
-            createdAt = System.currentTimeMillis() - 259_200_000L, // 3 days ago
-            transactionDate = System.currentTimeMillis() - 259_200_000L / 2
+            createdAt = 259_200_000L, // 3 days ago
+            transactionDate = 259_200_000L
         ),
         Transaction(
             id = 4,
@@ -59,8 +59,8 @@ object FakeDataSource {
             description = "Train from Berlin to Munich",
             createdBy = 2,
             status = TransactionStatus.REJECTED,
-            createdAt = System.currentTimeMillis() - 100_000_000L,
-            transactionDate = System.currentTimeMillis() - 90_000_000L
+            createdAt = 86_400_000L,
+            transactionDate = 86_400_000L
         ),
     )
     private val groups = listOf(
@@ -107,8 +107,8 @@ object FakeDataSource {
             description = "Generated transaction for testing",
             createdBy = createdBy,
             status = TransactionStatus.entries.random(),
-            createdAt = System.currentTimeMillis(),
-            transactionDate = System.currentTimeMillis()
+            createdAt = 86_400_000L,
+            transactionDate = 86_400_000L
         )
     }
 }
