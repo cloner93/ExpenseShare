@@ -19,11 +19,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -51,13 +50,14 @@ fun Dashboard(
     onGroupClick: (Group) -> Unit,
     isListAndDetailVisible: Boolean,
     isDetailVisible: Boolean,
+    onAddGroupClick: () -> Unit,
 ) {
 
     val totalOwe: Double = 123.12
     val totalOwed: Double = 321.21
 
     Scaffold(
-        floatingActionButton = { AddGroupButton { } },
+        floatingActionButton = { AppExtendedButton(title = "Add Group", onClick = onAddGroupClick) },
         topBar = {
             TopAppBar(
                 title = { Text("Dashboard") }
@@ -174,7 +174,8 @@ private fun GroupItem(
     group: Group,
     onClick: () -> Unit,
 ) {
-    val balance= group.transactions.filter { it.status == TransactionStatus.APPROVED }.sumOf { it.amount }
+    val balance =
+        group.transactions.filter { it.status == TransactionStatus.APPROVED }.sumOf { it.amount }
 
     Card(
         modifier = Modifier
@@ -234,18 +235,10 @@ private fun GroupItem(
 
 @Preview
 @Composable
-fun AddGroupButton(onClick: () -> Unit) {
-    Button(
+fun AppExtendedButton(title: String, onClick: () -> Unit) {
+    ExtendedFloatingActionButton(
         onClick = onClick,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.tertiary,
-            contentColor = MaterialTheme.colorScheme.onTertiary
-        ),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.padding(16.dp)
-    ) {
-        Icon(Icons.Default.Add, contentDescription = "Add Group")
-        Spacer(Modifier.width(8.dp))
-        Text("Add Group")
-    }
+        icon = { Icon(Icons.Default.Add, contentDescription = title) },
+        text = { Text(title) }
+    )
 }

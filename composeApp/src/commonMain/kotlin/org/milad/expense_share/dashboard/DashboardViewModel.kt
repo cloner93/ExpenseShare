@@ -8,12 +8,14 @@ import com.pmb.common.viewmodel.BaseViewState
 import kotlinx.coroutines.launch
 import model.Group
 import model.Transaction
+import usecase.groups.CreateGroupUseCase
 import usecase.groups.GetGroupsUseCase
 import usecase.transactions.GetTransactionsUseCase
 
 class DashboardViewModel(
     private val getGroupsUseCase: GetGroupsUseCase,
     private val getTransactionsUseCase: GetTransactionsUseCase,
+    private val createGroupUseCase: CreateGroupUseCase,
 ) : BaseViewModel<DashboardAction, DashboardState, DashboardEvent>(
     initialState = DashboardState()
 ) {
@@ -27,6 +29,7 @@ class DashboardViewModel(
             is DashboardAction.LoadData -> loadData()
             is DashboardAction.SelectGroup -> selectGroup(action.group)
             is DashboardAction.NavigateBack -> navigateBack()
+            is DashboardAction.AddGroup -> createGroup(action.groupName, action.members)
         }
     }
 
@@ -92,6 +95,30 @@ class DashboardViewModel(
         }
     }
 
+    private fun createGroup(groupName: String, members: List<Int>) {
+        viewModelScope.launch {
+            setState { it.copy(isLoading = true, error = null) }
+            createGroupUseCase(groupName, members).collect { result ->
+                result.onSuccess { newGroup ->
+                    setState {
+                        it.copy(
+                            groups = it.groups + newGroup,
+                            isLoading = false
+                        )
+                    }
+                }.onFailure { e ->
+                    setState {
+                        it.copy(
+                            error = e,
+                            isLoading = false
+                        )
+                    }
+                    postEvent(DashboardEvent.ShowToast("Error creating group: ${e.message}"))
+                }
+            }
+        }
+    }
+
     private fun navigateBack() {
         setState { it.copy(selectedGroup = null, isDetailVisible = false) }
     }
@@ -101,6 +128,7 @@ sealed interface DashboardAction : BaseViewAction {
     data object LoadData : DashboardAction
     data class SelectGroup(val group: Group) : DashboardAction
     data object NavigateBack : DashboardAction
+    data class AddGroup(val groupName: String, val members: List<Int>) : DashboardAction
 }
 
 data class DashboardState(

@@ -13,9 +13,9 @@ class GroupsRepositoryImpl(private val networkManager: NetworkManager) : GroupsR
 
     override suspend fun createGroup(
         name: String,
-        memberIds: List<String>
+        memberIds: List<Int>
     ): Flow<Result<Group>> {
-        return networkManager.post("/groups", body = CreateGroupRequest(name, memberIds))
+        return networkManager.post("/groups/create", body = CreateGroupRequest(name, memberIds))
     }
 
     override suspend fun updateGroupMembers(

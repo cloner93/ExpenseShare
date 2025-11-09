@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.milad.expense_share.dashboard.groups.GroupDetailScreen
+import org.milad.expense_share.group.AddGroupScreen
 import org.milad.expense_share.ui.AppScreenSize
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -72,7 +73,7 @@ fun DashboardScreen(
         Box(Modifier.fillMaxSize(), Alignment.Center) {
             Column {
                 state.error?.let {
-                    Text(it.cause?.message?:"ERROR!")
+                    Text(it.cause?.message ?: "ERROR!")
                 }
 
                 Button(
@@ -91,14 +92,16 @@ fun DashboardScreen(
         value = navigator.scaffoldValue,
         listPane = {
             Dashboard(
-                isListAndDetailVisible = isListAndDetailVisible,
                 groups = state.groups,
                 onGroupClick = { group ->
                     viewModel.handle(DashboardAction.SelectGroup(group))
                     scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) }
                 },
-                isDetailVisible = !isDetailVisible
-            )
+                isListAndDetailVisible = isListAndDetailVisible,
+                isDetailVisible = !isDetailVisible,
+            ) {
+                scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
+            }
         },
         detailPane = {
             GroupDetailScreen(
@@ -111,6 +114,11 @@ fun DashboardScreen(
                 selectedGroup = state.selectedGroup,
                 isDetailVisible = isDetailVisible,
             ) {}
+        },
+        extraPane = {
+            AddGroupScreen(onBackClick = { scope.launch { navigator.navigateBack() } }) { name, list ->
+                viewModel.handle(DashboardAction.AddGroup(name, list))
+            }
         },
         paneExpansionDragHandle = { expansionState ->
             val interactionSource = remember { MutableInteractionSource() }

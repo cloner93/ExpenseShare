@@ -70,7 +70,7 @@ sealed interface LoginAction : BaseViewAction {
 data class LoginState(
     val phone: String = "09137511005",
     val phoneError: String? = null,
-    val password: String = "test1",
+    val password: String = "milad",
     val passwordError: String? = null,
     val isLoading: Boolean = false,
     val error: Throwable? = null,

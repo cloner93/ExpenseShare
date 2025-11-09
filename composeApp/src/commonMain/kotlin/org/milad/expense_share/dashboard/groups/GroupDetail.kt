@@ -18,13 +18,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.ReceiptLong
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import model.Group
 import model.Transaction
+import org.milad.expense_share.dashboard.AppExtendedButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,9 +62,7 @@ fun GroupDetailScreen(
 
     if (selectedGroup != null)
         Scaffold(
-            floatingActionButton = {
-                AddExpenseButton(onClick = onAddExpenseClick)
-            },
+            floatingActionButton = { AppExtendedButton(title = "Add Expense", onClick = onAddExpenseClick) },
             topBar = {
                 TopAppBar(
                     title = {
@@ -200,22 +196,5 @@ fun ExpenseCard(item: Transaction) {
             text = item.amount.toString(),
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
         )
-    }
-}
-
-@Composable
-fun AddExpenseButton(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.tertiary,
-            contentColor = MaterialTheme.colorScheme.onTertiary
-        ),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.padding(16.dp)
-    ) {
-        Icon(Icons.Default.Add, contentDescription = "Add")
-        Spacer(Modifier.width(8.dp))
-        Text("Add Expense")
     }
 }

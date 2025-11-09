@@ -8,6 +8,7 @@ import org.milad.expense_share.auth.register.RegisterViewModel
 import org.milad.expense_share.dashboard.DashboardViewModel
 import usecase.auth.LoginUserUseCase
 import usecase.auth.RegisterUserUseCase
+import usecase.groups.CreateGroupUseCase
 import usecase.groups.GetGroupsUseCase
 import usecase.transactions.GetTransactionsUseCase
 
@@ -16,10 +17,12 @@ val domainModule = module {
     factory { GetTransactionsUseCase(get()) }
     factory { RegisterUserUseCase(get()) }
     factory { LoginUserUseCase(get()) }
+    factory { CreateGroupUseCase(get()) }
 }
 val dashboardModule = module {
     viewModel {
         DashboardViewModel(
+            get(),
             get(),
             get()
         )
