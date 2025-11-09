@@ -36,17 +36,20 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = koinViewModel(),
 ) {
     val state by viewModel.viewState.collectAsState()
+
+    val navigator = rememberListDetailPaneScaffoldNavigator<Nothing>()
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
         viewModel.viewEvent.collect { event ->
             when (event) {
                 is DashboardEvent.ShowToast -> {
                 }
+
+                DashboardEvent.GroupCreatedSuccessful -> scope.launch { navigator.navigateBack() }
             }
         }
     }
-
-    val navigator = rememberListDetailPaneScaffoldNavigator<Nothing>()
-    val scope = rememberCoroutineScope()
 
     val isListAndDetailVisible =
         navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded &&

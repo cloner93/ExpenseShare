@@ -106,6 +106,7 @@ class DashboardViewModel(
                             isLoading = false
                         )
                     }
+                    postEvent(DashboardEvent.GroupCreatedSuccessful)
                 }.onFailure { e ->
                     setState {
                         it.copy(
@@ -142,4 +143,5 @@ data class DashboardState(
 
 sealed interface DashboardEvent : BaseViewEvent {
     data class ShowToast(val message: String) : DashboardEvent
+    data object GroupCreatedSuccessful : DashboardEvent
 }

@@ -1,6 +1,5 @@
 package org.milad.expense_share.domain.service
 
-import org.milad.expense_share.data.models.Group
 import org.milad.expense_share.data.models.User
 import org.milad.expense_share.domain.repository.GroupRepository
 import org.milad.expense_share.domain.repository.TransactionRepository
@@ -13,7 +12,7 @@ class GroupService(
     private val transactionRepository: TransactionRepository
 ) {
 
-    fun createGroup(ownerId: Int, name: String, members: List<Int>): Result<Group> {
+    fun createGroup(ownerId: Int, name: String, members: List<Int>): Result<UserGroupResponse> {
         return try {
             val group = groupRepository.createGroup(ownerId, name, members)
             Result.success(group)
