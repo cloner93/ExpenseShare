@@ -1,4 +1,4 @@
-package org.milad.expense_share.data.repository
+package org.milad.expense_share.data.inMemoryRepository
 
 import org.milad.expense_share.data.db.FakeDatabase.groups
 import org.milad.expense_share.data.db.FakeDatabase.transactions
