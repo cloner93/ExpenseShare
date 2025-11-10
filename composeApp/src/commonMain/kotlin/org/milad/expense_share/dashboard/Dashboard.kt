@@ -211,7 +211,7 @@ private fun GroupItem(
                     color = Color.Black
                 )
                 Text(
-                    text = "${group.members.size + 1} members",
+                    text = "${group.members.size} members",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
