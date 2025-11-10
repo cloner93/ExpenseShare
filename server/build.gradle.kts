@@ -36,6 +36,15 @@ dependencies {
 
     implementation(libs.jbcrypt)
 
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.kotlin.datetime)
+
+    implementation(libs.postgresql)
+
+    implementation(libs.hikaricp)
+
     testImplementation(libs.kotest.framework.engine)
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.extensions.koin)

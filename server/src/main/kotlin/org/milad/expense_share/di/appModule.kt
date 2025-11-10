@@ -1,10 +1,10 @@
 package org.milad.expense_share.di
 
 import org.koin.dsl.module
-import org.milad.expense_share.data.repository.InMemoryFriendRepository
-import org.milad.expense_share.data.repository.InMemoryGroupRepository
-import org.milad.expense_share.data.repository.InMemoryTransactionRepository
-import org.milad.expense_share.data.repository.InMemoryUserRepository
+import org.milad.expense_share.data.repository.FriendRepositoryImpl
+import org.milad.expense_share.data.repository.GroupRepositoryImpl
+import org.milad.expense_share.data.repository.TransactionRepositoryImpl
+import org.milad.expense_share.data.repository.UserRepositoryImpl
 import org.milad.expense_share.domain.repository.FriendRepository
 import org.milad.expense_share.domain.repository.GroupRepository
 import org.milad.expense_share.domain.repository.TransactionRepository
@@ -16,10 +16,10 @@ import org.milad.expense_share.domain.service.TransactionService
 
 val appModule = module {
 
-    single { InMemoryFriendRepository() as FriendRepository }
-    single { InMemoryUserRepository() as UserRepository }
-    single { InMemoryGroupRepository() as GroupRepository }
-    single { InMemoryTransactionRepository() as TransactionRepository }
+    single { FriendRepositoryImpl() as FriendRepository }
+    single { UserRepositoryImpl() as UserRepository }
+    single { GroupRepositoryImpl() as GroupRepository }
+    single { TransactionRepositoryImpl() as TransactionRepository }
 
     single { AuthService(get()) }
     single { FriendsService(get()) }
