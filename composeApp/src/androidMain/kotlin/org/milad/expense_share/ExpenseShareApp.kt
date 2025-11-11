@@ -1,6 +1,7 @@
 package org.milad.expense_share
 
 import android.app.Application
+import io.kotzilla.sdk.analytics.koin.analytics
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
@@ -14,6 +15,8 @@ class ExpenseShareApp : Application() {
             androidContext(this@ExpenseShareApp)
             androidLogger(Level.DEBUG)
             modules(appModules)
+
+            analytics()
         }
     }
 }

@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.kotest) apply false
     id("io.mockative") version "3.0.1" apply false
     alias(libs.plugins.jacoco)
+    alias(libs.plugins.kotzilla) apply false
 }
 
 
