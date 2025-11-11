@@ -5,6 +5,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import org.milad.expense_share.application.configureCORS
 import org.milad.expense_share.application.configureKoin
 import org.milad.expense_share.application.configureRouting
 import org.milad.expense_share.application.configureSecurity
@@ -23,6 +24,7 @@ fun Application.main() {
 
     DatabaseFactory.init()
 
+    configureCORS()
     configureStatusPages()
     configureSecurity()
     configureKoin()
