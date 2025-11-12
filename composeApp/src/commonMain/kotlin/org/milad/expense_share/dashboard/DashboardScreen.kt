@@ -111,15 +111,16 @@ fun DashboardScreen(
         },
         detailPane = {
             GroupDetailScreen(
-                isListAndDetailVisible = isListAndDetailVisible,
                 onBackClick = {
                     viewModel.handle(DashboardAction.NavigateBack)
                     scope.launch { navigator.navigateBack() }
                 },
-                expenses = state.transactions,
-                selectedGroup = state.selectedGroup,
+                isListAndDetailVisible = isListAndDetailVisible,
                 isDetailVisible = isDetailVisible,
-            ) {}
+                selectedGroup = state.selectedGroup,
+                onAddExpenseClick = {},
+                onAddMemberClick = {},
+            )
         },
         extraPane = {
             AddGroupScreen(
