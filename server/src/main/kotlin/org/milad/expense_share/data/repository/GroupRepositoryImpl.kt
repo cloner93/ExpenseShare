@@ -2,12 +2,15 @@ package org.milad.expense_share.data.repository
 
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.milad.expense_share.data.db.table.GroupMembers
 import org.milad.expense_share.data.db.table.Groups
+import org.milad.expense_share.data.db.table.Users
+import org.milad.expense_share.data.models.User
 import org.milad.expense_share.domain.repository.GroupRepository
 import org.milad.expense_share.presentation.groups.model.UserGroupResponse
 
@@ -18,33 +21,44 @@ class GroupRepositoryImpl : GroupRepository {
         name: String,
         memberIds: List<Int>,
     ): UserGroupResponse = transaction {
-        val id = Groups.insert {
+        val uniqueMemberIds = (memberIds + ownerId).distinct()
+
+        val groupId = Groups.insert {
             it[Groups.name] = name
             it[Groups.ownerId] = ownerId
         } get Groups.id
 
-        GroupMembers.insert {
-            it[groupId] = id
-            it[userId] = ownerId
-        }
-
-        memberIds.distinct().forEach { memberId ->
-            if (!GroupMembers.select((GroupMembers.groupId eq id) and (GroupMembers.userId eq memberId) )
-                    .any()
-            ) {
-                GroupMembers.insert {
-                    it[GroupMembers.groupId] = groupId
-                    it[GroupMembers.userId] = memberId
-                }
+        if (uniqueMemberIds.isNotEmpty()) {
+            GroupMembers.batchInsert(uniqueMemberIds) { memberId ->
+                this[GroupMembers.groupId] = groupId
+                this[GroupMembers.userId] = memberId
             }
         }
 
+        val members = if (uniqueMemberIds.isNotEmpty()) {
+            Users
+                .selectAll()
+                .where { Users.id inList uniqueMemberIds }
+                .map {
+                    User(
+                        id = it[Users.id],
+                        username = it[Users.username],
+                        phone = it[Users.phone]
+                    )
+                }
+        } else {
+            emptyList()
+        }
+
         UserGroupResponse(
-            id = id,
+            id = groupId,
             name = name,
-            ownerId = ownerId
+            ownerId = ownerId,
+            members = members,
+            transactions = emptyList()
         )
     }
+
 
     override fun addUsersToGroup(ownerId: Int, groupId: Int, memberIds: List<Int>): Boolean =
         transaction {
