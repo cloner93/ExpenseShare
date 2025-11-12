@@ -119,7 +119,10 @@ fun DashboardScreen(
             ) {}
         },
         extraPane = {
-            AddGroupScreen(onBackClick = { scope.launch { navigator.navigateBack() } }) { name, list ->
+            AddGroupScreen(
+                listOfFriends = viewModel.viewState.value.friends,
+                onBackClick = { scope.launch { navigator.navigateBack() } }
+            ) { name, list ->
                 viewModel.handle(DashboardAction.AddGroup(name, list))
             }
         },

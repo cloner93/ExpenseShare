@@ -8,6 +8,8 @@ import com.pmb.common.viewmodel.BaseViewState
 import kotlinx.coroutines.launch
 import model.Group
 import model.Transaction
+import model.User
+import usecase.friends.GetFriendsUseCase
 import usecase.groups.CreateGroupUseCase
 import usecase.groups.GetGroupsUseCase
 import usecase.transactions.GetTransactionsUseCase
@@ -16,6 +18,7 @@ class DashboardViewModel(
     private val getGroupsUseCase: GetGroupsUseCase,
     private val getTransactionsUseCase: GetTransactionsUseCase,
     private val createGroupUseCase: CreateGroupUseCase,
+    private val getFriendsUseCase: GetFriendsUseCase,
 ) : BaseViewModel<DashboardAction, DashboardState, DashboardEvent>(
     initialState = DashboardState()
 ) {
@@ -35,32 +38,42 @@ class DashboardViewModel(
 
     private fun loadData() {
         viewModelScope.launch {
-            try {
-                getGroupsUseCase().collect { res ->
-                    setState { it.copy(isLoading = true, error = null) }
-                    res.onSuccess {
-                        setState {
-                            it.copy(
-                                groups = res.getOrElse { emptyList() },
-                                isLoading = false
-                            )
-                        }
-                    }.onFailure {
-                        setState {
-                            it.copy(
-                                error = res.exceptionOrNull(),
-                                isLoading = false
-                            )
-                        }
-                        postEvent(DashboardEvent.ShowToast("Error: ${res.exceptionOrNull()?.message}"))
+            getGroupsUseCase().collect { res ->
+                setState { it.copy(isLoading = true, error = null) }
+                res.onSuccess {
+                    setState {
+                        it.copy(
+                            groups = res.getOrElse { emptyList() },
+                            isLoading = false
+                        )
                     }
+                }.onFailure {
+                    setState {
+                        it.copy(
+                            error = res.exceptionOrNull(),
+                            isLoading = false
+                        )
+                    }
+                    postEvent(DashboardEvent.ShowToast("Error: ${res.exceptionOrNull()?.message}"))
                 }
+            }
 
-            } catch (e: Exception) {
-                setState { it.copy(isLoading = false, error = e) }
-                postEvent(
-                    DashboardEvent.ShowToast("Error loading data: ${e.message}")
-                )
+            getFriendsUseCase().collect { result ->
+                result.onSuccess { newFriends ->
+                    setState {
+                        it.copy(
+                            friends = it.friends + newFriends,
+                            isLoading = false
+                        )
+                    }
+                }.onFailure {
+                    setState {
+                        it.copy(
+                            isLoading = false
+                        )
+                    }
+                    postEvent(DashboardEvent.ShowToast("Error fetch friends: ${it.message}"))
+                }
             }
         }
     }
@@ -134,6 +147,7 @@ sealed interface DashboardAction : BaseViewAction {
 
 data class DashboardState(
     val groups: List<Group> = emptyList(),
+    val friends: List<User> = emptyList(),
     val selectedGroup: Group? = null,
     val transactions: List<Transaction> = emptyList(),
     val isLoading: Boolean = true,
