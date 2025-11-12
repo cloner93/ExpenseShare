@@ -98,6 +98,7 @@ kotlin {
             implementation(projects.core.navigation)
         }
         jvmMain.dependencies {
+            implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
         }
         iosMain.dependencies {

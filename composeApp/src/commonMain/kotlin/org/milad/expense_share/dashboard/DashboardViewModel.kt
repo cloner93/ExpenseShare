@@ -5,6 +5,8 @@ import com.pmb.common.viewmodel.BaseViewAction
 import com.pmb.common.viewmodel.BaseViewEvent
 import com.pmb.common.viewmodel.BaseViewModel
 import com.pmb.common.viewmodel.BaseViewState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import model.Group
 import model.Transaction
@@ -38,42 +40,69 @@ class DashboardViewModel(
 
     private fun loadData() {
         viewModelScope.launch {
-            getGroupsUseCase().collect { res ->
-                setState { it.copy(isLoading = true, error = null) }
-                res.onSuccess {
-                    setState {
-                        it.copy(
-                            groups = res.getOrElse { emptyList() },
-                            isLoading = false
-                        )
-                    }
-                }.onFailure {
-                    setState {
-                        it.copy(
-                            error = res.exceptionOrNull(),
-                            isLoading = false
-                        )
-                    }
-                    postEvent(DashboardEvent.ShowToast("Error: ${res.exceptionOrNull()?.message}"))
-                }
-            }
+            launch { getGroups() }
+            launch { getFriends() }
+        }
+    }
 
-            getFriendsUseCase().collect { result ->
-                result.onSuccess { newFriends ->
-                    setState {
-                        it.copy(
-                            friends = it.friends + newFriends,
-                            isLoading = false
-                        )
-                    }
-                }.onFailure {
-                    setState {
-                        it.copy(
-                            isLoading = false
-                        )
-                    }
-                    postEvent(DashboardEvent.ShowToast("Error fetch friends: ${it.message}"))
+    private suspend fun getGroups() {
+        getGroupsUseCase().collect { res ->
+            setState { it.copy(isLoading = true, error = null) }
+
+            res.onSuccess { groups ->
+                setState {
+                    it.copy(
+                        groups = groups,
+                        isLoading = false
+                    )
                 }
+
+                launchTotalCalculation(groups)
+            }.onFailure { e ->
+                setState { it.copy(error = e, isLoading = false) }
+                postEvent(DashboardEvent.ShowToast("Error: ${e.message}"))
+            }
+        }
+    }
+
+    private suspend fun getFriends() {
+        getFriendsUseCase().collect { result ->
+            result.onSuccess { newFriends ->
+                setState {
+                    it.copy(
+                        friends = it.friends + newFriends,
+                        isLoading = false
+                    )
+                }
+            }.onFailure { e ->
+                setState { it.copy(isLoading = false) }
+                postEvent(DashboardEvent.ShowToast("Error fetch friends: ${e.message}"))
+            }
+        }
+    }
+
+    private fun launchTotalCalculation(groups: List<Group>) {
+        viewModelScope.launch(Dispatchers.Default) {
+            // TODO:
+           /* val userId = currentUserId() // implement this
+            var totalOwed = 0.0
+            var totalOwe = 0.0
+
+            for (group in groups) {
+                for (tx in group.transactions) {
+                    when (userId) {
+                        tx.payerId -> totalOwed += tx.amount
+                        tx.receiverId -> totalOwe += tx.amount
+                    }
+                }
+            }*/
+            delay(2000)
+
+            setState {
+                it.copy(
+                    totalOwed = 1.0,
+                    totalOwe = 2.0
+                )
             }
         }
     }
@@ -153,6 +182,8 @@ data class DashboardState(
     val isLoading: Boolean = true,
     val error: Throwable? = null,
     val isDetailVisible: Boolean = false,
+    val totalOwe: Double = 0.0,
+    val totalOwed: Double = 0.0,
 ) : BaseViewState
 
 sealed interface DashboardEvent : BaseViewEvent {

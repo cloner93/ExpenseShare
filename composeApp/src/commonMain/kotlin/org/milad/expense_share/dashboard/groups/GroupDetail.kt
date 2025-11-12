@@ -45,6 +45,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import model.Group
 import model.Transaction
+import model.TransactionStatus
+import model.User
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.dashboard.AppExtendedButton
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,7 +65,12 @@ fun GroupDetailScreen(
 
     if (selectedGroup != null)
         Scaffold(
-            floatingActionButton = { AppExtendedButton(title = "Add Expense", onClick = onAddExpenseClick) },
+            floatingActionButton = {
+                AppExtendedButton(
+                    title = "Add Expense",
+                    onClick = onAddExpenseClick
+                )
+            },
             topBar = {
                 TopAppBar(
                     title = {
@@ -197,4 +205,39 @@ fun ExpenseCard(item: Transaction) {
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
         )
     }
+}
+
+@Preview
+@Composable
+fun DashboardPreview() {
+    val group =
+        Group(
+            1,
+            "Trip to Paris",
+            ownerId = 1,
+            members = listOf(User(1, "milad", "09137511005")),
+            transactions = listOf(
+                Transaction(
+                    id = 78,
+                    groupId = 3,
+                    title = "Dinner",
+                    amount = 600.0,
+                    description = "dinner dinner",
+                    createdBy = 10,
+                    status = TransactionStatus.APPROVED,
+                    createdAt = 10000,
+                    transactionDate = 600000,
+                )
+            )
+        )
+
+    GroupDetailScreen(
+        onBackClick = { },
+        isListAndDetailVisible = true,
+        isDetailVisible = true,
+        selectedTab = GroupTab.Members,
+        expenses = emptyList(),
+        onAddExpenseClick = { },
+        selectedGroup = group
+    )
 }

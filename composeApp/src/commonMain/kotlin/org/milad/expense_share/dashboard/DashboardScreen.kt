@@ -102,9 +102,12 @@ fun DashboardScreen(
                 },
                 isListAndDetailVisible = isListAndDetailVisible,
                 isDetailVisible = !isDetailVisible,
-            ) {
-                scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
-            }
+                totalOwed = state.totalOwed,
+                totalOwe = state.totalOwe,
+                onAddGroupClick = {
+                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
+                }
+            )
         },
         detailPane = {
             GroupDetailScreen(

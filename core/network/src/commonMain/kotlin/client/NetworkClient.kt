@@ -53,7 +53,7 @@ fun createHttpClient(
     install(Logging) {
         logger = object : Logger {
             override fun log(message: String) {
-                print("ktor: $message")
+                print("\nktor: $message\n")
             }
         }
         level = LogLevel.ALL
