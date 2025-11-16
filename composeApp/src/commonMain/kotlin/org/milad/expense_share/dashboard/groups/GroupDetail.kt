@@ -66,7 +66,7 @@ fun GroupDetailScreen(
     onAddExpenseClick: () -> Unit,
     onAddMemberClick: () -> Unit,
 ) {
-    var selectedTab by remember { mutableStateOf(GroupTab.Members) }
+    var selectedTab by remember { mutableStateOf(GroupTab.Expenses) }
 
     if (selectedGroup != null)
         Scaffold(
