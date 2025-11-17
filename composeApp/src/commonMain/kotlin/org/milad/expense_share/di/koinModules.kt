@@ -11,6 +11,7 @@ import usecase.auth.RegisterUserUseCase
 import usecase.friends.GetFriendsUseCase
 import usecase.groups.CreateGroupUseCase
 import usecase.groups.GetGroupsUseCase
+import usecase.transactions.CreateTransactionUseCase
 import usecase.transactions.GetTransactionsUseCase
 
 val domainModule = module {
@@ -20,10 +21,12 @@ val domainModule = module {
     factory { LoginUserUseCase(get()) }
     factory { CreateGroupUseCase(get()) }
     factory { GetFriendsUseCase(get()) }
+    factory { CreateTransactionUseCase(get()) }
 }
 val dashboardModule = module {
     viewModel {
         DashboardViewModel(
+            get(),
             get(),
             get(),
             get(),

@@ -66,12 +66,12 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun AddExpense(
     users: List<User>,
     onBackClick: () -> Unit,
-    onAddClick: (String, List<Int>) -> Unit,
+    onAddClick: (String, List<Int>, Double, String) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     var groupName by rememberSaveable { mutableStateOf("") }
     var expensePrice by rememberSaveable { mutableStateOf("") }
-    var expenseDate by rememberSaveable { mutableStateOf("") }
+    var expenseDesc by rememberSaveable { mutableStateOf("") }
     var selectedFriends by remember { mutableStateOf<List<User>>(emptyList()) }
     var shareType by remember { mutableStateOf(ShareType.Weight) }
 
@@ -110,8 +110,13 @@ fun AddExpense(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .fillMaxWidth(),
                 onClick = {
-                    if (groupName.isNotBlank() && selectedFriends.isNotEmpty()) {
-                        onAddClick(groupName, selectedFriends.map { it.id })
+                    if (groupName.isNotBlank() ) {
+                        onAddClick(
+                            groupName,
+                            selectedFriends.map { it.id },
+                            if (expensePrice == "") 0.0 else expensePrice.toDouble(),
+                            expenseDesc
+                        )
                     }
                 }
             ) {
@@ -132,8 +137,8 @@ fun AddExpense(
                 onGroupNameChange = { groupName = it },
                 expensePrice = expensePrice,
                 onExpensePriceChange = { expensePrice = it },
-                expenseDate = expenseDate,
-                onExpenseDateChange = { expenseDate = it }
+                expenseDesc = expenseDesc,
+                onExpenseDescChange = { expenseDesc = it }
             )
 
             Spacer(Modifier.height(8.dp))
@@ -166,8 +171,8 @@ private fun ExpenseInputFields(
     onGroupNameChange: (String) -> Unit,
     expensePrice: String,
     onExpensePriceChange: (String) -> Unit,
-    expenseDate: String,
-    onExpenseDateChange: (String) -> Unit,
+    expenseDesc: String,
+    onExpenseDescChange: (String) -> Unit,
 ) {
     OutlinedTextField(
         value = groupName,
@@ -190,10 +195,10 @@ private fun ExpenseInputFields(
     Spacer(Modifier.height(8.dp))
 
     OutlinedTextField(
-        value = expenseDate,
+        value = expenseDesc,
         modifier = Modifier.fillMaxWidth(),
-        onValueChange = onExpenseDateChange,
-        label = { Text("Expense Date (1404.08.20)") },
+        onValueChange = onExpenseDescChange,
+        label = { Text("Expense Desc") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
     )
 }
@@ -207,7 +212,7 @@ fun AddExpensePreview() {
             User(1, "Mahdi", "09103556001")
         ),
         onBackClick = {},
-        onAddClick = { _, _ -> }
+        onAddClick = { _, _, _, _ -> }
     )
 }
 
@@ -383,11 +388,11 @@ fun ManualSplitSection(
         (amount / users.size).toFloat()
     }
 
-        users.forEach { user ->
-            if ((amounts[user.id] ?: 0f) == 0f) {
-                amounts[user.id] = defaultShare
-            }
+    users.forEach { user ->
+        if ((amounts[user.id] ?: 0f) == 0f) {
+            amounts[user.id] = defaultShare
         }
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         users.forEachIndexed { index, user ->

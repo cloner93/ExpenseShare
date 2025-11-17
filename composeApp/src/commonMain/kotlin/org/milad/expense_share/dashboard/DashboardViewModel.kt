@@ -14,6 +14,7 @@ import model.User
 import usecase.friends.GetFriendsUseCase
 import usecase.groups.CreateGroupUseCase
 import usecase.groups.GetGroupsUseCase
+import usecase.transactions.CreateTransactionUseCase
 import usecase.transactions.GetTransactionsUseCase
 
 class DashboardViewModel(
@@ -21,6 +22,7 @@ class DashboardViewModel(
     private val getTransactionsUseCase: GetTransactionsUseCase,
     private val createGroupUseCase: CreateGroupUseCase,
     private val getFriendsUseCase: GetFriendsUseCase,
+    private val createTransactionUseCase: CreateTransactionUseCase,
 ) : BaseViewModel<DashboardAction, DashboardState, DashboardEvent>(
     initialState = DashboardState()
 ) {
@@ -37,6 +39,40 @@ class DashboardViewModel(
             is DashboardAction.AddGroup -> createGroup(action.groupName, action.members)
             is DashboardAction.ShowExtraPane -> {
                 setState { it.copy(extraPaneContentState = action.content) }
+            }
+
+            is DashboardAction.AddExpense -> createTransaction(
+                action.expenseName,
+                action.members,
+                action.amount,
+                action.desc
+            )
+        }
+    }
+
+    private fun createTransaction(title: String, members: List<Int>, amount: Double, desc: String) {
+        viewModelScope.launch {
+            setState { it.copy(isLoading = true) }
+            viewState.value.selectedGroup?.let {
+                createTransactionUseCase(
+                    groupId = it.id,
+                    title = title,
+                    amount = amount,
+                    description = desc
+                ).collect { result ->
+                    result.onSuccess {
+
+                        setState {
+                            it.copy(
+                                isLoading = false
+                            )
+                        }
+                    }.onFailure { e ->
+
+                        setState { it.copy(error = e, isLoading = false) }
+                        postEvent(DashboardEvent.ShowToast("Error: ${e.message}"))
+                    }
+                }
             }
         }
     }
@@ -176,6 +212,12 @@ sealed interface DashboardAction : BaseViewAction {
     data class SelectGroup(val group: Group) : DashboardAction
     data object NavigateBack : DashboardAction
     data class AddGroup(val groupName: String, val members: List<Int>) : DashboardAction
+    data class AddExpense(
+        val expenseName: String,
+        val members: List<Int>,
+        val amount: Double,
+        val desc: String,
+    ) : DashboardAction
 }
 
 data class DashboardState(
