@@ -35,6 +35,9 @@ class DashboardViewModel(
             is DashboardAction.SelectGroup -> selectGroup(action.group)
             is DashboardAction.NavigateBack -> navigateBack()
             is DashboardAction.AddGroup -> createGroup(action.groupName, action.members)
+            is DashboardAction.ShowExtraPane -> {
+                setState { it.copy(extraPaneContentState = action.content) }
+            }
         }
     }
 
@@ -84,18 +87,18 @@ class DashboardViewModel(
     private fun launchTotalCalculation(groups: List<Group>) {
         viewModelScope.launch(Dispatchers.Default) {
             // TODO:
-           /* val userId = currentUserId() // implement this
-            var totalOwed = 0.0
-            var totalOwe = 0.0
+            /* val userId = currentUserId() // implement this
+             var totalOwed = 0.0
+             var totalOwe = 0.0
 
-            for (group in groups) {
-                for (tx in group.transactions) {
-                    when (userId) {
-                        tx.payerId -> totalOwed += tx.amount
-                        tx.receiverId -> totalOwe += tx.amount
-                    }
-                }
-            }*/
+             for (group in groups) {
+                 for (tx in group.transactions) {
+                     when (userId) {
+                         tx.payerId -> totalOwed += tx.amount
+                         tx.receiverId -> totalOwe += tx.amount
+                     }
+                 }
+             }*/
             delay(2000)
 
             setState {
@@ -168,6 +171,7 @@ class DashboardViewModel(
 }
 
 sealed interface DashboardAction : BaseViewAction {
+    data class ShowExtraPane(val content: ExtraPaneContentState) : DashboardAction
     data object LoadData : DashboardAction
     data class SelectGroup(val group: Group) : DashboardAction
     data object NavigateBack : DashboardAction
@@ -175,6 +179,7 @@ sealed interface DashboardAction : BaseViewAction {
 }
 
 data class DashboardState(
+    val extraPaneContentState: ExtraPaneContentState = ExtraPaneContentState.None,
     val groups: List<Group> = emptyList(),
     val friends: List<User> = emptyList(),
     val selectedGroup: Group? = null,
@@ -189,4 +194,11 @@ data class DashboardState(
 sealed interface DashboardEvent : BaseViewEvent {
     data class ShowToast(val message: String) : DashboardEvent
     data object GroupCreatedSuccessful : DashboardEvent
+}
+
+sealed class ExtraPaneContentState {
+    data object None : ExtraPaneContentState()
+    data object AddGroup : ExtraPaneContentState()
+    data object AddExpense : ExtraPaneContentState()
+    data object AddMember : ExtraPaneContentState()
 }

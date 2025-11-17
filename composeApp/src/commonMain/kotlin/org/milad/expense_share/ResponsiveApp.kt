@@ -49,7 +49,7 @@ fun ResponsiveApp(
             startDestination = MainRoute.Dashboard
         ) {
             composable<MainRoute.Dashboard> {
-                DashboardScreen(appScreenSize = appScreenSize)
+                DashboardScreen()
             }
 
             composable<MainRoute.Friends> {
