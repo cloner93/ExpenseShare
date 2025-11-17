@@ -13,7 +13,7 @@ class TransactionsRepositoryImpl(private val networkManager: NetworkManager) :
     }
 
     override suspend fun createTransaction(
-        groupId: String,
+        groupId: Int,
         title: String,
         amount: Double,
         description: String?

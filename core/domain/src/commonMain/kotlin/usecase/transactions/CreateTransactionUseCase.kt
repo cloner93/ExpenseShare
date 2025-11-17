@@ -4,7 +4,7 @@ import repository.TransactionsRepository
 
 class CreateTransactionUseCase(private val transactionsRepository: TransactionsRepository) {
     suspend operator fun invoke(
-        groupId: String,
+        groupId: Int,
         title: String,
         amount: Double,
         description: String?
