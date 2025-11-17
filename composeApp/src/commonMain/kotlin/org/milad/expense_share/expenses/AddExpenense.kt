@@ -3,6 +3,7 @@
 package org.milad.expense_share.expenses
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +16,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -35,8 +39,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +54,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -60,6 +68,7 @@ fun AddExpense(
     onBackClick: () -> Unit,
     onAddClick: (String, List<Int>) -> Unit,
 ) {
+    val scrollState = rememberScrollState()
     var groupName by rememberSaveable { mutableStateOf("") }
     var expensePrice by rememberSaveable { mutableStateOf("") }
     var expenseDate by rememberSaveable { mutableStateOf("") }
@@ -114,7 +123,8 @@ fun AddExpense(
             modifier = Modifier
                 .padding(16.dp)
                 .padding(paddingValues)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ExpenseInputFields(
@@ -139,12 +149,12 @@ fun AddExpense(
                 MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
             )
 
-            val amount = expensePrice.toDoubleOrNull() ?: 3000.0
+            val amount = expensePrice.toDoubleOrNull() ?: 0.0
             when (shareType) {
                 ShareType.Equal -> EqualSplitSection(amount, users)
-                ShareType.Percent -> PercentSplitSection(users, percents)
-                ShareType.Weight -> WeightSplitSection(users, weights)
-                ShareType.Manual -> ManualSplitSection(users, amounts)
+                ShareType.Percent -> PercentSplitSection(users, amount, percents)
+                ShareType.Weight -> WeightSplitSection(users, amount, weights)
+                ShareType.Manual -> ManualSplitSection(users, amount, amounts)
             }
         }
     }
@@ -224,6 +234,7 @@ fun ExpenseShareType(
         ) {
             ShareType.entries.forEach { type ->
                 FilterChip(
+                    enabled = type.enable,
                     selected = type == selectedType,
                     onClick = { onTypeSelected(type) },
                     label = { Text(type.title) },
@@ -236,7 +247,7 @@ fun ExpenseShareType(
     }
 }
 
-enum class ShareType(val title: String, val icon: ImageVector) {
+enum class ShareType(val title: String, val icon: ImageVector, val enable: Boolean = true) {
     Equal("Equal", Icons.Default.SouthAmerica),
     Percent("Percent", Icons.Default.Percent),
     Weight("Weight", Icons.Default.Numbers),
@@ -246,7 +257,7 @@ enum class ShareType(val title: String, val icon: ImageVector) {
 @Composable
 fun EqualSplitSection(amount: Double, users: List<User>) {
     val share = remember(users.size, amount) {
-        amount / users.size
+        if (amount != 0.0) amount / users.size else 0.0
     }
 
     Column {
@@ -256,7 +267,7 @@ fun EqualSplitSection(amount: Double, users: List<User>) {
                 showDivider = index < users.lastIndex,
                 tailing = {
                     Text(
-                        text = share.toString(),
+                        text = "$ " + share.toInt().toString(),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     )
                 }
@@ -268,29 +279,43 @@ fun EqualSplitSection(amount: Double, users: List<User>) {
 @Composable
 fun PercentSplitSection(
     users: List<User>,
+    amount: Double,
     percents: SnapshotStateMap<Int, Float>,
 ) {
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         users.forEachIndexed { index, user ->
             val percent = percents[user.id] ?: 0f
+            val userAmount = remember(percent, amount) {
+                if (amount != 0.0) (amount * (percent / 100f)) else 0.0
+            }
+
             UserInfoRow(
                 user = user,
                 showDivider = index < users.lastIndex,
                 tailing = {
-                    Text(
-                        text = "${percent.toInt()}%",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                    )
+                    Row {
+                        Text(
+                            text = "${userAmount.toInt()}",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "${percent.toInt()}%",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
                 },
                 bottom = {
                     Slider(
+                        enabled = amount != 0.0,
                         value = percent,
                         onValueChange = { percents[user.id] = it },
                         valueRange = 0f..100f,
-                        steps = 9,
+//                        steps = 9,
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 },
@@ -300,49 +325,106 @@ fun PercentSplitSection(
 }
 
 @Composable
-fun WeightSplitSection(users: List<User>, weights: SnapshotStateMap<Int, Float>) {
+fun WeightSplitSection(
+    users: List<User>,
+    amount: Double,
+    weights: SnapshotStateMap<Int, Float>,
+) {
+    val totalWeight = remember(weights.values.toList()) {
+        weights.values.sum().coerceAtLeast(1f)
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         users.forEachIndexed { index, user ->
-            val value = weights[user.id] ?: 1f
+
+            val weight = weights[user.id] ?: 1f
+
+            val userAmount = remember(weight, totalWeight, amount) {
+                if (amount != 0.0) (amount * (weight / totalWeight)) else 0.0
+            }
 
             UserInfoRow(
                 user = user,
                 showDivider = index < users.lastIndex,
                 tailing = {
-                    Text(
-                        text = value.toInt().toString(),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                    )
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "${userAmount.toInt()}",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                        Text(
+                            text = "w:${weight.toInt()}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 },
                 bottom = {
                     Slider(
-                        value = value,
+                        enabled = amount != 0.0,
+                        value = weight,
                         onValueChange = { weights[user.id] = it },
                         valueRange = 1f..3f,
-                        steps = 1
+                        steps = 1,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
-                }
+                },
             )
         }
     }
 }
 
 @Composable
-fun ManualSplitSection(users: List<User>, amounts: SnapshotStateMap<Int, Float>) {
+fun ManualSplitSection(
+    users: List<User>,
+    amount: Double,
+    amounts: SnapshotStateMap<Int, Float>,
+) {
+    val defaultShare = remember(amount, users) {
+        (amount / users.size).toFloat()
+    }
+
+        users.forEach { user ->
+            if ((amounts[user.id] ?: 0f) == 0f) {
+                amounts[user.id] = defaultShare
+            }
+        }
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         users.forEachIndexed { index, user ->
+
+            val currentValue by remember { derivedStateOf { amounts[user.id] ?: 0f } }
+
             UserInfoRow(
                 user = user,
                 showDivider = index < users.lastIndex,
                 tailing = {
-                    OutlinedTextField(
-                        value = amounts[user.id]?.let { if (it == 0f) "" else it.toString() } ?: "",
-                        modifier = Modifier.width(100.dp),
+                    TextField(
+                        modifier = Modifier
+                            .width(110.dp)
+                            .height(50.dp)
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(horizontal = 4.dp),
+                        value = currentValue.takeIf { it != 0f }?.toString() ?: "",
                         singleLine = true,
                         onValueChange = { input ->
                             amounts[user.id] = input.toFloatOrNull() ?: 0f
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(8.dp),
+                        textStyle = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                        ),
                     )
                 },
             )
