@@ -12,7 +12,6 @@ import io.mockative.of
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import model.CreateTransactionRequest
-import model.Transaction
 import model.TransactionStatus
 
 class TransactionsRepositoryTest : DescribeSpec({
@@ -116,7 +115,7 @@ class TransactionsRepositoryTest : DescribeSpec({
                 } returns flowOf(Result.success(expectedTransaction))
 
                 // Act
-                val result = repo.createTransaction(groupId, title, amount, description).first()
+                val result = repo.createTransaction(groupId, title, amount, description,,,).first()
 
                 // Assert
                 result shouldBeSuccess { transaction ->
@@ -153,7 +152,7 @@ class TransactionsRepositoryTest : DescribeSpec({
                 } returns flowOf(Result.failure(exception))
 
                 // Act
-                val result = repo.createTransaction(groupId, title, amount, description).first()
+                val result = repo.createTransaction(groupId, title, amount, description,,,).first()
 
                 // Assert
                 result shouldBeFailure { error ->

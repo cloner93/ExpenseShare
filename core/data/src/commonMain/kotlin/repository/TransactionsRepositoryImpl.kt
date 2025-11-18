@@ -3,6 +3,8 @@ package repository
 import NetworkManager
 import kotlinx.coroutines.flow.Flow
 import model.CreateTransactionRequest
+import model.PayerDto
+import model.SplitDetailsDto
 import model.Transaction
 
 
@@ -16,14 +18,18 @@ class TransactionsRepositoryImpl(private val networkManager: NetworkManager) :
         groupId: Int,
         title: String,
         amount: Double,
-        description: String?
+        description: String?,
+        payers: List<PayerDto>?,
+        splitDetails: SplitDetailsDto?
     ): Flow<Result<Transaction>> {
         return networkManager.post(
             "/groups/$groupId/transactions",
             body = CreateTransactionRequest(
                 title,
                 amount,
-                description
+                description,
+                payers = payers,
+                splitDetails = splitDetails
             )
         )
     }

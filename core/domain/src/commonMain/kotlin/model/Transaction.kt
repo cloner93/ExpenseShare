@@ -11,9 +11,11 @@ data class Transaction(
     val description: String,
     val createdBy: Int,
     var status: TransactionStatus,
-    val createdAt: Long ,
+    val createdAt: Long,
     val transactionDate: Long,
-    var approvedBy: Int? = null
+    var approvedBy: Int? = null,
+    val payers: List<PayerDto>,
+    val splitDetails: SplitDetailsDto,
 )
 
 @Serializable
@@ -22,3 +24,21 @@ enum class TransactionStatus {
     APPROVED,
     REJECTED
 }
+
+@Serializable
+data class PayerDto(
+    val userId: Int,
+    val amountPaid: Double,
+)
+
+@Serializable
+data class SplitDetailsDto(
+    val type: String,
+    val members: List<MemberShareDto>,
+)
+
+@Serializable
+data class MemberShareDto(
+    val userId: Int,
+    val share: Double? = null,
+)
