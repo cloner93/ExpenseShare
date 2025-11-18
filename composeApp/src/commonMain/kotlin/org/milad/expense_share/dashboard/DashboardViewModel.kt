@@ -9,6 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import model.Group
+import model.PayerDto
+import model.SplitDetailsDto
 import model.Transaction
 import model.User
 import usecase.friends.GetFriendsUseCase
@@ -43,14 +45,21 @@ class DashboardViewModel(
 
             is DashboardAction.AddExpense -> createTransaction(
                 action.expenseName,
-                action.members,
                 action.amount,
-                action.desc
+                action.desc,
+                action.payers,
+                action.splitDetails,
             )
         }
     }
 
-    private fun createTransaction(title: String, members: List<Int>, amount: Double, desc: String) {
+    private fun createTransaction(
+        title: String,
+        amount: Double,
+        desc: String,
+        payers: List<PayerDto>?,
+        splitDetails: SplitDetailsDto?,
+    ) {
         viewModelScope.launch {
             setState { it.copy(isLoading = true) }
             viewState.value.selectedGroup?.let {
@@ -58,7 +67,9 @@ class DashboardViewModel(
                     groupId = it.id,
                     title = title,
                     amount = amount,
-                    description = desc
+                    description = desc,
+                    payers = payers,
+                    splitDetails = splitDetails
                 ).collect { result ->
                     result.onSuccess {
 
@@ -214,9 +225,10 @@ sealed interface DashboardAction : BaseViewAction {
     data class AddGroup(val groupName: String, val members: List<Int>) : DashboardAction
     data class AddExpense(
         val expenseName: String,
-        val members: List<Int>,
         val amount: Double,
         val desc: String,
+        val payers: List<PayerDto>?,
+        val splitDetails: SplitDetailsDto?,
     ) : DashboardAction
 }
 

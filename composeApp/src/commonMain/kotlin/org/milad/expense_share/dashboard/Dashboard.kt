@@ -39,11 +39,8 @@ import androidx.compose.ui.unit.dp
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
 import model.Group
-import model.Transaction
 import model.TransactionStatus
-import model.User
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -245,41 +242,5 @@ fun AppExtendedButton(title: String, onClick: () -> Unit) {
         onClick = onClick,
         icon = { Icon(Icons.Default.Add, contentDescription = title) },
         text = { Text(title) }
-    )
-}
-
-@Preview
-@Composable
-fun DashboardPreview() {
-    val groups = listOf(
-        Group(
-            1,
-            "Trip to Paris",
-            ownerId = 1,
-            members = listOf(User(1, "milad", "09137511005")),
-            transactions = listOf(
-                Transaction(
-                    id = 78,
-                    groupId = 3,
-                    title = "Dinner",
-                    amount = 600.0,
-                    description = "dinner dinner",
-                    createdBy = 10,
-                    status = TransactionStatus.APPROVED,
-                    createdAt = 10000,
-                    transactionDate = 600000,
-                )
-            )
-        )
-    )
-
-    Dashboard(
-        groups = groups,
-        onGroupClick = { },
-        isListAndDetailVisible = false,
-        isDetailVisible = false,
-        onAddGroupClick = {},
-        totalOwe = 0.0,
-        totalOwed = 0.0,
     )
 }

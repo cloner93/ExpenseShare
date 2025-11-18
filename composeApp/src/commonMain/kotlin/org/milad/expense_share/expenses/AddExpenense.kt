@@ -2,6 +2,7 @@
 
 package org.milad.expense_share.expenses
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -16,18 +17,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material.icons.filled.SouthAmerica
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -35,6 +42,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -42,12 +51,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -56,81 +68,101 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import expenseshare.composeapp.generated.resources.Res
+import expenseshare.composeapp.generated.resources.paris
+import model.MemberShareDto
+import model.PayerDto
+import model.SplitDetailsDto
 import model.User
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun AddExpense(
-    users: List<User>,
+    allUsers: List<User>,
     onBackClick: () -> Unit,
-    onAddClick: (String, List<Int>, Double, String) -> Unit,
+    onAddClick: (String, Double, String, List<PayerDto>, SplitDetailsDto) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     var groupName by rememberSaveable { mutableStateOf("") }
     var expensePrice by rememberSaveable { mutableStateOf("") }
     var expenseDesc by rememberSaveable { mutableStateOf("") }
-    var selectedFriends by remember { mutableStateOf<List<User>>(emptyList()) }
-    var shareType by remember { mutableStateOf(ShareType.Weight) }
+    var shareType: ShareType? by remember { mutableStateOf(null) }
 
-    val percents = remember(users) {
-        mutableStateMapOf<Int, Float>().apply {
-            users.forEach { put(it.id, 0f) }
+    var payers by remember { mutableStateOf<List<User>>(emptyList()) }
+    var members by remember { mutableStateOf<List<User>>(emptyList()) }
+
+    val payerAmounts = remember { mutableStateMapOf<Int, String>() }
+    var finalPayerMap by remember { mutableStateOf<Map<Int, Double>>(emptyMap()) }
+
+    var memberAmounts by remember { mutableStateOf<Map<Int, Double>>(emptyMap()) }
+
+    LaunchedEffect(memberAmounts) {
+        memberAmounts.forEach { (id, amount) ->
+            println("$id $amount")
         }
     }
 
-    val weights = remember(users) {
+    val percents = remember(members) {
         mutableStateMapOf<Int, Float>().apply {
-            users.forEach { put(it.id, 1f) }
+            members.forEach { put(it.id, 0f) }
         }
     }
 
-    val amounts = remember(users) {
+    val weights = remember(members) {
         mutableStateMapOf<Int, Float>().apply {
-            users.forEach { put(it.id, 0f) }
+            members.forEach { put(it.id, 1f) }
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add Expense", style = MaterialTheme.typography.titleLarge) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            Button(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .fillMaxWidth(),
-                onClick = {
-                    if (groupName.isNotBlank() ) {
-                        onAddClick(
-                            groupName,
-                            selectedFriends.map { it.id },
-                            if (expensePrice == "") 0.0 else expensePrice.toDouble(),
-                            expenseDesc
-                        )
-                    }
+    val amounts = remember(members) {
+        mutableStateMapOf<Int, Float>().apply {
+            members.forEach { put(it.id, 0f) }
+        }
+    }
+
+    var showPayerBottomSheet by remember { mutableStateOf(false) }
+    var showMemberBottomSheet by remember { mutableStateOf(false) }
+
+    Scaffold(topBar = {
+        TopAppBar(
+            title = { Text("Add Expense", style = MaterialTheme.typography.titleLarge) },
+            navigationIcon = {
+                IconButton(onClick = onBackClick) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                 }
-            ) {
-                Text("Save")
-            }
+            },
+        )
+    }, bottomBar = {
+        Button(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth(),
+            onClick = {
+                if (groupName.isNotBlank()) {
+                    onAddClick(
+                        groupName,
+                        expensePrice.toDoubleOrNull() ?: 0.0,
+                        expenseDesc,
+                        finalPayerMap.map {
+                            PayerDto(it.key, it.value)
+                        },
+                        SplitDetailsDto(
+                            shareType?.title ?: ShareType.Equal.title,
+                            members = memberAmounts.map {
+                                MemberShareDto(it.key, it.value)
+                            },
+                        )
+                    )
+                }
+            }) {
+            Text("Save")
         }
-    ) { paddingValues ->
+    }) { paddingValues ->
         Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .padding(paddingValues)
-                .fillMaxSize()
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.padding(16.dp).padding(paddingValues).fillMaxSize()
+                .verticalScroll(scrollState), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ExpenseInputFields(
                 groupName = groupName,
@@ -138,32 +170,189 @@ fun AddExpense(
                 expensePrice = expensePrice,
                 onExpensePriceChange = { expensePrice = it },
                 expenseDesc = expenseDesc,
-                onExpenseDescChange = { expenseDesc = it }
-            )
+                onExpenseDescChange = { expenseDesc = it })
 
             Spacer(Modifier.height(8.dp))
 
+            PayerOfExpense(
+                payers = payers,
+                payerAmounts = payerAmounts,
+                onPayersClick = { showPayerBottomSheet = true },
+                onRemovePayer = { user ->
+                    payers = payers - user
+                    payerAmounts.remove(user.id)
+                },
+                onAmountsUpdated = { updated ->
+                    finalPayerMap = updated
+                }
+            )
+
             ExpenseShareType(
-                selectedType = shareType,
-                onTypeSelected = { shareType = it }
-            )
+                selectedType = shareType, onTypeSelected = { shareType = it })
 
-            HorizontalDivider(
-                Modifier.padding(vertical = 6.dp).fillMaxWidth(),
-                DividerDefaults.Thickness,
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-            )
+            Column {
+                val amount = expensePrice.toDoubleOrNull() ?: 0.0
+                when (shareType) {
+                    ShareType.Equal -> EqualSplitSection(
+                        amount,
+                        members,
+                        onRemoveClick = { user -> members = members - user },
+                        onAmountsUpdated = { result -> memberAmounts = result }
+                    )
 
-            val amount = expensePrice.toDoubleOrNull() ?: 0.0
-            when (shareType) {
-                ShareType.Equal -> EqualSplitSection(amount, users)
-                ShareType.Percent -> PercentSplitSection(users, amount, percents)
-                ShareType.Weight -> WeightSplitSection(users, amount, weights)
-                ShareType.Manual -> ManualSplitSection(users, amount, amounts)
+                    ShareType.Percent -> PercentSplitSection(
+                        members, amount, percents,
+                        onRemoveClick = { user -> members = members - user },
+                        onAmountsUpdated = { result -> memberAmounts = result }
+                    )
+
+                    ShareType.Weight -> WeightSplitSection(
+                        members, amount, weights,
+                        onRemoveClick = { user -> members = members - user },
+                        onAmountsUpdated = { result -> memberAmounts = result }
+                    )
+
+                    ShareType.Manual -> ManualSplitSection(
+                        members, amount, amounts,
+                        onRemoveClick = { user -> members = members - user },
+                        onAmountsUpdated = { result -> memberAmounts = result }
+                    )
+
+                    null -> {}
+                }
+
+                OutlinedButton(
+                    onClick = { showMemberBottomSheet = true }, modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Add Members")
+                }
+
+                HorizontalDivider(
+                    Modifier.padding(vertical = 6.dp).fillMaxWidth(),
+                    DividerDefaults.Thickness,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
             }
         }
     }
+
+    if (showPayerBottomSheet) {
+        SelectionBottomSheet(
+            title = "Select Payers", items = allUsers, initiallySelected = payers, onDismiss = {
+                showPayerBottomSheet = false
+            }) {
+            showPayerBottomSheet = false
+            payers = it
+        }
+    }
+    if (showMemberBottomSheet) {
+        SelectionBottomSheet(
+            title = "Select Members", items = allUsers, initiallySelected = members, onDismiss = {
+                showMemberBottomSheet = false
+            }) {
+            showMemberBottomSheet = false
+            members = it
+
+            if (shareType == null) shareType = ShareType.Equal
+        }
+    }
 }
+
+@Composable
+fun PayerOfExpense(
+    payers: List<User>,
+    payerAmounts: SnapshotStateMap<Int, String>,
+    onPayersClick: () -> Unit,
+    onRemovePayer: (User) -> Unit,
+    onAmountsUpdated: (Map<Int, Double>) -> Unit,
+) {
+
+    LaunchedEffect(payerAmounts.values.toList()) {
+        val result = payers.associate { user ->
+            val amount = payerAmounts[user.id]?.toDoubleOrNull() ?: 0.0
+            user.id to amount
+        }
+        onAmountsUpdated(result)
+    }
+
+    Column(Modifier.fillMaxWidth()) {
+
+        Text(
+            text = "Payers",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        payers.forEachIndexed { index, user ->
+            val paidValue = payerAmounts[user.id] ?: ""
+
+            UserInfoRow(
+                user = user,
+                showDivider = index < payers.lastIndex,
+                tailing = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+
+                        TextField(
+                            modifier = Modifier
+                                .width(150.dp)
+                                .height(50.dp)
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 4.dp),
+                            value = paidValue,
+                            singleLine = true,
+                            onValueChange = { input ->
+                                payerAmounts[user.id] = input
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(8.dp),
+                            textStyle = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                            ),
+                        )
+
+                        Spacer(Modifier.width(8.dp))
+
+                        IconButton(onClick = { onRemovePayer(user) }) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "remove payer"
+                            )
+                        }
+                    }
+                }
+            )
+        }
+
+        OutlinedButton(
+            onClick = onPayersClick,
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Add Payer")
+        }
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 12.dp),
+            thickness = DividerDefaults.Thickness,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        )
+    }
+}
+
 
 @Composable
 private fun ExpenseInputFields(
@@ -182,7 +371,7 @@ private fun ExpenseInputFields(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
     )
 
-    Spacer(Modifier.height(8.dp))
+    Spacer(Modifier.height(4.dp))
 
     OutlinedTextField(
         value = expensePrice,
@@ -192,7 +381,7 @@ private fun ExpenseInputFields(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
     )
 
-    Spacer(Modifier.height(8.dp))
+    Spacer(Modifier.height(4.dp))
 
     OutlinedTextField(
         value = expenseDesc,
@@ -201,33 +390,107 @@ private fun ExpenseInputFields(
         label = { Text("Expense Desc") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
     )
+
+    HorizontalDivider(
+        Modifier.padding(vertical = 6.dp).fillMaxWidth(),
+        DividerDefaults.Thickness,
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SelectionBottomSheet(
+    title: String,
+    items: List<User>,
+    initiallySelected: List<User>,
+    onDismiss: () -> Unit,
+    onConfirm: (List<User>) -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState()
+    var tempSelected by remember { mutableStateOf(initiallySelected.toMutableList()) }
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss, sheetState = sheetState
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+
+            LazyColumn(Modifier.weight(1f, fill = false)) {
+                items(items) { user ->
+                    FriendSelectionRow(
+                        user = user, isSelected = tempSelected.contains(user), onToggle = {
+                            tempSelected = if (tempSelected.contains(user)) {
+                                tempSelected.filter { it != user }.toMutableList()
+                            } else {
+                                (tempSelected + user).toMutableList()
+                            }
+                        })
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                OutlinedButton(onClick = onDismiss) { Text("Cancel") }
+
+                Button(onClick = { onConfirm(tempSelected) }) {
+                    Text("Confirm (${tempSelected.size})")
+                }
+            }
+        }
+    }
 }
 
 @Composable
-@Preview
-fun AddExpensePreview() {
-    AddExpense(
-        users = listOf(
-            User(0, "milad", "09137511005"),
-            User(1, "Mahdi", "09103556001")
-        ),
-        onBackClick = {},
-        onAddClick = { _, _, _, _ -> }
-    )
+private fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(Res.drawable.paris),
+                contentDescription = null,
+                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(36.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Column(
+                modifier = Modifier.padding(horizontal = 8.dp).weight(1f)
+            ) {
+                Text(
+                    text = user.username,
+                    style = MaterialTheme.typography.bodyLarge.copy(color = Color.Black)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = user.phone,
+                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
+                )
+            }
+
+            Checkbox(
+                checked = isSelected, onCheckedChange = { onToggle() })
+        }
+    }
 }
 
 @Composable
 fun ExpenseShareType(
-    selectedType: ShareType,
+    selectedType: ShareType?,
     onTypeSelected: (ShareType) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Share type",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
         )
 
         Spacer(Modifier.height(8.dp))
@@ -240,13 +503,12 @@ fun ExpenseShareType(
             ShareType.entries.forEach { type ->
                 FilterChip(
                     enabled = type.enable,
-                    selected = type == selectedType,
+                    selected = selectedType != null && type == selectedType,
                     onClick = { onTypeSelected(type) },
                     label = { Text(type.title) },
                     leadingIcon = {
                         Icon(imageVector = type.icon, contentDescription = type.title)
-                    }
-                )
+                    })
             }
         }
     }
@@ -260,9 +522,19 @@ enum class ShareType(val title: String, val icon: ImageVector, val enable: Boole
 }
 
 @Composable
-fun EqualSplitSection(amount: Double, users: List<User>) {
-    val share = remember(users.size, amount) {
-        if (amount != 0.0) amount / users.size else 0.0
+fun EqualSplitSection(
+    amount: Double,
+    users: List<User>,
+    onRemoveClick: (User) -> Unit,
+    onAmountsUpdated: (Map<Int, Double>) -> Unit,
+) {
+    val eachUser = remember(users.size, amount) {
+        if (amount > 0) amount / users.size else 0.0
+    }
+
+    LaunchedEffect(eachUser, users.size) {
+        val result = users.associate { user -> user.id to eachUser }
+        onAmountsUpdated(result)
     }
 
     Column {
@@ -271,10 +543,18 @@ fun EqualSplitSection(amount: Double, users: List<User>) {
                 user = user,
                 showDivider = index < users.lastIndex,
                 tailing = {
-                    Text(
-                        text = "$ " + share.toInt().toString(),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "$${eachUser.toInt()}",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+
+                        Spacer(Modifier.width(4.dp))
+
+                        IconButton(onClick = { onRemoveClick(user) }) {
+                            Icon(Icons.Default.Close, contentDescription = "remove member")
+                        }
+                    }
                 }
             )
         }
@@ -286,7 +566,18 @@ fun PercentSplitSection(
     users: List<User>,
     amount: Double,
     percents: SnapshotStateMap<Int, Float>,
+    onRemoveClick: (User) -> Unit,
+    onAmountsUpdated: (Map<Int, Double>) -> Unit,
 ) {
+
+    LaunchedEffect(percents.values.toList(), amount) {
+        val result = users.associate { user ->
+            val percent = percents[user.id] ?: 0f
+            val userAmount = if (amount > 0) amount * (percent / 100f) else 0.0
+            user.id to userAmount
+        }
+        onAmountsUpdated(result)
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -294,33 +585,49 @@ fun PercentSplitSection(
     ) {
         users.forEachIndexed { index, user ->
             val percent = percents[user.id] ?: 0f
-            val userAmount = remember(percent, amount) {
-                if (amount != 0.0) (amount * (percent / 100f)) else 0.0
-            }
+
+            val userAmount = if (amount > 0)
+                amount * (percent / 100f)
+            else 0.0
 
             UserInfoRow(
                 user = user,
                 showDivider = index < users.lastIndex,
                 tailing = {
-                    Row {
-                        Text(
-                            text = "${userAmount.toInt()}",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "${percent.toInt()}%",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+
+                        Row {
+                            Text(
+                                text = "${userAmount.toInt()}",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "${percent.toInt()}%",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
+
+                        Spacer(Modifier.width(4.dp))
+
+                        IconButton(onClick = { onRemoveClick(user) }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "remove payer"
+                            )
+                        }
                     }
                 },
                 bottom = {
                     Slider(
                         enabled = amount != 0.0,
                         value = percent,
-                        onValueChange = { percents[user.id] = it },
+                        onValueChange = { newValue ->
+                            percents[user.id] = newValue
+                        },
                         valueRange = 0f..100f,
-//                        steps = 9,
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 },
@@ -329,38 +636,58 @@ fun PercentSplitSection(
     }
 }
 
+
 @Composable
 fun WeightSplitSection(
     users: List<User>,
     amount: Double,
     weights: SnapshotStateMap<Int, Float>,
+    onRemoveClick: (User) -> Unit,
+    onAmountsUpdated: (Map<Int, Double>) -> Unit,
 ) {
     val totalWeight = remember(weights.values.toList()) {
         weights.values.sum().coerceAtLeast(1f)
     }
 
+    LaunchedEffect(weights.values.toList(), amount) {
+        val result = users.associate { user ->
+            val w = weights[user.id] ?: 1f
+            val userAmount =
+                if (amount > 0) amount * (w / totalWeight) else 0.0
+            user.id to userAmount
+        }
+        onAmountsUpdated(result)
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         users.forEachIndexed { index, user ->
-
             val weight = weights[user.id] ?: 1f
 
-            val userAmount = remember(weight, totalWeight, amount) {
-                if (amount != 0.0) (amount * (weight / totalWeight)) else 0.0
-            }
+            val userAmount = if (amount > 0)
+                amount * (weight / totalWeight)
+            else 0.0
 
             UserInfoRow(
                 user = user,
                 showDivider = index < users.lastIndex,
                 tailing = {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "${userAmount.toInt()}",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                        )
-                        Text(
-                            text = "w:${weight.toInt()}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "${userAmount.toInt()}",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                            Text(
+                                "w:${weight.toInt()}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+
+                        Spacer(Modifier.width(4.dp))
+
+                        IconButton(onClick = { onRemoveClick(user) }) {
+                            Icon(Icons.Default.Close, contentDescription = "remove member")
+                        }
                     }
                 },
                 bottom = {
@@ -383,15 +710,25 @@ fun ManualSplitSection(
     users: List<User>,
     amount: Double,
     amounts: SnapshotStateMap<Int, Float>,
+    onRemoveClick: (User) -> Unit,
+    onAmountsUpdated: (Map<Int, Double>) -> Unit,
 ) {
     val defaultShare = remember(amount, users) {
         (amount / users.size).toFloat()
     }
 
     users.forEach { user ->
-        if ((amounts[user.id] ?: 0f) == 0f) {
+        if (!amounts.containsKey(user.id)) {
             amounts[user.id] = defaultShare
         }
+    }
+
+    LaunchedEffect(amounts.values.toList(), amount) {
+        val result = users.associate { user ->
+            val value = (amounts[user.id] ?: 0f).toDouble()
+            user.id to value
+        }
+        onAmountsUpdated(result)
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -403,34 +740,46 @@ fun ManualSplitSection(
                 user = user,
                 showDivider = index < users.lastIndex,
                 tailing = {
-                    TextField(
-                        modifier = Modifier
-                            .width(110.dp)
-                            .height(50.dp)
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
-                                shape = RoundedCornerShape(8.dp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+
+                        TextField(
+                            modifier = Modifier
+                                .width(110.dp)
+                                .height(50.dp)
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 4.dp),
+                            value = if (currentValue != 0f) currentValue.toString() else "",
+                            singleLine = true,
+                            onValueChange = { input ->
+                                amounts[user.id] = input.toFloatOrNull() ?: 0f
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(8.dp),
+                            textStyle = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                            ),
+                        )
+
+                        Spacer(Modifier.width(4.dp))
+
+                        IconButton(onClick = { onRemoveClick(user) }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "remove payer"
                             )
-                            .padding(horizontal = 4.dp),
-                        value = currentValue.takeIf { it != 0f }?.toString() ?: "",
-                        singleLine = true,
-                        onValueChange = { input ->
-                            amounts[user.id] = input.toFloatOrNull() ?: 0f
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        shape = RoundedCornerShape(8.dp),
-                        textStyle = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            cursorColor = MaterialTheme.colorScheme.primary,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                        ),
-                    )
+                        }
+                    }
                 },
             )
         }
@@ -446,15 +795,11 @@ fun UserInfoRow(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
+                modifier = Modifier.size(40.dp).clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -486,9 +831,7 @@ fun UserInfoRow(
 
         if (showDivider) {
             HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                 thickness = DividerDefaults.Thickness,
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
             )
