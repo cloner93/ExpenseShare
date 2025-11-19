@@ -16,3 +16,29 @@ object Transactions : Table("transactions") {
     val transactionDate = long("transaction_date")
     override val primaryKey = PrimaryKey(id)
 }
+
+object TransactionPayers : Table("transaction_payers") {
+    val id = integer("id").autoIncrement()
+    val transactionId = integer("transaction_id") references Transactions.id
+    val userId = integer("user_id") references Users.id
+    val amountPaid = double("amount_paid")
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+object TransactionShares : Table("transaction_shares") {
+    val id = integer("id").autoIncrement()
+    val transactionId = integer("transaction_id") references Transactions.id
+    val type = varchar("type", 20)
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+object TransactionShareMembers : Table("transaction_share_members") {
+    val id = integer("id").autoIncrement()
+    val shareId = integer("share_id") references TransactionShares.id
+    val userId = integer("user_id") references Users.id
+    val share = double("share")
+
+    override val primaryKey = PrimaryKey(id)
+}

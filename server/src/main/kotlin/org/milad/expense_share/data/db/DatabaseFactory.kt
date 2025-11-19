@@ -10,6 +10,9 @@ import org.milad.expense_share.data.db.table.Friends
 import org.milad.expense_share.data.db.table.GroupMembers
 import org.milad.expense_share.data.db.table.Groups
 import org.milad.expense_share.data.db.table.Passwords
+import org.milad.expense_share.data.db.table.TransactionPayers
+import org.milad.expense_share.data.db.table.TransactionShareMembers
+import org.milad.expense_share.data.db.table.TransactionShares
 import org.milad.expense_share.data.db.table.Transactions
 import org.milad.expense_share.data.db.table.Users
 
@@ -26,7 +29,10 @@ object DatabaseFactory {
                 FriendRelations,
                 Groups,
                 GroupMembers,
-                Transactions
+                Transactions,
+                TransactionPayers,
+                TransactionShares,
+                TransactionShareMembers
             )
         }
     }

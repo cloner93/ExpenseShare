@@ -1,6 +1,8 @@
 package org.milad.expense_share.domain.repository
 
 import org.milad.expense_share.data.models.Transaction
+import org.milad.expense_share.presentation.transactions.model.PayerRequest
+import org.milad.expense_share.presentation.transactions.model.ShareDetailsRequest
 
 interface TransactionRepository {
     fun createTransaction(
@@ -8,7 +10,9 @@ interface TransactionRepository {
         userId: Int,
         title: String,
         amount: Double,
-        description: String
+        description: String,
+        payers: List<PayerRequest>,
+        shareDetails: ShareDetailsRequest
     ): Transaction?
 
     fun getTransactions(userId: Int, groupId: Int): List<Transaction>

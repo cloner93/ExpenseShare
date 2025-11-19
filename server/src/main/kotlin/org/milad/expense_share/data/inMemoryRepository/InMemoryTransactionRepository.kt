@@ -5,6 +5,8 @@ import org.milad.expense_share.data.db.FakeDatabase.transactions
 import org.milad.expense_share.data.models.Transaction
 import org.milad.expense_share.data.models.TransactionStatus
 import org.milad.expense_share.domain.repository.TransactionRepository
+import org.milad.expense_share.presentation.transactions.model.PayerRequest
+import org.milad.expense_share.presentation.transactions.model.ShareDetailsRequest
 
 class InMemoryTransactionRepository : TransactionRepository {
     override fun createTransaction(
@@ -12,7 +14,9 @@ class InMemoryTransactionRepository : TransactionRepository {
         userId: Int,
         title: String,
         amount: Double,
-        description: String
+        description: String,
+        payers: List<PayerRequest>,
+        shareDetails: ShareDetailsRequest
     ): Transaction? {
         val group = groups.find { it.id == groupId } ?: return null
 

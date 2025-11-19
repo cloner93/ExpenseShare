@@ -21,7 +21,7 @@ import org.milad.expense_share.utils.getUserId
 
 
 internal fun Routing.transactionsRoutes(
-    transactionService: TransactionService
+    transactionService: TransactionService,
 ) {
     authenticate("auth-jwt") {
         route("/groups/{groupId}/transactions") {
@@ -44,7 +44,9 @@ internal fun Routing.transactionsRoutes(
                     userId,
                     request.title,
                     request.amount,
-                    request.description
+                    request.description,
+                    request.payers,
+                    request.shareDetails
                 )
                     .onSuccess {
                         call.respond(
@@ -105,7 +107,7 @@ internal fun Routing.transactionsRoutes(
 
 private suspend fun ApplicationCall.handleTransactionAction(
     actionName: String,
-    block: (Int, Int) -> Result<String>
+    block: (Int, Int) -> Result<String>,
 ) {
     val userId = principal<JWTPrincipal>().getUserId()
         ?: return respond(

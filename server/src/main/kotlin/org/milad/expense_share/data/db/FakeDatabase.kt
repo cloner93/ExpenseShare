@@ -5,7 +5,6 @@ import org.milad.expense_share.data.models.FriendRelationStatus
 import org.milad.expense_share.data.models.Group
 import org.milad.expense_share.data.models.GroupMember
 import org.milad.expense_share.data.models.Transaction
-import org.milad.expense_share.data.models.TransactionStatus
 import org.milad.expense_share.data.models.User
 
 object FakeDatabase {
@@ -32,34 +31,6 @@ object FakeDatabase {
         FriendRelation(2, 4, FriendRelationStatus.PENDING)
     )
     val transactions = mutableListOf<Transaction>(
-        Transaction(
-            id = 1,
-            groupId = 1,
-            title = "Hotel Booking",
-            amount = 500.0,
-            description = "2 nights stay",
-            createdBy = 1,
-            status = TransactionStatus.APPROVED,
-            approvedBy = 1
-        ),
-        Transaction(
-            id = 2,
-            groupId = 1,
-            title = "Dinner",
-            amount = 200.0,
-            description = "Kebab restaurant",
-            createdBy = 2,
-            status = TransactionStatus.PENDING
-        ),
-        Transaction(
-            id = 3,
-            groupId = 2,
-            title = "Office Pizza",
-            amount = 150.0,
-            description = "3 pizzas + drinks",
-            createdBy = 2,
-            status = TransactionStatus.APPROVED,
-            approvedBy = 2
-        )
+
     )
 }
