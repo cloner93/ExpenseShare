@@ -9,5 +9,10 @@ data class CreateTransactionRequest(
     val amount: Double,
     val description: String?,
     val payers: List<PayerDto>?,
-    val splitDetails: SplitDetailsDto?,
+    val shareDetails: ShareDetailsRequest?,
+)
+@Serializable
+data class ShareMemberRequest(
+    val userId: Int,
+    val share: Double
 )

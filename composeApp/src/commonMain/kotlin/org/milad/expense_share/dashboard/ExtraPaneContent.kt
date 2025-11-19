@@ -18,8 +18,8 @@ fun ExtraPaneContent(
             AddExpense(
                 allUsers = viewModel.viewState.value.selectedGroup?.members ?: emptyList(),
                 onBackClick = onBackClick,
-                onAddClick = { name, amount, desc, payer, splitDetails ->
-                    viewModel.handle(DashboardAction.AddExpense(name, amount, desc, payer, splitDetails))
+                onAddClick = { name, amount, desc, payer, shareDetails ->
+                    viewModel.handle(DashboardAction.AddExpense(name, amount, desc, payer, shareDetails))
                 }
             )
         }

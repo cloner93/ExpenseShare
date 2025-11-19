@@ -3,7 +3,7 @@ package repository
 import io.mockative.Mockable
 import kotlinx.coroutines.flow.Flow
 import model.PayerDto
-import model.SplitDetailsDto
+import model.ShareDetailsRequest
 import model.Transaction
 
 @Mockable
@@ -15,7 +15,7 @@ interface TransactionsRepository {
         amount: Double,
         description: String?,
         payers: List<PayerDto>?,
-        splitDetails: SplitDetailsDto?,
+        shareDetails: ShareDetailsRequest?,
     ): Flow<Result<Transaction>>
 
     suspend fun approveTransaction(groupId: String, transactionId: String): Flow<Result<Unit>>

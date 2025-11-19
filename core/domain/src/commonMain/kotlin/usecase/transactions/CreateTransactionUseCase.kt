@@ -1,7 +1,7 @@
 package usecase.transactions
 
 import model.PayerDto
-import model.SplitDetailsDto
+import model.ShareDetailsRequest
 import repository.TransactionsRepository
 
 class CreateTransactionUseCase(private val transactionsRepository: TransactionsRepository) {
@@ -11,6 +11,13 @@ class CreateTransactionUseCase(private val transactionsRepository: TransactionsR
         amount: Double,
         description: String?,
         payers: List<PayerDto>?,
-        splitDetails: SplitDetailsDto?,
-    ) = transactionsRepository.createTransaction(groupId, title, amount, description,payers ,splitDetails)
+        shareDetails: ShareDetailsRequest?,
+    ) = transactionsRepository.createTransaction(
+        groupId,
+        title,
+        amount,
+        description,
+        payers,
+        shareDetails
+    )
 }

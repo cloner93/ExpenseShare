@@ -4,7 +4,7 @@ import NetworkManager
 import kotlinx.coroutines.flow.Flow
 import model.CreateTransactionRequest
 import model.PayerDto
-import model.SplitDetailsDto
+import model.ShareDetailsRequest
 import model.Transaction
 
 
@@ -20,7 +20,7 @@ class TransactionsRepositoryImpl(private val networkManager: NetworkManager) :
         amount: Double,
         description: String?,
         payers: List<PayerDto>?,
-        splitDetails: SplitDetailsDto?
+        shareDetails: ShareDetailsRequest?
     ): Flow<Result<Transaction>> {
         return networkManager.post(
             "/groups/$groupId/transactions",
@@ -29,7 +29,7 @@ class TransactionsRepositoryImpl(private val networkManager: NetworkManager) :
                 amount,
                 description,
                 payers = payers,
-                splitDetails = splitDetails
+                shareDetails = shareDetails
             )
         )
     }

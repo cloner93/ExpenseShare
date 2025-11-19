@@ -15,7 +15,7 @@ data class Transaction(
     val transactionDate: Long,
     var approvedBy: Int? = null,
     val payers: List<PayerDto>,
-    val splitDetails: SplitDetailsDto,
+    val shareDetails: ShareDetailsRequest,
 )
 
 @Serializable
@@ -32,7 +32,7 @@ data class PayerDto(
 )
 
 @Serializable
-data class SplitDetailsDto(
+data class ShareDetailsRequest(
     val type: String,
     val members: List<MemberShareDto>,
 )

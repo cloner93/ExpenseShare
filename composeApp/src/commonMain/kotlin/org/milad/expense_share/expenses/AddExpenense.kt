@@ -76,7 +76,7 @@ import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
 import model.MemberShareDto
 import model.PayerDto
-import model.SplitDetailsDto
+import model.ShareDetailsRequest
 import model.User
 import org.jetbrains.compose.resources.painterResource
 
@@ -84,7 +84,7 @@ import org.jetbrains.compose.resources.painterResource
 fun AddExpense(
     allUsers: List<User>,
     onBackClick: () -> Unit,
-    onAddClick: (String, Double, String, List<PayerDto>, SplitDetailsDto) -> Unit,
+    onAddClick: (String, Double, String, List<PayerDto>, ShareDetailsRequest) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     var groupName by rememberSaveable { mutableStateOf("") }
@@ -148,7 +148,7 @@ fun AddExpense(
                         finalPayerMap.map {
                             PayerDto(it.key, it.value)
                         },
-                        SplitDetailsDto(
+                        ShareDetailsRequest(
                             shareType?.title ?: ShareType.Equal.title,
                             members = memberAmounts.map {
                                 MemberShareDto(it.key, it.value)

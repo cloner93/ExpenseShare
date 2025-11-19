@@ -10,7 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import model.Group
 import model.PayerDto
-import model.SplitDetailsDto
+import model.ShareDetailsRequest
 import model.Transaction
 import model.User
 import usecase.friends.GetFriendsUseCase
@@ -48,7 +48,7 @@ class DashboardViewModel(
                 action.amount,
                 action.desc,
                 action.payers,
-                action.splitDetails,
+                action.shareDetails,
             )
         }
     }
@@ -58,7 +58,7 @@ class DashboardViewModel(
         amount: Double,
         desc: String,
         payers: List<PayerDto>?,
-        splitDetails: SplitDetailsDto?,
+        shareDetails: ShareDetailsRequest?,
     ) {
         viewModelScope.launch {
             setState { it.copy(isLoading = true) }
@@ -69,7 +69,7 @@ class DashboardViewModel(
                     amount = amount,
                     description = desc,
                     payers = payers,
-                    splitDetails = splitDetails
+                    shareDetails = shareDetails
                 ).collect { result ->
                     result.onSuccess {
 
@@ -228,7 +228,7 @@ sealed interface DashboardAction : BaseViewAction {
         val amount: Double,
         val desc: String,
         val payers: List<PayerDto>?,
-        val splitDetails: SplitDetailsDto?,
+        val shareDetails: ShareDetailsRequest?,
     ) : DashboardAction
 }
 
