@@ -37,6 +37,13 @@ fun DashboardScreen(
                 }
 
                 DashboardEvent.GroupCreatedSuccessful -> scope.launch { navigator.navigateBack() }
+                DashboardEvent.ExtraPaneSuccessful -> {
+                    scope.launch {
+                        navigator.navigateBack()
+                    }
+
+                    viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.None))
+                }
             }
         }
     }
@@ -88,8 +95,7 @@ fun DashboardScreen(
         },
         extraPane = {
             ExtraPaneContent(
-                viewModel = viewModel,
-                content = state.extraPaneContentState
+                viewModel = viewModel
             ) {
                 scope.launch {
                     navigator.navigateBack()

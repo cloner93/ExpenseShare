@@ -11,17 +11,14 @@ import kotlinx.coroutines.launch
 import model.Group
 import model.PayerDto
 import model.ShareDetailsRequest
-import model.Transaction
 import model.User
 import usecase.friends.GetFriendsUseCase
 import usecase.groups.CreateGroupUseCase
 import usecase.groups.GetGroupsUseCase
 import usecase.transactions.CreateTransactionUseCase
-import usecase.transactions.GetTransactionsUseCase
 
 class DashboardViewModel(
     private val getGroupsUseCase: GetGroupsUseCase,
-    private val getTransactionsUseCase: GetTransactionsUseCase,
     private val createGroupUseCase: CreateGroupUseCase,
     private val getFriendsUseCase: GetFriendsUseCase,
     private val createTransactionUseCase: CreateTransactionUseCase,
@@ -36,7 +33,13 @@ class DashboardViewModel(
     override fun handle(action: DashboardAction) {
         when (action) {
             is DashboardAction.LoadData -> loadData()
-            is DashboardAction.SelectGroup -> selectGroup(action.group)
+            is DashboardAction.SelectGroup -> setState {
+                it.copy(
+                    selectedGroup = action.group,
+                    isDetailVisible = true,
+                )
+            }
+
             is DashboardAction.NavigateBack -> navigateBack()
             is DashboardAction.AddGroup -> createGroup(action.groupName, action.members)
             is DashboardAction.ShowExtraPane -> {
@@ -50,6 +53,20 @@ class DashboardViewModel(
                 action.payers,
                 action.shareDetails,
             )
+
+            DashboardAction.LoadTesting -> {
+                viewModelScope.launch {
+                    print("strat")
+                    setState { it.copy(extraPaneLoading = true) }
+                    delay(1000)
+                    setState { it.copy(extraPaneLoading = false) }
+                    delay(1000)
+                    setState { it.copy(extraPaneLoading = true) }
+                    delay(1000)
+                    setState { it.copy(extraPaneLoading = false) }
+                    setState { it.copy(extraPaneError = Throwable("Test Error")) }
+                }
+            }
         }
     }
 
@@ -61,7 +78,7 @@ class DashboardViewModel(
         shareDetails: ShareDetailsRequest?,
     ) {
         viewModelScope.launch {
-            setState { it.copy(isLoading = true) }
+            setState { it.copy(extraPaneLoading = true, extraPaneError = null) }
             viewState.value.selectedGroup?.let {
                 createTransactionUseCase(
                     groupId = it.id,
@@ -72,16 +89,14 @@ class DashboardViewModel(
                     shareDetails = shareDetails
                 ).collect { result ->
                     result.onSuccess {
+                        setState { it.copy(extraPaneLoading = false, extraPaneError = null) }
+                        postEvent(DashboardEvent.ExtraPaneSuccessful)
+                        // update groups
+                        loadData()
 
-                        setState {
-                            it.copy(
-                                isLoading = false
-                            )
-                        }
                     }.onFailure { e ->
+                        setState { it.copy(extraPaneError = e, extraPaneLoading = false) }
 
-                        setState { it.copy(error = e, isLoading = false) }
-                        postEvent(DashboardEvent.ShowToast("Error: ${e.message}"))
                     }
                 }
             }
@@ -97,19 +112,22 @@ class DashboardViewModel(
 
     private suspend fun getGroups() {
         getGroupsUseCase().collect { res ->
-            setState { it.copy(isLoading = true, error = null) }
+            setState { it.copy(listPaneLoading = true, listPaneError = null) }
 
             res.onSuccess { groups ->
-                setState {
+                setState { it ->
+                    val selectedGroup = viewState.value.selectedGroup
+
                     it.copy(
                         groups = groups,
-                        isLoading = false
+                        listPaneLoading = false,
+                        selectedGroup = if (selectedGroup != null) groups.find { it.id == selectedGroup.id } else null
                     )
                 }
 
                 launchTotalCalculation(groups)
             }.onFailure { e ->
-                setState { it.copy(error = e, isLoading = false) }
+                setState { it.copy(listPaneError = e, listPaneLoading = false) }
                 postEvent(DashboardEvent.ShowToast("Error: ${e.message}"))
             }
         }
@@ -121,11 +139,11 @@ class DashboardViewModel(
                 setState {
                     it.copy(
                         friends = it.friends + newFriends,
-                        isLoading = false
+                        listPaneLoading = false
                     )
                 }
             }.onFailure { e ->
-                setState { it.copy(isLoading = false) }
+                setState { it.copy(listPaneLoading = false) }
                 postEvent(DashboardEvent.ShowToast("Error fetch friends: ${e.message}"))
             }
         }
@@ -146,7 +164,7 @@ class DashboardViewModel(
                      }
                  }
              }*/
-            delay(2000)
+            delay(1000)
 
             setState {
                 it.copy(
@@ -157,53 +175,24 @@ class DashboardViewModel(
         }
     }
 
-    private fun selectGroup(group: Group) {
-        viewModelScope.launch {
-            try {
-                getTransactionsUseCase(group.id.toString()).collect { res ->
-                    setState { it.copy(selectedGroup = group, isDetailVisible = true) }
-                    res.onSuccess {
-                        setState {
-                            it.copy(
-                                transactions = res.getOrElse { emptyList() },
-                                isLoading = false
-                            )
-                        }
-                    }.onFailure {
-                        setState {
-                            it.copy(
-                                error = res.exceptionOrNull(),
-                                isLoading = false
-                            )
-                        }
-                        postEvent(DashboardEvent.ShowToast("Error: ${res.exceptionOrNull()?.message}"))
-                    }
-                }
-
-            } catch (e: Exception) {
-                setState { it.copy(isLoading = false, error = e) }
-                postEvent(DashboardEvent.ShowToast("Error loading data: ${e.message}"))
-            }
-        }
-    }
-
     private fun createGroup(groupName: String, members: List<Int>) {
         viewModelScope.launch {
-            setState { it.copy(isLoading = true, error = null) }
+            setState { it.copy(extraPaneLoading = true, extraPaneError = null) }
             createGroupUseCase(groupName, members).collect { result ->
                 result.onSuccess { newGroup ->
                     setState {
                         it.copy(
                             groups = it.groups + newGroup,
-                            isLoading = false
+                            extraPaneLoading = false,
+                            extraPaneError = null
                         )
                     }
                     postEvent(DashboardEvent.GroupCreatedSuccessful)
                 }.onFailure { e ->
                     setState {
                         it.copy(
-                            error = e,
-                            isLoading = false
+                            extraPaneError = e,
+                            extraPaneLoading = false
                         )
                     }
                     postEvent(DashboardEvent.ShowToast("Error creating group: ${e.message}"))
@@ -220,6 +209,7 @@ class DashboardViewModel(
 sealed interface DashboardAction : BaseViewAction {
     data class ShowExtraPane(val content: ExtraPaneContentState) : DashboardAction
     data object LoadData : DashboardAction
+    data object LoadTesting : DashboardAction
     data class SelectGroup(val group: Group) : DashboardAction
     data object NavigateBack : DashboardAction
     data class AddGroup(val groupName: String, val members: List<Int>) : DashboardAction
@@ -237,9 +227,14 @@ data class DashboardState(
     val groups: List<Group> = emptyList(),
     val friends: List<User> = emptyList(),
     val selectedGroup: Group? = null,
-    val transactions: List<Transaction> = emptyList(),
-    val isLoading: Boolean = true,
-    val error: Throwable? = null,
+//    val transactions: List<Transaction> = emptyList(),
+    val listPaneLoading: Boolean = true,
+    val detailPaneLoading: Boolean = false,
+    val extraPaneLoading: Boolean = false,
+    val listPaneError: Throwable? = null,
+    val detailPaneError: Throwable? = null,
+    val extraPaneError: Throwable? = null,
+    val isExtraActionSuccess: Boolean = false,
     val isDetailVisible: Boolean = false,
     val totalOwe: Double = 0.0,
     val totalOwed: Double = 0.0,
@@ -248,6 +243,7 @@ data class DashboardState(
 sealed interface DashboardEvent : BaseViewEvent {
     data class ShowToast(val message: String) : DashboardEvent
     data object GroupCreatedSuccessful : DashboardEvent
+    data object ExtraPaneSuccessful : DashboardEvent
 }
 
 sealed class ExtraPaneContentState {

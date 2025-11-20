@@ -3,6 +3,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
 import io.ktor.http.path
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -20,6 +21,7 @@ typealias ApiResult<T> = Flow<Result<T>>
 inline fun <reified T> safeNetworkCall(
     crossinline block: suspend () -> SuccessResponse<T>
 ): Flow<Result<T>> = flow {
+    delay(1500)
     val response = block()
     if (response.success) {
         emit(Result.success(response.data))
