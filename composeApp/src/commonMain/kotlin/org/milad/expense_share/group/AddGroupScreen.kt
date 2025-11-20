@@ -55,12 +55,14 @@ import expenseshare.composeapp.generated.resources.paris
 import kotlinx.coroutines.launch
 import model.User
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.milad.expense_share.expenses.ConfirmButton
 
 @Composable
 fun AddGroupScreen(
     listOfFriends: List<User>,
     onBackClick: () -> Unit,
+    isLoading: Boolean,
+    hasError: Throwable?,
     onAddClick: (String, List<Int>) -> Unit,
 ) {
     var groupName by rememberSaveable { mutableStateOf("") }
@@ -82,17 +84,10 @@ fun AddGroupScreen(
             )
         },
         bottomBar = {
-            Button(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .fillMaxWidth(),
-                onClick = {
-                    if (groupName.isNotBlank() && selectedFriends.isNotEmpty()) {
-                        onAddClick(groupName, selectedFriends.map { it.id })
-                    }
+            ConfirmButton(isLoading, hasError) {
+                if (groupName.isNotBlank() && selectedFriends.isNotEmpty()) {
+                    onAddClick(groupName, selectedFriends.map { it.id })
                 }
-            ) {
-                Text("Save")
             }
         }
     ) { paddingValues ->
@@ -299,20 +294,5 @@ private fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> 
                 onCheckedChange = { onToggle() }
             )
         }
-    }
-}
-
-@Preview
-@Composable
-fun AddGroupScreenPreview() {
-    AddGroupScreen(
-        listOfFriends = listOf(
-            User(1, "Milad", "09137511001"),
-            User(2, "Sara", "09135553322"),
-            User(3, "Ali", "09352221100")
-        ),
-        onBackClick = {},
-    ) { name, ids ->
-        println("Group Name: $name, Members: $ids")
     }
 }

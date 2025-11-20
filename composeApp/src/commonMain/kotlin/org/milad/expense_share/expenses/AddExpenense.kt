@@ -2,6 +2,14 @@
 
 package org.milad.expense_share.expenses
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,6 +43,7 @@ import androidx.compose.material.icons.filled.SouthAmerica
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -69,6 +78,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -79,12 +89,16 @@ import model.PayerDto
 import model.ShareDetailsRequest
 import model.User
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
+
 
 @Composable
 fun AddExpense(
     allUsers: List<User>,
     onBackClick: () -> Unit,
-    onAddClick: (String, Double, String, List<PayerDto>, ShareDetailsRequest) -> Unit,
+    isLoading: Boolean,
+    hasError: Throwable?,
+    onConfirmClick: (String, Double, String, List<PayerDto>, ShareDetailsRequest) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     var groupName by rememberSaveable { mutableStateOf("") }
@@ -127,6 +141,7 @@ fun AddExpense(
     var showPayerBottomSheet by remember { mutableStateOf(false) }
     var showMemberBottomSheet by remember { mutableStateOf(false) }
 
+
     Scaffold(topBar = {
         TopAppBar(
             title = { Text("Add Expense", style = MaterialTheme.typography.titleLarge) },
@@ -137,27 +152,23 @@ fun AddExpense(
             },
         )
     }, bottomBar = {
-        Button(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth(),
-            onClick = {
-                if (groupName.isNotBlank()) {
-                    onAddClick(
-                        groupName,
-                        expensePrice.toDoubleOrNull() ?: 0.0,
-                        expenseDesc,
-                        finalPayerMap.map {
-                            PayerDto(it.key, it.value)
+        ConfirmButton(isLoading, hasError) {
+            if (groupName.isNotBlank()) {
+                onConfirmClick(
+                    groupName,
+                    expensePrice.toDoubleOrNull() ?: 0.0,
+                    expenseDesc,
+                    finalPayerMap.map {
+                        PayerDto(it.key, it.value)
+                    },
+                    ShareDetailsRequest(
+                        shareType?.title ?: ShareType.Equal.title,
+                        members = memberAmounts.map {
+                            MemberShareDto(it.key, it.value)
                         },
-                        ShareDetailsRequest(
-                            shareType?.title ?: ShareType.Equal.title,
-                            members = memberAmounts.map {
-                                MemberShareDto(it.key, it.value)
-                            },
-                        )
                     )
-                }
-            }) {
-            Text("Save")
+                )
+            }
         }
     }) { paddingValues ->
         Column(
@@ -257,6 +268,66 @@ fun AddExpense(
 
             if (shareType == null) shareType = ShareType.Equal
         }
+    }
+}
+
+@Composable
+fun ConfirmButton(
+    loading: Boolean,
+    hasError: Throwable?,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !loading,
+            onClick = onClick
+        ) {
+            AnimatedContent(
+                targetState = loading,
+                transitionSpec = {
+                    (fadeIn(animationSpec = tween(300)) + scaleIn()).togetherWith(
+                        fadeOut(animationSpec = tween(300)) + scaleOut()
+                    )
+                },
+                label = "ButtonLoadingAnimation"
+            ) { isLoading ->
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.5.dp
+                    )
+                } else {
+                    Text("Save")
+                }
+            }
+        }
+
+        AnimatedVisibility(visible = hasError != null) {
+            if (hasError != null) {
+                Text(
+                    text = hasError.message ?: "ERROR !",
+                    style = TextStyle(color = MaterialTheme.colorScheme.error),
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ConfirmButtonP() {
+    Column(modifier = Modifier.background(color = Color.White)) {
+        ConfirmButton(false, null) {}
+        ConfirmButton(true, null) {}
+        ConfirmButton(false, Throwable("Has error")) {}
     }
 }
 
