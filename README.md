@@ -1,28 +1,133 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM), Server.
+# 🚀 ExpenseShare (Compose Multiplatform + Ktor Server)
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+**ExpenseShare** is a **Compose Multiplatform (CMP)** application designed for seamless group expense sharing.  
+Users can create groups, add friends, record transactions, and the system automatically calculates how much each member owes or is owed.  
+All data is synced through the backend — the app currently uses **no local database**.
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+AI-powered features will be added later to assist with categorization, analysis, and smart recommendations.
 
-* [/server](./server/src/main/kotlin) is for the Ktor server application.
+This repository includes both the **CMP client** and the **Ktor backend**.
 
-* [/shared](./shared/src) is for the code that will be shared between all targets in the project.
-  The most important subfolder is [commonMain](./shared/src/commonMain/kotlin). If preferred, you can add code to the platform-specific folders here too.
+---
 
+## ⭐ Core Features
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
+### 🔹 Group Management
+- Create and manage groups  
+- Add members  
+- View group activity and balances  
 
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+### 🔹 Friends Management
+- Add and manage friends  
+- Create groups using your friend list  
+- Friend relationships synced with the backend  
 
-You can open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.
+### 🔹 Transactions
+- Add expenses  
+- Select payer  
+- Split cost among group members  
+- All members can add new transactions  
+
+### 🔹 Automatic Settlement Calculation
+- Real-time debt/credit calculation  
+- Clear overview of who owes whom  
+- Group updates propagate to all members  
+
+### 🔹 Future Enhancements
+- AI-based transaction classification  
+- Smart settlement suggestions  
+- Expense pattern insights  
+
+---
+
+## 🧱 Architecture Overview
+
+### Client – Compose Multiplatform
+
+Supported platforms:
+
+- Android  
+- iOS  
+- Desktop (JVM: Windows, macOS, Linux)  
+- Web (WASM)  
+
+### Tech Stack
+- Clean Architecture  
+- MVI  
+- Compose Multiplatform  
+- Koin  
+- Coroutines + Flow  
+- No local DB (server = source of truth)
+
+### Project Structure
+
+```
+/composeApp
+├── commonMain
+├── androidMain
+├── iosMain
+├── jvmMain
+└── wasmJsMain
+```
+
+- **commonMain** → Shared UI & domain logic  
+- **androidMain** → Android-specific  
+- **iosMain** → iOS integration  
+- **jvmMain** → Desktop  
+- **wasmJsMain** → Web (WASM)
+
+---
+
+## 🖥️ Server – Ktor Backend
+
+The backend manages all persistence & logic:
+
+- Ktor Server  
+- PostgreSQL  
+- Exposed ORM  
+- Authentication  
+- Groups, Friends, Transactions APIs  
+- Settlement calculation  
+
+Folder:
+```
+/server
+```
+
+---
+
+## ▶️ Running the Project
+
+### Desktop (JVM)
+```
+./gradlew jvmRun -DmainClass=org.milad.expense_share.MainKt --quiet
+```
+
+### Server
+```
+./gradlew :server:run
+```
+
+### Tests (Kotest)
+```
+./gradlew kotest
+```
+
+### Web (WASM)
+```
+./gradlew :composeApp:wasmJsBrowserDevelopmentRun
+```
+
+---
+
+## 💡 Why ExpenseShare Matters
+
+This project demonstrates:
+
+- Production-grade Compose Multiplatform  
+- Clean modular design  
+- Full backend with Ktor + PostgreSQL  
+- Multi-platform targeting (Android/iOS/Web/Desktop)  
+- Extendable architecture for upcoming AI features  
+
+A strong showcase of modern Kotlin ecosystem practices.
