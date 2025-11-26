@@ -114,6 +114,12 @@ fun AddExpense(
 
     var memberAmounts by remember { mutableStateOf<Map<Int, Double>>(emptyMap()) }
 
+    var nameError by remember { mutableStateOf<String?>(null) }
+    var priceError by remember { mutableStateOf<String?>(null) }
+    var payerError by remember { mutableStateOf<String?>(null) }
+    var memberError by remember { mutableStateOf<String?>(null) }
+    var shareTypeError by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(memberAmounts) {
         memberAmounts.forEach { (id, amount) ->
             println("$id $amount")
@@ -153,19 +159,43 @@ fun AddExpense(
         )
     }, bottomBar = {
         ConfirmButton(isLoading, hasError) {
-            if (groupName.isNotBlank()) {
+            nameError = null
+            priceError = null
+            payerError = null
+            memberError = null
+            shareTypeError = null
+
+            if (groupName.isBlank()) nameError = "Name cannot be empty"
+            val priceVal = expensePrice.toDoubleOrNull()
+            if (priceVal == null || priceVal <= 0) priceError = "Invalid price"
+            if (payers.isEmpty()) payerError = "Select at least one payer"
+            if (members.isEmpty()) memberError = "Select at least one member"
+            if (shareType == null) shareTypeError = "Choose a share type"
+
+            val payerMissingAmount = finalPayerMap.any { (_, amount) ->
+                amount <= 0.0
+            }
+
+            if (payerMissingAmount) {
+                payerError = "One or more payers have no amount"
+            }
+
+            val payerTotal = finalPayerMap.values.sum()
+            if (priceVal != null && priceVal > 0 && payerTotal != priceVal) {
+                payerError =
+                    "Total payer amounts (${payerTotal.toInt()}) must equal the expense price"
+            }
+
+            val isValid =
+                nameError == null && priceError == null && payerError == null && memberError == null && shareTypeError == null
+
+            if (isValid) {
                 onConfirmClick(
-                    groupName,
-                    expensePrice.toDoubleOrNull() ?: 0.0,
-                    expenseDesc,
-                    finalPayerMap.map {
-                        PayerDto(it.key, it.value)
-                    },
+                    groupName, priceVal ?: 0.0,
+                    expenseDesc, finalPayerMap.map { PayerDto(it.key, it.value) },
                     ShareDetailsRequest(
-                        shareType?.title ?: ShareType.Equal.title,
-                        members = memberAmounts.map {
-                            MemberShareDto(it.key, it.value)
-                        },
+                        shareType!!.title,
+                        members = memberAmounts.map { MemberShareDto(it.key, it.value) },
                     )
                 )
             }
@@ -178,8 +208,12 @@ fun AddExpense(
             ExpenseInputFields(
                 groupName = groupName,
                 onGroupNameChange = { groupName = it },
+                nameError = nameError,
+                onNameErrorChange = { nameError = it },
                 expensePrice = expensePrice,
                 onExpensePriceChange = { expensePrice = it },
+                priceError = priceError,
+                onPriceErrorChange = { priceError = it },
                 expenseDesc = expenseDesc,
                 onExpenseDescChange = { expenseDesc = it })
 
@@ -195,11 +229,26 @@ fun AddExpense(
                 },
                 onAmountsUpdated = { updated ->
                     finalPayerMap = updated
-                }
+                },
+                payerError = payerError
             )
 
             ExpenseShareType(
-                selectedType = shareType, onTypeSelected = { shareType = it })
+                selectedType = shareType,
+                onTypeSelected = {
+                    shareType = it
+                    shareTypeError = null
+                },
+                shareTypeError = shareTypeError
+            )
+
+            if (memberError != null) {
+                Text(
+                    memberError!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
             Column {
                 val amount = expensePrice.toDoubleOrNull() ?: 0.0
@@ -256,6 +305,7 @@ fun AddExpense(
             }) {
             showPayerBottomSheet = false
             payers = it
+            payerError = null
         }
     }
     if (showMemberBottomSheet) {
@@ -265,8 +315,10 @@ fun AddExpense(
             }) {
             showMemberBottomSheet = false
             members = it
-
             if (shareType == null) shareType = ShareType.Equal
+
+            memberError = null
+            shareTypeError = null
         }
     }
 }
@@ -338,6 +390,7 @@ fun PayerOfExpense(
     onPayersClick: () -> Unit,
     onRemovePayer: (User) -> Unit,
     onAmountsUpdated: (Map<Int, Double>) -> Unit,
+    payerError: String?
 ) {
 
     LaunchedEffect(payerAmounts.values.toList()) {
@@ -407,6 +460,14 @@ fun PayerOfExpense(
             )
         }
 
+        if (payerError != null) {
+            Text(
+                payerError,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
         OutlinedButton(
             onClick = onPayersClick,
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
@@ -424,33 +485,59 @@ fun PayerOfExpense(
     }
 }
 
-
 @Composable
 private fun ExpenseInputFields(
     groupName: String,
     onGroupNameChange: (String) -> Unit,
+    nameError: String?,
+    onNameErrorChange: (String?) -> Unit,
     expensePrice: String,
     onExpensePriceChange: (String) -> Unit,
+    priceError: String?,
+    onPriceErrorChange: (String?) -> Unit,
     expenseDesc: String,
     onExpenseDescChange: (String) -> Unit,
 ) {
     OutlinedTextField(
-        value = groupName,
+        value = groupName, onValueChange = {
+            onGroupNameChange(it)
+            if (it.isNotBlank()) onNameErrorChange(null)
+        },
         modifier = Modifier.fillMaxWidth(),
-        onValueChange = onGroupNameChange,
-        label = { Text("Expense name (Trip, Dinner)") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+        label = { Text("Expense name (Trip, Dinner)") }, isError = nameError != null
     )
+
+    if (nameError != null) {
+        Text(
+            nameError,
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 
     Spacer(Modifier.height(4.dp))
 
     OutlinedTextField(
         value = expensePrice,
+        onValueChange = {
+            onExpensePriceChange(it)
+            if (it.toDoubleOrNull() != null) onPriceErrorChange(null)
+        },
         modifier = Modifier.fillMaxWidth(),
-        onValueChange = onExpensePriceChange,
         label = { Text("Expense Price (100,000)") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        isError = priceError != null
     )
+
+    if (priceError != null) {
+        Text(
+            priceError,
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 
     Spacer(Modifier.height(4.dp))
 
@@ -556,6 +643,7 @@ private fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> 
 fun ExpenseShareType(
     selectedType: ShareType?,
     onTypeSelected: (ShareType) -> Unit,
+    shareTypeError: String?
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -565,6 +653,15 @@ fun ExpenseShareType(
         )
 
         Spacer(Modifier.height(8.dp))
+
+        if (shareTypeError != null) {
+            Text(
+                shareTypeError,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         FlowRow(
             modifier = Modifier.fillMaxWidth(),

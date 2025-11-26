@@ -66,7 +66,10 @@ fun AddGroupScreen(
     onAddClick: (String, List<Int>) -> Unit,
 ) {
     var groupName by rememberSaveable { mutableStateOf("") }
+    var groupNameError by remember { mutableStateOf<String?>(null) }
+
     var selectedFriends by remember { mutableStateOf<List<User>>(emptyList()) }
+    var membersError by remember { mutableStateOf<String?>(null) }
 
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
@@ -85,7 +88,10 @@ fun AddGroupScreen(
         },
         bottomBar = {
             ConfirmButton(isLoading, hasError) {
-                if (groupName.isNotBlank() && selectedFriends.isNotEmpty()) {
+                groupNameError = if (groupName.isBlank()) "Group name cannot be empty" else null
+                membersError = if (selectedFriends.isEmpty()) "Select at least one member" else null
+
+                if (groupNameError == null && membersError == null) {
                     onAddClick(groupName, selectedFriends.map { it.id })
                 }
             }
@@ -102,10 +108,22 @@ fun AddGroupScreen(
             OutlinedTextField(
                 value = groupName,
                 modifier = Modifier.fillMaxWidth(),
-                onValueChange = { groupName = it },
+                onValueChange = {
+                    groupName = it
+                    if (it.isNotBlank()) groupNameError = null
+                },
                 label = { Text("Group name (Trip, Dinner)") },
+                isError = groupNameError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             )
+            if (groupNameError != null) {
+                Text(
+                    text = groupNameError ?: "",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             Spacer(Modifier.height(8.dp))
 
@@ -116,6 +134,14 @@ fun AddGroupScreen(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
             )
+            if (membersError != null) {
+                Text(
+                    text = membersError ?: "",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(selectedFriends) { user ->
@@ -188,6 +214,8 @@ fun AddGroupScreen(
                         Button(
                             onClick = {
                                 selectedFriends = tempSelected
+
+                                if (tempSelected.isNotEmpty()) membersError = null
                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
                                     if (!sheetState.isVisible) showBottomSheet = false
                                 }
