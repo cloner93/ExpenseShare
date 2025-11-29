@@ -42,7 +42,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -163,7 +162,7 @@ fun GroupTabs(selectedTab: GroupTab, onTabSelected: (GroupTab) -> Unit) {
                 onClick = { onTabSelected(tab) },
                 text = { Text(tab.name) },
                 icon = { Icon(icon, contentDescription = tab.name) },
-//                selectedContentColor = Color.Red,
+//                selectedContentColor = MaterialTheme.colorScheme.error,
 //                unselectedContentColor = Color.Gray
             )
         }
@@ -227,7 +226,7 @@ fun ExpenseCard(item: Transaction) {
                     )
                     Text(
                         text = item.description,
-                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.DarkGray)
+                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
             }
@@ -270,12 +269,12 @@ private fun MemberRow(user: User, onDeleteClick: () -> Unit) {
             ) {
                 Text(
                     text = user.username,
-                    style = MaterialTheme.typography.bodyLarge.copy(color = Color.Black)
+                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = user.phone,
-                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
+                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                 )
             }
 
@@ -283,7 +282,7 @@ private fun MemberRow(user: User, onDeleteClick: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.DeleteOutline,
                     contentDescription = null,
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

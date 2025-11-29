@@ -95,16 +95,16 @@ fun BalanceSummaryRow(
             modifier = Modifier.weight(1f),
             title = "You owe",
             amount = totalOwe,
-            backgroundColor = Color(0xFFFFE5E5),
-            textColor = Color(0xFFD32F2F)
+            backgroundColor = MaterialTheme.colorScheme.surfaceContainer,
+            textColor = MaterialTheme.colorScheme.onSurface
         )
 
         BalanceCard(
             modifier = Modifier.weight(1f),
             title = "You are owed",
             amount = totalOwed,
-            backgroundColor = Color(0xFFE5FFEC),
-            textColor = Color(0xFF2E7D32)
+            backgroundColor = MaterialTheme.colorScheme.surfaceContainer,
+            textColor = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -186,7 +186,6 @@ private fun GroupItem(
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(
             modifier = Modifier
@@ -211,17 +210,17 @@ private fun GroupItem(
                 Text(
                     text = group.name,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "${group.members.size} members",
-                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
                 Text(
                     text = "$ $balance",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
                 )
@@ -230,7 +229,7 @@ private fun GroupItem(
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
-                tint = Color.Gray
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

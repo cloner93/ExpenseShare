@@ -82,6 +82,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
 import model.MemberShareDto
@@ -376,10 +377,14 @@ fun ConfirmButton(
 @Preview
 @Composable
 fun ConfirmButtonP() {
-    Column(modifier = Modifier.background(color = Color.White)) {
-        ConfirmButton(false, null) {}
-        ConfirmButton(true, null) {}
-        ConfirmButton(false, Throwable("Has error")) {}
+    AppTheme {
+
+        Column(modifier = Modifier.background(color = Color.White)) {
+            ConfirmButton(false, null) {}
+            ConfirmButton(true, null) {}
+            ConfirmButton(false, Throwable("Has error")) {}
+        }
+
     }
 }
 
@@ -624,12 +629,12 @@ private fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> 
             ) {
                 Text(
                     text = user.username,
-                    style = MaterialTheme.typography.bodyLarge.copy(color = Color.Black)
+                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = user.phone,
-                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
+                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
                 )
             }
 
