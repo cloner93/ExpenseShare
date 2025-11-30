@@ -2,7 +2,7 @@ package org.milad.expense_share.dashboard
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -34,6 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import expenseshare.composeapp.generated.resources.Res
@@ -52,6 +53,7 @@ fun Dashboard(
     onAddGroupClick: () -> Unit,
     totalOwe: Double,
     totalOwed: Double,
+    selectedGroup: Group?,
 ) {
 
     Scaffold(
@@ -74,7 +76,11 @@ fun Dashboard(
                 totalOwed = totalOwed
             )
 
-            GroupSection(groups = groups, onGroupClick = onGroupClick)
+            GroupSection(
+                groups = groups,
+                selectedGroup = selectedGroup,
+                onGroupClick = onGroupClick
+            )
         }
     }
 }
@@ -95,16 +101,16 @@ fun BalanceSummaryRow(
             modifier = Modifier.weight(1f),
             title = "You owe",
             amount = totalOwe,
-            backgroundColor = MaterialTheme.colorScheme.surfaceContainer,
-            textColor = MaterialTheme.colorScheme.onSurface
+            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+            textColor = MaterialTheme.colorScheme.onTertiaryContainer
         )
 
         BalanceCard(
             modifier = Modifier.weight(1f),
             title = "You are owed",
             amount = totalOwed,
-            backgroundColor = MaterialTheme.colorScheme.surfaceContainer,
-            textColor = MaterialTheme.colorScheme.onSurface
+            backgroundColor = MaterialTheme.colorScheme.errorContainer,
+            textColor = MaterialTheme.colorScheme.onErrorContainer
         )
     }
 }
@@ -119,7 +125,7 @@ private fun BalanceCard(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardDefaults.shape)
             .background(backgroundColor)
             .padding(16.dp),
         horizontalAlignment = Alignment.Start
@@ -146,6 +152,7 @@ private fun BalanceCard(
 fun GroupSection(
     groups: List<Group>,
     onGroupClick: (Group) -> Unit,
+    selectedGroup: Group?,
 ) {
     Column(
         modifier = Modifier
@@ -165,7 +172,9 @@ fun GroupSection(
             items(groups) { group ->
                 GroupItem(
                     group = group,
-                    onClick = { onGroupClick(group) }
+                    isOpened = selectedGroup == group,
+                    onClick = { onGroupClick(group) },
+                    onLongClick = { println(group) }
                 )
             }
         }
@@ -175,22 +184,35 @@ fun GroupSection(
 @Composable
 private fun GroupItem(
     group: Group,
+    isSelected: Boolean = false,
+    isOpened: Boolean = false,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
 ) {
     val balance =
-        group.transactions.filter { it.status == TransactionStatus.APPROVED }.sumOf { it.amount }
+        group.transactions.filter { it.status == TransactionStatus.APPROVED }
+            .sumOf { it.amount }
+            .toInt()
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            .semantics { selected = isSelected }
+            .clip(CardDefaults.shape)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+            else if (isOpened) MaterialTheme.colorScheme.secondaryContainer
+            else MaterialTheme.colorScheme.surfaceVariant,
+        ),
     ) {
         Row(
             modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
@@ -198,7 +220,7 @@ private fun GroupItem(
                 contentDescription = null,
                 modifier = Modifier
                     .size(56.dp)
-                    .clip(RoundedCornerShape(12.dp)),
+                    .clip(CardDefaults.shape),
                 contentScale = ContentScale.Crop
             )
 
@@ -210,17 +232,16 @@ private fun GroupItem(
                 Text(
                     text = group.name,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "${group.members.size} members",
-                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    style = MaterialTheme.typography.bodySmall
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
                 Text(
-                    text = "$ $balance",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurface,
+                    text = "$$balance",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Bold
                     )
                 )
@@ -229,7 +250,7 @@ private fun GroupItem(
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.outline
             )
         }
     }

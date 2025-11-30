@@ -3,6 +3,7 @@
 package org.milad.expense_share.group
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,6 +35,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -77,6 +79,9 @@ fun AddGroupScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.inverseOnSurface,
+                ),
                 title = { Text("Add Group", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
@@ -98,6 +103,7 @@ fun AddGroupScreen(
     ) { paddingValues ->
         Column(
             modifier = Modifier
+                .background(MaterialTheme.colorScheme.inverseOnSurface)
                 .padding(16.dp)
                 .padding(paddingValues)
                 .fillMaxSize(),
@@ -247,7 +253,7 @@ private fun MemberRow(user: User, onDeleteClick: () -> Unit) {
                 contentDescription = null,
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(RoundedCornerShape(36.dp)),
+                    .clip(CardDefaults.shape),
                 contentScale = ContentScale.Crop
             )
 
@@ -296,7 +302,7 @@ private fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> 
                 contentDescription = null,
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(RoundedCornerShape(36.dp)),
+                    .clip(CardDefaults.shape),
                 contentScale = ContentScale.Crop
             )
 

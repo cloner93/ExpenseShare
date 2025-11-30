@@ -1,21 +1,15 @@
 package org.milad.expense_share.dashboard
 
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
-import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.milad.expense_share.dashboard.groups.GroupDetailScreen
@@ -64,6 +58,7 @@ fun DashboardScreen(
                     viewModel.handle(DashboardAction.SelectGroup(group))
                     scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) }
                 },
+                selectedGroup = state.selectedGroup,
                 isListAndDetailVisible = isListAndDetailVisible,
                 isDetailVisible = !isDetailVisible,
                 totalOwed = state.totalOwed,
@@ -104,17 +99,5 @@ fun DashboardScreen(
                 viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.None))
             }
         },
-        paneExpansionDragHandle = { expansionState ->
-            val interactionSource = remember { MutableInteractionSource() }
-            VerticalDragHandle(
-                modifier = Modifier.paneExpansionDraggable(
-                    expansionState,
-                    LocalMinimumInteractiveComponentSize.current,
-                    interactionSource
-                ),
-                interactionSource = interactionSource
-            )
-        },
-        paneExpansionState = rememberPaneExpansionState(navigator.scaffoldValue)
     )
 }

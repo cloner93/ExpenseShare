@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -42,6 +41,7 @@ import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material.icons.filled.SouthAmerica
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
@@ -60,6 +60,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -152,6 +153,9 @@ fun AddExpense(
     Scaffold(topBar = {
         TopAppBar(
             title = { Text("Add Expense", style = MaterialTheme.typography.titleLarge) },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.inverseOnSurface,
+            ),
             navigationIcon = {
                 IconButton(onClick = onBackClick) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -203,8 +207,13 @@ fun AddExpense(
         }
     }) { paddingValues ->
         Column(
-            modifier = Modifier.padding(16.dp).padding(paddingValues).fillMaxSize()
-                .verticalScroll(scrollState), horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.inverseOnSurface)
+                .padding(16.dp)
+                .padding(paddingValues)
+                .fillMaxSize()
+                .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ExpenseInputFields(
                 groupName = groupName,
@@ -457,7 +466,8 @@ fun PayerOfExpense(
                         IconButton(onClick = { onRemovePayer(user) }) {
                             Icon(
                                 Icons.Default.Close,
-                                contentDescription = "remove payer"
+                                contentDescription = "remove payer",
+                                tint = MaterialTheme.colorScheme.outline
                             )
                         }
                     }
@@ -620,7 +630,8 @@ private fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> 
             Image(
                 painter = painterResource(Res.drawable.paris),
                 contentDescription = null,
-                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(36.dp)),
+                modifier = Modifier.size(40.dp)
+                    .clip(CardDefaults.shape),
                 contentScale = ContentScale.Crop
             )
 
@@ -972,7 +983,8 @@ fun UserInfoRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(40.dp).clip(CircleShape)
+                modifier = Modifier.size(40.dp)
+                    .clip(CardDefaults.shape)
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {

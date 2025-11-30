@@ -15,15 +15,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -107,7 +105,6 @@ fun GroupDetailScreen(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
             ) {
                 GroupTabs(selectedTab) { selectedTab = it }
 
@@ -153,8 +150,6 @@ fun GroupTabs(selectedTab: GroupTab, onTabSelected: (GroupTab) -> Unit) {
 
     TabRow(
         selectedTabIndex = tabs.indexOfFirst { it.first == selectedTab },
-//        containerColor = MaterialTheme.colorScheme.background,
-//        contentColor = MaterialTheme.colorScheme.primary
     ) {
         tabs.forEachIndexed { index, (tab, icon) ->
             Tab(
@@ -197,7 +192,7 @@ fun ExpenseCard(item: Transaction) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardDefaults.shape)
             .padding(bottom = 4.dp),
     ) {
         Row(
@@ -210,11 +205,15 @@ fun ExpenseCard(item: Transaction) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)),
+                        .clip(CardDefaults.shape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.QuestionMark, contentDescription = null)// use icon
+                    Text(
+                        text = item.title.first().uppercase(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
 
                 Spacer(Modifier.width(12.dp))
@@ -244,7 +243,7 @@ private fun MemberRow(user: User, onDeleteClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardDefaults.shape)
             .padding(bottom = 4.dp),
     ) {
         Row(
@@ -258,7 +257,7 @@ private fun MemberRow(user: User, onDeleteClick: () -> Unit) {
                 contentDescription = null,
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(RoundedCornerShape(36.dp)),
+                    .clip(CardDefaults.shape),
                 contentScale = ContentScale.Crop
             )
 
@@ -282,7 +281,6 @@ private fun MemberRow(user: User, onDeleteClick: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.DeleteOutline,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
