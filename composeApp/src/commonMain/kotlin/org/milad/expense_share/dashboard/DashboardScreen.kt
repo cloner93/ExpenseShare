@@ -1,15 +1,19 @@
 package org.milad.expense_share.dashboard
 
+import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.milad.expense_share.dashboard.groups.GroupDetailScreen
@@ -17,7 +21,10 @@ import org.milad.expense_share.dashboard.groups.GroupDetailScreen
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun DashboardScreen(
+    navLayoutType: NavigationSuiteType,
     viewModel: DashboardViewModel = koinViewModel(),
+    shouldOpenAddGroup: Boolean = false,
+    onAddGroupConsumed: () -> Unit = {},
 ) {
     val state by viewModel.viewState.collectAsState()
 
@@ -42,6 +49,16 @@ fun DashboardScreen(
         }
     }
 
+    LaunchedEffect(shouldOpenAddGroup) {
+        if (shouldOpenAddGroup) {
+            viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddGroup))
+
+            navigator.navigateTo(ListDetailPaneScaffoldRole.Extra)
+
+            onAddGroupConsumed()
+        }
+    }
+
     val isListAndDetailVisible =
         navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded &&
                 navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
@@ -49,10 +66,12 @@ fun DashboardScreen(
         state.isDetailVisible || navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded
 
     ListDetailPaneScaffold(
+        modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
         directive = navigator.scaffoldDirective,
         value = navigator.scaffoldValue,
         listPane = {
             Dashboard(
+                navLayoutType = navLayoutType,
                 groups = state.groups,
                 onGroupClick = { group ->
                     viewModel.handle(DashboardAction.SelectGroup(group))
