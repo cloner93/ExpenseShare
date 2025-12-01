@@ -51,9 +51,14 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(compose.components.resources)
             implementation(compose.material3)
+            implementation(libs.compose.material3.adaptive.navigation)
+            implementation(libs.compose.material3.adaptive.layout)
+            implementation(compose.material3AdaptiveNavigationSuite)
+            implementation(libs.material.icons.extended)
             implementation(compose.ui)
             implementation(compose.foundation)
             implementation(compose.runtime)
+            implementation(projects.core.navigation)
         }
 
         tasks.withType<Test>().configureEach {
