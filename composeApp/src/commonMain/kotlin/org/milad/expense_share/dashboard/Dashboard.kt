@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +47,7 @@ import org.jetbrains.compose.resources.painterResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Dashboard(
+    navLayoutType: NavigationSuiteType,
     groups: List<Group>,
     onGroupClick: (Group) -> Unit,
     isListAndDetailVisible: Boolean,
@@ -58,10 +60,11 @@ fun Dashboard(
 
     Scaffold(
         floatingActionButton = {
-            AppExtendedButton(
-                title = "Add Group",
-                onClick = onAddGroupClick
-            )
+            if (navLayoutType == NavigationSuiteType.NavigationBar)
+                AppExtendedButton(
+                    title = "Add Group",
+                    onClick = onAddGroupClick
+                )
         },
         topBar = {
             TopAppBar(

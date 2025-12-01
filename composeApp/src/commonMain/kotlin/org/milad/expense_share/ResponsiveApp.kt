@@ -10,19 +10,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.milad.navigation.MainRoute
+import com.pmb.common.ui.scaffold.AppScaffold
+import com.pmb.common.ui.scaffold.NavItem
 import org.milad.expense_share.dashboard.DashboardScreen
 import org.milad.expense_share.friends.FriendsScreen
 import org.milad.expense_share.profile.ProfileScreen
-import org.milad.expense_share.ui.AppScaffold
-import org.milad.expense_share.ui.NavItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResponsiveApp(
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
 ) {
     var selectedItem by remember { mutableStateOf(NavItem.Dashboard) }
     val navController = rememberNavController()
+    var triggerAddGroup by remember { mutableStateOf(false) }
 
     AppScaffold(
         selectedItem = selectedItem,
@@ -33,32 +34,47 @@ fun ResponsiveApp(
                     popUpTo(MainRoute.Dashboard) { inclusive = true }
                     launchSingleTop = true
                 }
+
                 NavItem.Friends -> navController.navigate(MainRoute.Friends) {
                     popUpTo(MainRoute.Dashboard)
                     launchSingleTop = true
                 }
+
                 NavItem.Profile -> navController.navigate(MainRoute.Profile) {
                     popUpTo(MainRoute.Dashboard)
                     launchSingleTop = true
                 }
             }
+        },
+        onAddGroupClick = {
+            if (selectedItem != NavItem.Dashboard) {
+                selectedItem = NavItem.Dashboard
+                navController.navigate(MainRoute.Dashboard) {
+                    popUpTo(MainRoute.Dashboard) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+            triggerAddGroup = true
         }
-    ) { appScreenSize ->
+    ) { navLayoutType ->
         NavHost(
             navController = navController,
             startDestination = MainRoute.Dashboard
         ) {
             composable<MainRoute.Dashboard> {
-                DashboardScreen()
+                DashboardScreen(
+                    navLayoutType = navLayoutType,
+                    shouldOpenAddGroup = triggerAddGroup,
+                    onAddGroupConsumed = { triggerAddGroup = false }
+                )
             }
 
             composable<MainRoute.Friends> {
-                FriendsScreen(appScreenSize = appScreenSize)
+                FriendsScreen()
             }
 
             composable<MainRoute.Profile> {
                 ProfileScreen(
-                    appScreenSize = appScreenSize,
                     onLogout = onLogout
                 )
             }

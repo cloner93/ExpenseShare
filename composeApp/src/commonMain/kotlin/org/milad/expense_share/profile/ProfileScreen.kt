@@ -12,11 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.milad.expense_share.ui.AppScreenSize
 
 @Composable
 fun ProfileScreen(
-    appScreenSize: AppScreenSize,
 //            viewModel: ProfileViewModel = koinViewModel()
     onLogout: () -> Unit,
 ) {
