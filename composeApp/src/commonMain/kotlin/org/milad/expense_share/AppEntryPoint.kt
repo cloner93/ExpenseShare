@@ -1,5 +1,7 @@
 package org.milad.expense_share
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,7 +21,11 @@ fun AppEntryPoint() {
     AppTheme {
         NavHost(
             navController = navController,
-            startDestination = RootRoute.Auth
+            startDestination = RootRoute.Auth,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
         ) {
 
             composable<RootRoute.Auth> {
@@ -56,7 +62,11 @@ fun ReplyAppPreview() {
     AppTheme {
         NavHost(
             navController = navController,
-            startDestination = RootRoute.Main
+            startDestination = RootRoute.Main,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
         ) {
 
             composable<RootRoute.Auth> {
