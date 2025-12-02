@@ -36,6 +36,7 @@ fun PermanentDrawerContent(
     selectedItem: NavItem,
     onItemSelected: (NavItem) -> Unit,
     onAddGroupClick: () -> Unit,
+    showAddGroupButton: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     PermanentDrawerSheet(
@@ -54,7 +55,9 @@ fun PermanentDrawerContent(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     DrawerHeader()
-                    ExtendedAddGroupButton(onClick = onAddGroupClick)
+                    if (showAddGroupButton) {
+                        ExtendedAddGroupButton(onClick = onAddGroupClick)
+                    }
                 }
 
                 // Content section with navigation items

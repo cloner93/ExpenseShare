@@ -29,6 +29,7 @@ fun NavigationRailLayout(
     onItemSelected: (NavItem) -> Unit,
     onAddGroupClick: () -> Unit,
     onDrawerClicked: () -> Unit,
+    showAddGroupButton: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     NavigationRail(
@@ -51,8 +52,8 @@ fun NavigationRailLayout(
                     )
                 },
             )
-            
-            CompactAddGroupButton(onClick = onAddGroupClick)
+            if (showAddGroupButton)
+                CompactAddGroupButton(onClick = onAddGroupClick)
             
             Spacer(Modifier.height(8.dp))  // NavigationRailHeaderPadding
             Spacer(Modifier.height(4.dp))  // NavigationRailVerticalPadding

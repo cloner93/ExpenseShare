@@ -55,7 +55,8 @@ fun ResponsiveApp(
                 }
             }
             triggerAddGroup = true
-        }
+        },
+        showAddGroupButton = selectedItem == NavItem.Dashboard
     ) { navLayoutType ->
         NavHost(
             navController = navController,

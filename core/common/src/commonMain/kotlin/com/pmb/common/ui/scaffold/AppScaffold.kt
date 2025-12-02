@@ -32,6 +32,7 @@ fun AppScaffold(
     selectedItem: NavItem,
     onItemSelected: (NavItem) -> Unit,
     onAddGroupClick: () -> Unit,
+    showAddGroupButton: Boolean = true,
     content: @Composable (NavigationSuiteType) -> Unit,
 ) {
     BoxWithConstraints {
@@ -57,6 +58,7 @@ fun AppScaffold(
                 ModalDrawerContent(
                     contentPosition = navContentPosition,
                     selectedItem = selectedItem,
+                    showAddGroupButton = showAddGroupButton,
                     onItemSelected = onItemSelected,
                     onAddGroupClick = onAddGroupClick,
                     onDrawerClicked = {
@@ -82,6 +84,7 @@ fun AppScaffold(
                             NavigationRailLayout(
                                 selectedItem = selectedItem,
                                 onItemSelected = onItemSelected,
+                                showAddGroupButton = showAddGroupButton,
                                 onAddGroupClick = onAddGroupClick,
                                 onDrawerClicked = {
                                     coroutineScope.launch {
@@ -96,6 +99,7 @@ fun AppScaffold(
                                 contentPosition = navContentPosition,
                                 selectedItem = selectedItem,
                                 onItemSelected = onItemSelected,
+                                showAddGroupButton = showAddGroupButton,
                                 onAddGroupClick = onAddGroupClick,
                             )
                         }

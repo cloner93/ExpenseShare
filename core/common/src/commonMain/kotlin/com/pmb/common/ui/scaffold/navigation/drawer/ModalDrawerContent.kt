@@ -36,6 +36,7 @@ import com.pmb.common.ui.scaffold.model.NavigationLayoutType
 fun ModalDrawerContent(
     contentPosition: NavigationContentPosition,
     selectedItem: NavItem,
+    showAddGroupButton: Boolean,
     onItemSelected: (NavItem) -> Unit,
     onDrawerClicked: () -> Unit,
     onAddGroupClick: () -> Unit,
@@ -54,7 +55,9 @@ fun ModalDrawerContent(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     DrawerHeader(onCloseClick = onDrawerClicked)
-                    ExtendedAddGroupButton(onClick = onAddGroupClick)
+                    if (showAddGroupButton) {
+                        ExtendedAddGroupButton(onClick = onAddGroupClick)
+                    }
                 }
 
                 // Content section with navigation items
