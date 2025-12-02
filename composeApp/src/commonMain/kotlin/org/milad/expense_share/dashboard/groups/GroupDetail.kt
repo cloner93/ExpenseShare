@@ -1,5 +1,6 @@
 package org.milad.expense_share.dashboard.groups
 
+import EmptySelectionPlaceholder
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -27,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pmb.common.ui.emptyState.EmptyListState
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
 import model.Group
@@ -117,25 +118,25 @@ fun GroupDetailScreen(
             }
         }
     else
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Text("Select group.")
-            }
-        }
+        EmptySelectionPlaceholder()
 }
 
 @Composable
 fun MemberList(members: List<User>) {
 
-    LazyColumn(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        items(members) { item ->
-            MemberRow(
-                item,
-                onDeleteClick = {}
-            )
+    if (members.isNotEmpty()) {
+        LazyColumn(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            items(members) { item ->
+                MemberRow(
+                    item,
+                    onDeleteClick = {}
+                )
+            }
         }
+    } else {
+        EmptyListState()
     }
 }
 
@@ -168,22 +169,26 @@ fun GroupTabs(selectedTab: GroupTab, onTabSelected: (GroupTab) -> Unit) {
 fun ExpenseList(expenses: List<Transaction>) {
     val grouped = expenses.groupBy { it.status }
 
-    LazyColumn(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        grouped.forEach { (label, list) ->
-            item {
-                Text(
-                    text = label.name,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-            items(list) { item ->
-                ExpenseCard(item)
-                Spacer(Modifier.height(8.dp))
+    if (expenses.isNotEmpty()) {
+        LazyColumn(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            grouped.forEach { (label, list) ->
+                item {
+                    Text(
+                        text = label.name,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+                items(list) { item ->
+                    ExpenseCard(item)
+                    Spacer(Modifier.height(8.dp))
+                }
             }
         }
+    } else {
+        EmptyListState()
     }
 }
 

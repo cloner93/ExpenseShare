@@ -38,6 +38,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pmb.common.ui.emptyState.EmptyListState
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
 import model.Group
@@ -162,24 +163,28 @@ fun GroupSection(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
-        Text(
-            text = "Groups",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+        if (groups.isNotEmpty()) {
+            Text(
+                text = "Groups",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 80.dp)
-        ) {
-            items(groups) { group ->
-                GroupItem(
-                    group = group,
-                    isOpened = selectedGroup == group,
-                    onClick = { onGroupClick(group) },
-                    onLongClick = { println(group) }
-                )
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                items(groups) { group ->
+                    GroupItem(
+                        group = group,
+                        isOpened = selectedGroup == group,
+                        onClick = { onGroupClick(group) },
+                        onLongClick = { println(group) }
+                    )
+                }
             }
+        } else {
+            EmptyListState()
         }
     }
 }
