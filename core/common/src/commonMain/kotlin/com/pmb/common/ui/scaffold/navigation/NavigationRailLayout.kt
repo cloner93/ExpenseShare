@@ -1,5 +1,13 @@
 package com.pmb.common.ui.scaffold.navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.EaseInCubic
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -30,7 +38,7 @@ fun NavigationRailLayout(
     onAddGroupClick: () -> Unit,
     onDrawerClicked: () -> Unit,
     showAddGroupButton: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     NavigationRail(
         modifier = modifier.fillMaxHeight(),
@@ -52,9 +60,25 @@ fun NavigationRailLayout(
                     )
                 },
             )
-            if (showAddGroupButton)
+
+            AnimatedVisibility(
+                visible = showAddGroupButton,
+                enter = slideInVertically(
+                    initialOffsetY = { -it },
+                    animationSpec = tween(durationMillis = 300, easing = EaseOutCubic)
+                ) + fadeIn(
+                    animationSpec = tween(durationMillis = 300)
+                ),
+                exit = slideOutVertically(
+                    targetOffsetY = { -it },
+                    animationSpec = tween(durationMillis = 300, easing = EaseInCubic)
+                ) + fadeOut(
+                    animationSpec = tween(durationMillis = 300)
+                )
+            ) {
                 CompactAddGroupButton(onClick = onAddGroupClick)
-            
+            }
+
             Spacer(Modifier.height(8.dp))  // NavigationRailHeaderPadding
             Spacer(Modifier.height(4.dp))  // NavigationRailVerticalPadding
         }
@@ -69,11 +93,11 @@ fun NavigationRailLayout(
                 NavigationRailItem(
                     selected = selectedItem == navItem,
                     onClick = { onItemSelected(navItem) },
-                    icon = { 
+                    icon = {
                         Icon(
                             imageVector = navItem.icon,
                             contentDescription = navItem.title
-                        ) 
+                        )
                     },
                 )
             }

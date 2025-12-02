@@ -1,5 +1,13 @@
 package com.pmb.common.ui.scaffold.navigation.drawer
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.EaseInCubic
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,7 +48,7 @@ fun ModalDrawerContent(
     onItemSelected: (NavItem) -> Unit,
     onDrawerClicked: () -> Unit,
     onAddGroupClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     ModalDrawerSheet(modifier = modifier) {
         Layout(
@@ -55,7 +63,21 @@ fun ModalDrawerContent(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     DrawerHeader(onCloseClick = onDrawerClicked)
-                    if (showAddGroupButton) {
+                    AnimatedVisibility(
+                        visible = showAddGroupButton,
+                        enter = slideInVertically(
+                            initialOffsetY = { -it },
+                            animationSpec = tween(durationMillis = 300, easing = EaseOutCubic)
+                        ) + fadeIn(
+                            animationSpec = tween(durationMillis = 300)
+                        ),
+                        exit = slideOutVertically(
+                            targetOffsetY = { -it },
+                            animationSpec = tween(durationMillis = 300, easing = EaseInCubic)
+                        ) + fadeOut(
+                            animationSpec = tween(durationMillis = 300)
+                        )
+                    ) {
                         ExtendedAddGroupButton(onClick = onAddGroupClick)
                     }
                 }
@@ -84,7 +106,7 @@ fun ModalDrawerContent(
 @Composable
 private fun DrawerHeader(
     onCloseClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
@@ -114,7 +136,7 @@ private fun DrawerHeader(
 private fun DrawerNavigationItems(
     selectedItem: NavItem,
     onItemSelected: (NavItem) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         NavItem.entries.forEach { navItem ->
