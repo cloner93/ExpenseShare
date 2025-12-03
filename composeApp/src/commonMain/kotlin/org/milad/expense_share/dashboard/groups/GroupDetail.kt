@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReceiptLong
@@ -50,6 +51,7 @@ import model.Group
 import model.Transaction
 import model.User
 import org.jetbrains.compose.resources.painterResource
+import org.milad.expense_share.chat.ChatScreen
 import org.milad.expense_share.dashboard.AppExtendedButton
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,6 +82,9 @@ fun GroupDetailScreen(
                             title = "Add Member",
                             onClick = onAddMemberClick
                         )
+                    }
+
+                    else -> {
                     }
                 }
             },
@@ -114,6 +119,7 @@ fun GroupDetailScreen(
                 when (selectedTab) {
                     GroupTab.Expenses -> ExpenseList(selectedGroup.transactions)
                     GroupTab.Members -> MemberList(selectedGroup.members)
+                    GroupTab.Chat -> ChatScreen()
                 }
             }
         }
@@ -140,13 +146,14 @@ fun MemberList(members: List<User>) {
     }
 }
 
-enum class GroupTab { Expenses, Members }
+enum class GroupTab { Expenses, Members,Chat }
 
 @Composable
 fun GroupTabs(selectedTab: GroupTab, onTabSelected: (GroupTab) -> Unit) {
     val tabs = listOf(
         GroupTab.Expenses to Icons.Default.ReceiptLong,
         GroupTab.Members to Icons.Default.Person,
+        GroupTab.Chat to Icons.Default.Chat,
     )
 
     TabRow(
