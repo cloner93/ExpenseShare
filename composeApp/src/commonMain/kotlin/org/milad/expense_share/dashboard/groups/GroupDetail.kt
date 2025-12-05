@@ -1,9 +1,12 @@
 package org.milad.expense_share.dashboard.groups
 
 import EmptySelectionPlaceholder
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,11 +52,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pmb.common.ui.emptyState.EmptyListState
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
@@ -63,7 +64,6 @@ import model.User
 import org.jetbrains.compose.resources.painterResource
 import org.milad.expense_share.chat.ChatScreen
 import org.milad.expense_share.dashboard.AppExtendedButton
-import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -200,7 +200,7 @@ fun ExpenseList(expenses: List<Transaction>) {
                     )
                 }
                 items(list) { item ->
-                    ExpenseDetailCard(
+                    ExpandableExpenseCard(
                         item,
                         currentUserId = 0,
                         onEditClick = {},
@@ -216,74 +216,75 @@ fun ExpenseList(expenses: List<Transaction>) {
 }
 
 @Composable
-fun ExpenseDetailCard(
+fun ExpandableExpenseCard(
     transaction: Transaction,
     currentUserId: Int,
     onEditClick: () -> Unit,
     onSettleUpClick: () -> Unit
 ) {
-    val cardBackgroundColor = Color(0xFFFBECEC)
-    val redTextColor = Color(0xFFD32F2F)
-    val buttonRedColor = Color(0xFFB71C1C)
+    var isExpanded by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor)
+            .padding(8.dp)
+            .clip(CardDefaults.shape)
+            .clickable { isExpanded = !isExpanded }
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(modifier = Modifier.weight(1f)) {
-                    // آیکون دسته بندی
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.5f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Home, // می‌توانید آیکون موزه را جایگزین کنید
-                            contentDescription = "Category",
-                            tint = Color(0xFF5D1515)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    // عنوان و پرداخت کننده
-                    Column {
-                        Text(
-                            text = transaction.title,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                        )
-                        // پیدا کردن نام پرداخت کننده اصلی
-                        val payerId = transaction.payers.maxByOrNull { it.amountPaid }?.userId ?: 0
-                        val payerName =
-                            if (payerId == currentUserId) "You" else getUserName(payerId)
-
-                        Text(
-                            text = "$payerName paid",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray)
-                        )
-                    }
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
 
-                // مبلغ کل و وضعیت بدهی
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = transaction.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    val payerId = transaction.payers.maxByOrNull { it.amountPaid }?.userId ?: 0
+                    val payerName = if (payerId == currentUserId) "You" else "User $payerId"
+
+                    Text(
+                        text = "$payerName paid",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "€${transaction.amount}",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        text = "$${transaction.amount}",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     val myShare =
@@ -295,84 +296,88 @@ fun ExpenseDetailCard(
 
                     if (net < 0) {
                         Text(
-                            text = "You owe €${abs(net)}",
-                            style = MaterialTheme.typography.bodySmall.copy(color = redTextColor)
+                            text = "You owe $${kotlin.math.abs(net)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
                         )
                     } else if (net > 0) {
                         Text(
-                            text = "You lent €$net",
-                            style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF2E7D32))
+                            text = "You lent $${kotlin.math.abs(net)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = Color.Gray.copy(alpha = 0.3f))
-            Spacer(modifier = Modifier.height(16.dp))
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(modifier = Modifier.height(16.dp))
 
-            SectionHeader("Payer(s) & Amounts", "Remains")
-            transaction.payers.forEach { payer ->
-                val name = if (payer.userId == currentUserId) "You" else getUserName(payer.userId)
+                SectionRow(title = "Payer(s) & Amounts", value = "Remains")
 
-                DetailRow(
-                    label = "$name: €${payer.amountPaid}",
-                    value = "+€${payer.amountPaid / 2}", // نمونه مقدار
-                    isBold = true
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SectionHeader("Split Breakdown & Debt", "")
-            transaction.shareDetails.members.forEach { member ->
-                val name = if (member.userId == currentUserId) "You" else getUserName(member.userId)
-                val shareAmount = member.share ?: 0.0
-
-                val displayAmount = if (name == "You") "-€$shareAmount" else "+€$shareAmount"
-
-                DetailRow(
-                    label = name,
-                    value = displayAmount,
-                    valueColor = if (displayAmount.startsWith("-")) Color.Black else Color.Black
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-
-            Text(
-                text = "Methodology",
-                style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = if (transaction.shareDetails.type == "EQUAL") "Split equally" else transaction.shareDetails.type,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onEditClick,
-                    modifier = Modifier.weight(1f),
-                    border = BorderStroke(1.dp, Color.Gray),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
-                ) {
-                    Text("Edit")
+                transaction.payers.forEach { payer ->
+                    val name = if (payer.userId == currentUserId) "You" else "User ${payer.userId}"
+                    DetailRow(
+                        label = "$name: $${payer.amountPaid}",
+                        value = "+$${payer.amountPaid / 2}",
+                        isBold = true
+                    )
                 }
 
-                Button(
-                    onClick = onSettleUpClick,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonRedColor)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SectionRow(title = "Split Breakdown & Debt", value = "")
+
+                transaction.shareDetails.members.forEach { member ->
+                    val name =
+                        if (member.userId == currentUserId) "You" else "User ${member.userId}"
+                    val share = member.share ?: 0.0
+                    val displayValue = if (name == "You") "-$$share" else "+$$share"
+
+                    DetailRow(
+                        label = name,
+                        value = displayValue
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Methodology",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = if (transaction.shareDetails.type == "EQUAL") "Split equally" else transaction.shareDetails.type,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Settle Up", color = Color.White)
+                    OutlinedButton(
+                        onClick = onEditClick,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Edit")
+                    }
+
+                    Button(
+                        onClick = onSettleUpClick,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        )
+                    ) {
+                        Text("Settle Up")
+                    }
                 }
             }
         }
@@ -380,30 +385,30 @@ fun ExpenseDetailCard(
 }
 
 @Composable
-fun SectionHeader(leftText: String, rightText: String) {
+fun SectionRow(title: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = leftText, style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray))
-        if (rightText.isNotEmpty()) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (value.isNotEmpty()) {
             Text(
-                text = rightText,
-                style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray)
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
 @Composable
-fun DetailRow(
-    label: String,
-    value: String,
-    isBold: Boolean = false,
-    valueColor: Color = Color.Black
-) {
+fun DetailRow(label: String, value: String, isBold: Boolean = false) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -414,23 +419,16 @@ fun DetailRow(
             text = label,
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = if (isBold) FontWeight.SemiBold else FontWeight.Normal
-            )
+            ),
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge.copy(
-                fontWeight = FontWeight.Bold,
-                color = valueColor
-            )
+                fontWeight = FontWeight.Bold
+            ),
+            color = MaterialTheme.colorScheme.onSurface
         )
-    }
-}
-
-fun getUserName(userId: Int): String {
-    return when (userId) {
-        1 -> "Mahdi"
-        2 -> "Ali"
-        else -> "User $userId"
     }
 }
 
