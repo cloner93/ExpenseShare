@@ -9,10 +9,13 @@ import repository.GroupsRepository
 import repository.GroupsRepositoryImpl
 import repository.TransactionsRepository
 import repository.TransactionsRepositoryImpl
+import repository.UserRepository
+import repository.UserRepositoryImpl
 
 val dataModule = module {
 
-    single { AuthRepositoryImpl(get(),get()) as AuthRepository }
+    single { UserRepositoryImpl() as UserRepository }
+    single { AuthRepositoryImpl(get(), get(), get()) as AuthRepository }
     single { FriendsRepositoryImpl(get()) as FriendsRepository }
     single { GroupsRepositoryImpl(get()) as GroupsRepository }
     single { TransactionsRepositoryImpl(get()) as TransactionsRepository }

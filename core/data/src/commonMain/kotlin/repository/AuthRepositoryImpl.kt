@@ -12,6 +12,7 @@ import token.TokenProvider
 class AuthRepositoryImpl(
     private val networkManager: NetworkManager,
     private val tokenProvider: TokenProvider,
+    private val userRepository: UserRepository
 ) : AuthRepository {
     override suspend fun register(
         phone: String,
@@ -24,6 +25,7 @@ class AuthRepositoryImpl(
         ).map { result ->
             result.map { (token, user) ->
                 tokenProvider.setToken(token)
+                userRepository.setUserInfo(user)
                 user
             }.onFailure {
                 tokenProvider.clearToken()
@@ -41,6 +43,7 @@ class AuthRepositoryImpl(
         ).map { result ->
             result.map { (token, user) ->
                 tokenProvider.setToken(token)
+                userRepository.setUserInfo(user)
                 user
             }.onFailure {
                 tokenProvider.clearToken()
