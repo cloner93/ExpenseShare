@@ -16,8 +16,10 @@ import usecase.friends.GetFriendsUseCase
 import usecase.groups.CreateGroupUseCase
 import usecase.groups.GetGroupsUseCase
 import usecase.transactions.CreateTransactionUseCase
+import usecase.user.GetUserInfoUseCase
 
 class DashboardViewModel(
+    private val getUserInfoUseCase: GetUserInfoUseCase,
     private val getGroupsUseCase: GetGroupsUseCase,
     private val createGroupUseCase: CreateGroupUseCase,
     private val getFriendsUseCase: GetFriendsUseCase,
@@ -107,7 +109,13 @@ class DashboardViewModel(
         viewModelScope.launch {
             launch { getGroups() }
             launch { getFriends() }
+            getUserInfo()
         }
+    }
+
+    private suspend fun getUserInfo() {
+        val currentUser = getUserInfoUseCase()
+        setState { it.copy(currentUser = currentUser) }
     }
 
     private suspend fun getGroups() {
@@ -223,6 +231,7 @@ sealed interface DashboardAction : BaseViewAction {
 }
 
 data class DashboardState(
+    val currentUser: User? = null,
     val extraPaneContentState: ExtraPaneContentState = ExtraPaneContentState.None,
     val groups: List<Group> = emptyList(),
     val friends: List<User> = emptyList(),
