@@ -114,7 +114,12 @@ fun GroupDetailScreen(
                 Spacer(Modifier.height(16.dp))
 
                 when (selectedTab) {
-                    GroupTab.Expenses -> ExpenseList(selectedGroup.transactions, currentUser)
+                    GroupTab.Expenses -> ExpenseList(
+                        selectedGroup.transactions,
+                        currentUser,
+                        selectedGroup
+                    )
+
                     GroupTab.Members -> MemberList(selectedGroup.members)
                     GroupTab.Chat -> ChatScreen()
                 }

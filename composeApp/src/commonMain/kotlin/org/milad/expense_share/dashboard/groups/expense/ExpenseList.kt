@@ -17,11 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pmb.common.ui.emptyState.EmptyListState
+import model.Group
 import model.Transaction
 import model.User
 
 @Composable
-fun ExpenseList(expenses: List<Transaction>, currentUser: User?) {
+fun ExpenseList(expenses: List<Transaction>, currentUser: User?, selectedGroup: Group) {
     val grouped = expenses.groupBy { it.status }
     var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
 
@@ -43,6 +44,7 @@ fun ExpenseList(expenses: List<Transaction>, currentUser: User?) {
                         item,
                         currentUser,
                         isExpanded = selectedTransaction == item,
+                        isUserAdminOfGroup = selectedGroup.ownerId == currentUser?.id,
                         onExpandClick = {
                             if (selectedTransaction == it) {
                                 selectedTransaction = null

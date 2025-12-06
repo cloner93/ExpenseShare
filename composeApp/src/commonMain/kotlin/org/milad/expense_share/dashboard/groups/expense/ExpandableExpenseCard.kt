@@ -1,6 +1,5 @@
 package org.milad.expense_share.dashboard.groups.expense
 
-
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -19,11 +18,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -44,10 +47,10 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun ExpandableExpenseCard(
     transaction: Transaction,
     currentUser: User?,
+    isUserAdminOfGroup: Boolean = false,
     isExpanded: Boolean = false,
     onExpandClick: (Transaction) -> Unit = {},
 ) {
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -95,7 +98,6 @@ fun ExpandableExpenseCard(
                     )
 
                     val payerCount = transaction.payers.count()
-
                     Text(
                         text = "$payerCount member paid",
                         style = MaterialTheme.typography.bodyMedium,
@@ -111,7 +113,6 @@ fun ExpandableExpenseCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     currentUser?.let { (currentUserId, _, _) ->
-
                         val myShare =
                             transaction.shareDetails.members.find { it.userId == currentUserId }?.share
                                 ?: 0.0
@@ -133,7 +134,6 @@ fun ExpandableExpenseCard(
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
                             }
-
                         } else if (net > 0) {
                             Column(
                                 modifier = Modifier
@@ -147,23 +147,26 @@ fun ExpandableExpenseCard(
                                     color = MaterialTheme.colorScheme.onTertiaryContainer
                                 )
                             }
-
                         }
                     }
-
                 }
             }
 
             if (isExpanded) {
-                // FIXME
                 val currentUserId = currentUser?.id ?: 0
+                val isCreator = transaction.createdBy == currentUserId
+
+                val showApprovalButtons =
+                    isUserAdminOfGroup && transaction.status == TransactionStatus.PENDING && !isCreator
 
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                SectionRow(title = "Payer(s) & Amounts", value = "Remains")
+                DetailRow(label = "Description", value = transaction.description)
+                Spacer(modifier = Modifier.height(16.dp))
 
+                SectionRow(title = "Payer(s) & Amounts", value = "Remains")
                 transaction.payers.forEach { payer ->
                     val name = if (payer.userId == currentUserId) "me" else "User ${payer.userId}"
                     DetailRow(
@@ -176,28 +179,75 @@ fun ExpandableExpenseCard(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 SectionRow(title = "Split Breakdown & Debt", value = "")
-
                 transaction.shareDetails.members.forEach { member ->
                     val name =
                         if (member.userId == currentUserId) "me:" else "User ${member.userId}:"
-                    val share =
-                        (member.share ?: 0.0).toInt()
-                    val displayValue =
-                        if (name == "me") "$$share" else "$$share"
-
-                    DetailRow(
-                        label = name,
-                        value = displayValue
-                    )
+                    val share = (member.share ?: 0.0).toInt()
+                    DetailRow(label = name, value = "$$share")
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                DetailRow(
-                    label = "Methodology",
-                    value = transaction.shareDetails.type
-                )
+                DetailRow(label = "Methodology", value = transaction.shareDetails.type)
 
+                Spacer(modifier = Modifier.height(16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (showApprovalButtons) {
+                            Button(
+                                onClick = { /* TODO:  */ },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            ) {
+                                Text("Accept")
+                            }
+
+                            Button(
+                                onClick = { /* TODO:  */ },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            ) {
+                                Text("Reject")
+                            }
+                        } else {
+                            OutlinedButton(
+                                onClick = { /* TODO:  */ },
+                            ) {
+                                Text("Edit")
+                            }
+
+                            Button(
+                                onClick = { /* TODO:  */ },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            ) {
+                                Text("Delete")
+                            }
+                        }
+                    }
+
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Options",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.clickable { /* TODO:  */ }
+                    )
+                }
             }
         }
     }
