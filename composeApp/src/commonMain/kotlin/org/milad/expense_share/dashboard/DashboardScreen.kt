@@ -94,6 +94,7 @@ fun DashboardScreen(
                     viewModel.handle(DashboardAction.NavigateBack)
                     scope.launch { navigator.navigateBack() }
                 },
+                currentUser = state.currentUser,
                 isListAndDetailVisible = isListAndDetailVisible,
                 isDetailVisible = isDetailVisible,
                 selectedGroup = state.selectedGroup,
