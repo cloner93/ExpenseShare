@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.SupervisorAccount
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,17 +39,21 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
 import model.Group
 import model.TransactionStatus
+import model.User
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Dashboard(
     navLayoutType: NavigationSuiteType,
+    currentUser: User?,
     groups: List<Group>,
     onGroupClick: (Group) -> Unit,
     isListAndDetailVisible: Boolean,
@@ -82,6 +87,7 @@ fun Dashboard(
 
             GroupSection(
                 groups = groups,
+                currentUser = currentUser,
                 selectedGroup = selectedGroup,
                 onGroupClick = onGroupClick
             )
@@ -155,6 +161,7 @@ private fun BalanceCard(
 @Composable
 fun GroupSection(
     groups: List<Group>,
+    currentUser: User?,
     onGroupClick: (Group) -> Unit,
     selectedGroup: Group?,
 ) {
@@ -178,6 +185,7 @@ fun GroupSection(
                     GroupItem(
                         group = group,
                         isOpened = selectedGroup == group,
+                        isAdminOfGroup = currentUser?.id == group.ownerId,
                         onClick = { onGroupClick(group) },
                         onLongClick = { println(group) }
                     )
@@ -194,6 +202,7 @@ private fun GroupItem(
     group: Group,
     isSelected: Boolean = false,
     isOpened: Boolean = false,
+    isAdminOfGroup: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
@@ -241,10 +250,20 @@ private fun GroupItem(
                     text = group.name,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 )
-                Text(
-                    text = "${group.members.size} members",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (isAdminOfGroup)
+                        Icon(
+                            modifier = Modifier.padding(end = 2.dp).size(18.dp),
+                            imageVector = Icons.Outlined.SupervisorAccount,
+                            contentDescription = "Back"
+                        )
+                    Text(
+                        text = "${group.members.size} members",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
                 Spacer(modifier = Modifier.padding(8.dp))
                 Text(
                     text = "$$balance",
@@ -259,6 +278,43 @@ private fun GroupItem(
                 imageVector = Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.outline
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun GroupItemPreview() {
+    AppTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            GroupItem(
+                group = Group(
+                    id = 1,
+                    name = "Group 1",
+                    ownerId = 1,
+                    transactions = emptyList(),
+                    members = emptyList()
+                ),
+                isOpened = true,
+                isAdminOfGroup = true,
+                onClick = {},
+                onLongClick = {},
+            )
+            GroupItem(
+                group = Group(
+                    id = 1,
+                    name = "Group 1",
+                    ownerId = 1,
+                    transactions = emptyList(),
+                    members = emptyList()
+                ),
+                onClick = {},
+                onLongClick = {},
             )
         }
     }

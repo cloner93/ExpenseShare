@@ -72,6 +72,7 @@ fun DashboardScreen(
         listPane = {
             Dashboard(
                 navLayoutType = navLayoutType,
+                currentUser = state.currentUser,
                 groups = state.groups,
                 onGroupClick = { group ->
                     viewModel.handle(DashboardAction.SelectGroup(group))
