@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package org.milad.expense_share.dashboard.groups.expense
 
 import androidx.compose.animation.animateContentSize
@@ -19,10 +21,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +44,8 @@ import model.Transaction
 import model.TransactionStatus
 import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.milad.expense_share.expenses.AnimatedLoadingButton
+import kotlin.math.abs
 
 @Composable
 fun ExpandableExpenseCard(
@@ -49,7 +53,14 @@ fun ExpandableExpenseCard(
     currentUser: User?,
     isUserAdminOfGroup: Boolean = false,
     isExpanded: Boolean = false,
+    isLoading: Boolean = false,
+    currentTrxActionLoading: TrxActions? = null,
     onExpandClick: (Transaction) -> Unit = {},
+    onApproveTransactionClick: (Transaction) -> Unit = {},
+    onRejectTransactionClick: (Transaction) -> Unit = {},
+    onEditTransactionClick: (Transaction) -> Unit = {},
+    onDeleteTransactionClick: (Transaction) -> Unit = {},
+    onMoreMenuTransactionClick: (Transaction) -> Unit = {},
 ) {
     Card(
         modifier = Modifier
@@ -129,7 +140,7 @@ fun ExpandableExpenseCard(
                                     .padding(8.dp),
                             ) {
                                 Text(
-                                    text = "You owe $${kotlin.math.abs(net.toInt())}",
+                                    text = "You owe $${abs(net.toInt())}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
@@ -142,7 +153,7 @@ fun ExpandableExpenseCard(
                                     .padding(8.dp),
                             ) {
                                 Text(
-                                    text = "You lent $${kotlin.math.abs(net.toInt())}",
+                                    text = "You lent $${abs(net.toInt())}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer
                                 )
@@ -203,41 +214,44 @@ fun ExpandableExpenseCard(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         if (showApprovalButtons) {
-                            Button(
-                                onClick = { /* TODO:  */ },
+                            AnimatedLoadingButton(
+                                text = "Approve",
+                                enabled = currentTrxActionLoading != TrxActions.Approve && isLoading,
+                                loading = currentTrxActionLoading == TrxActions.Approve && isLoading,
+                                onClick = { onApproveTransactionClick(transaction) },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                                     contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                                 )
-                            ) {
-                                Text("Accept")
-                            }
-
-                            Button(
-                                onClick = { /* TODO:  */ },
+                            )
+                            AnimatedLoadingButton(
+                                text = "Reject",
+                                enabled = currentTrxActionLoading != TrxActions.Reject && isLoading,
+                                loading = currentTrxActionLoading == TrxActions.Reject && isLoading,
+                                onClick = { onRejectTransactionClick(transaction) },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.errorContainer,
                                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                                 )
-                            ) {
-                                Text("Reject")
-                            }
+                            )
+
                         } else {
                             OutlinedButton(
-                                onClick = { /* TODO:  */ },
+                                onClick = { onEditTransactionClick(transaction) },
                             ) {
                                 Text("Edit")
                             }
 
-                            Button(
-                                onClick = { /* TODO:  */ },
+                            AnimatedLoadingButton(
+                                text = "Delete",
+                                enabled = currentTrxActionLoading != TrxActions.Delete && isLoading,
+                                loading = currentTrxActionLoading == TrxActions.Delete && isLoading,
+                                onClick = { onDeleteTransactionClick(transaction) },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.errorContainer,
                                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                                 )
-                            ) {
-                                Text("Delete")
-                            }
+                            )
                         }
                     }
 
@@ -245,7 +259,9 @@ fun ExpandableExpenseCard(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "Options",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.clickable { /* TODO:  */ }
+                        modifier = Modifier.clickable {
+                            onMoreMenuTransactionClick(transaction)
+                        }
                     )
                 }
             }
@@ -342,17 +358,17 @@ fun ExpandableExpenseCardPreview() {
 
     AppTheme {
         Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)) {
-            ExpandableExpenseCard(
-                transaction = t,
-                currentUser = User(0, "milad", "09137511005"),
-                isExpanded = false
+            /* ExpandableExpenseCard(
+                 transaction = t,
+                 currentUser = User(0, "milad", "09137511005"), ,
 
-            )
-            ExpandableExpenseCard(
-                transaction = t,
-                currentUser = User(0, "milad", "09137511005"),
-                isExpanded = true
-            )
+             )
+             ExpandableExpenseCard(
+                 transaction = t.copy(status = TransactionStatus.PENDING),
+                 currentUser = User(0, "milad", "09137511005"),
+                 isUserAdminOfGroup = true,
+                 isExpanded = true, ,
+             )*/
         }
     }
 }
