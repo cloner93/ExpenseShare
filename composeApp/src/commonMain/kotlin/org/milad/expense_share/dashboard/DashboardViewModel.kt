@@ -77,6 +77,23 @@ class DashboardViewModel(
                     setState { it.copy(extraPaneError = Throwable("Test Error")) }
                 }
             }
+
+            is DashboardAction.ApproveTransaction -> {
+                approveTransaction(
+                    viewState.value.selectedGroup?.id.toString(),
+                    action.trxId
+                )
+            }
+
+            is DashboardAction.DeleteTransaction -> {
+                deleteTransaction(
+                    viewState.value.selectedGroup?.id.toString(),
+                    action.trxId
+                )
+            }
+
+            is DashboardAction.EditTransaction -> {}
+            is DashboardAction.RejectTransaction -> {}
         }
     }
 
@@ -110,6 +127,47 @@ class DashboardViewModel(
                     }
                 }
             }
+        }
+    }
+
+
+    private fun approveTransaction(groupId: String, transactionId: String) {
+        viewModelScope.launch {
+            setState { it.copy(transactionLoading = true, transactionError = null) }
+            delay(3000)
+            setState { it.copy(transactionLoading = false, transactionError = null) }
+            delay(3000)
+            setState { it.copy(transactionLoading = true, transactionError = null) }
+            delay(3000)
+            setState { it.copy(transactionLoading = false, transactionError = null) }
+
+            /*approveTransactionUseCase(groupId, transactionId).collect { result ->
+                result.onSuccess {
+                    setState { it.copy(transactionLoading = false, transactionError = null) }
+//                     update groups
+                    loadData()
+
+                }.onFailure { e ->
+                    setState { it.copy(transactionError = e, transactionLoading = false) }
+                }
+            }*/
+        }
+    }
+
+    private fun deleteTransaction(groupId: String, transactionId: String) {
+        viewModelScope.launch {
+            setState { it.copy(transactionLoading = true, transactionError = null) }
+
+/*            deleteTransactionUseCase(groupId, transactionId).collect { result ->
+                result.onSuccess {
+                    setState { it.copy(transactionLoading = false, transactionError = null) }
+//                     update groups
+                    loadData()
+
+                }.onFailure { e ->
+                    setState { it.copy(transactionError = e, transactionLoading = false) }
+                }
+            }*/
         }
     }
 
@@ -236,6 +294,11 @@ sealed interface DashboardAction : BaseViewAction {
         val payers: List<PayerDto>?,
         val shareDetails: ShareDetailsRequest?,
     ) : DashboardAction
+
+    data class ApproveTransaction(val trxId: String) : DashboardAction
+    data class RejectTransaction(val trxId: String) : DashboardAction
+    data class DeleteTransaction(val trxId: String) : DashboardAction
+    data class EditTransaction(val trxId: String) : DashboardAction
 }
 
 data class DashboardState(
@@ -247,9 +310,11 @@ data class DashboardState(
 //    val transactions: List<Transaction> = emptyList(),
     val listPaneLoading: Boolean = true,
     val detailPaneLoading: Boolean = false,
+    val transactionLoading: Boolean = false,
     val extraPaneLoading: Boolean = false,
     val listPaneError: Throwable? = null,
     val detailPaneError: Throwable? = null,
+    val transactionError: Throwable? = null,
     val extraPaneError: Throwable? = null,
     val isExtraActionSuccess: Boolean = false,
     val isDetailVisible: Boolean = false,

@@ -99,6 +99,8 @@ fun DashboardScreen(
                 isListAndDetailVisible = isListAndDetailVisible,
                 isDetailVisible = isDetailVisible,
                 selectedGroup = state.selectedGroup,
+                transactionLoading= state.transactionLoading,
+                transactionError= state.transactionError,
                 onAddExpenseClick = {
                     viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddExpense))
                     scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
@@ -106,6 +108,18 @@ fun DashboardScreen(
                 onAddMemberClick = {
                     viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddMember))
                     scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
+                },
+                onApproveTransactionClick = {
+                    viewModel.handle(DashboardAction.ApproveTransaction(it))
+                },
+                onRejectTransactionClick = {
+                    viewModel.handle(DashboardAction.ApproveTransaction(it))
+                },
+                onEditTransactionClick = {
+
+                },
+                onDeleteTransactionClick = {
+//                    viewModel.handle(DashboardAction.ApproveTransaction(it))
                 },
             )
         },

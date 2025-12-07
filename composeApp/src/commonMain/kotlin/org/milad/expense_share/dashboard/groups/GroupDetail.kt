@@ -57,9 +57,15 @@ fun GroupDetailScreen(
     isListAndDetailVisible: Boolean,
     isDetailVisible: Boolean,
     selectedGroup: Group?,
+    transactionLoading: Boolean,
+    transactionError: Throwable?,
     onAddExpenseClick: () -> Unit,
     onAddMemberClick: () -> Unit,
     currentUser: User?,
+    onApproveTransactionClick: (String) -> Unit = {},
+    onRejectTransactionClick: (String) -> Unit = {},
+    onEditTransactionClick: (String) -> Unit = {},
+    onDeleteTransactionClick: (String) -> Unit = {},
 ) {
     var selectedTab by remember { mutableStateOf(GroupTab.Expenses) }
 
@@ -117,7 +123,13 @@ fun GroupDetailScreen(
                     GroupTab.Expenses -> ExpenseList(
                         selectedGroup.transactions,
                         currentUser,
-                        selectedGroup
+                        selectedGroup,
+                        transactionLoading= transactionLoading,
+                        transactionError= transactionError,
+                        onApproveTransactionClick = { onApproveTransactionClick(it) },
+                        onRejectTransactionClick = { onRejectTransactionClick(it) },
+                        onEditTransactionClick = { onEditTransactionClick(it) },
+                        onDeleteTransactionClick = { onDeleteTransactionClick(it) },
                     )
 
                     GroupTab.Members -> MemberList(selectedGroup.members)
