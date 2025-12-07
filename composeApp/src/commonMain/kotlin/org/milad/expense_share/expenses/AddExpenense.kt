@@ -40,6 +40,8 @@ import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material.icons.filled.SouthAmerica
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -346,30 +348,12 @@ fun ConfirmButton(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loading,
+        AnimatedLoadingButton(
+            Modifier.fillMaxWidth(),
+            "Save",
+            loading,
             onClick = onClick
-        ) {
-            AnimatedContent(
-                targetState = loading,
-                transitionSpec = {
-                    (fadeIn(animationSpec = tween(300)) + scaleIn()).togetherWith(
-                        fadeOut(animationSpec = tween(300)) + scaleOut()
-                    )
-                },
-                label = "ButtonLoadingAnimation"
-            ) { isLoading ->
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.5.dp
-                    )
-                } else {
-                    Text("Save")
-                }
-            }
-        }
+        )
 
         AnimatedVisibility(visible = hasError != null) {
             if (hasError != null) {
@@ -378,6 +362,42 @@ fun ConfirmButton(
                     style = TextStyle(color = MaterialTheme.colorScheme.error),
                     modifier = Modifier.padding(top = 4.dp)
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun AnimatedLoadingButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    loading: Boolean,
+    enabled: Boolean = false,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    onClick: () -> Unit,
+) {
+    Button(
+        modifier = modifier,
+        enabled = !loading || enabled,
+        onClick = onClick,
+        colors = colors
+    ) {
+        AnimatedContent(
+            targetState = loading,
+            transitionSpec = {
+                (fadeIn(animationSpec = tween(300)) + scaleIn()).togetherWith(
+                    fadeOut(animationSpec = tween(300)) + scaleOut()
+                )
+            },
+            label = "ButtonLoadingAnimation"
+        ) { isLoading ->
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.5.dp
+                )
+            } else {
+                Text(text)
             }
         }
     }
@@ -404,7 +424,7 @@ fun PayerOfExpense(
     onPayersClick: () -> Unit,
     onRemovePayer: (User) -> Unit,
     onAmountsUpdated: (Map<Int, Double>) -> Unit,
-    payerError: String?
+    payerError: String?,
 ) {
 
     LaunchedEffect(payerAmounts.values.toList()) {
@@ -659,7 +679,7 @@ private fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> 
 fun ExpenseShareType(
     selectedType: ShareType?,
     onTypeSelected: (ShareType) -> Unit,
-    shareTypeError: String?
+    shareTypeError: String?,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
