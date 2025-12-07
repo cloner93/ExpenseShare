@@ -18,7 +18,7 @@ interface TransactionsRepository {
         shareDetails: ShareDetailsRequest?,
     ): Flow<Result<Transaction>>
 
-    suspend fun approveTransaction(groupId: String, transactionId: String): Flow<Result<Unit>>
-    suspend fun rejectTransaction(groupId: String, transactionId: String): Flow<Result<Unit>>
-    suspend fun deleteTransaction(groupId: String, transactionId: String): Flow<Result<Unit>>
+    suspend fun approveTransaction(groupId: String, transactionId: String): Flow<Result<String>>
+    suspend fun rejectTransaction(groupId: String, transactionId: String): Flow<Result<String>>
+    suspend fun deleteTransaction(groupId: String, transactionId: String): Flow<Result<String>>
 }

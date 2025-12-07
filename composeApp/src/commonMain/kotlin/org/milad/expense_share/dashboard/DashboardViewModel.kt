@@ -15,7 +15,10 @@ import model.User
 import usecase.friends.GetFriendsUseCase
 import usecase.groups.CreateGroupUseCase
 import usecase.groups.GetGroupsUseCase
+import usecase.transactions.ApproveTransactionUseCase
 import usecase.transactions.CreateTransactionUseCase
+import usecase.transactions.DeleteTransactionUseCase
+import usecase.transactions.RejectTransactionUseCase
 import usecase.user.GetUserInfoUseCase
 
 class DashboardViewModel(
@@ -24,6 +27,11 @@ class DashboardViewModel(
     private val createGroupUseCase: CreateGroupUseCase,
     private val getFriendsUseCase: GetFriendsUseCase,
     private val createTransactionUseCase: CreateTransactionUseCase,
+
+//    private val getTransactionsUseCase: GetTransactionsUseCase,
+    private val approveTransactionUseCase: ApproveTransactionUseCase,
+    private val deleteTransactionUseCase: DeleteTransactionUseCase,
+    private val rejectTransactionUseCase: RejectTransactionUseCase,
 ) : BaseViewModel<DashboardAction, DashboardState, DashboardEvent>(
     initialState = DashboardState()
 ) {

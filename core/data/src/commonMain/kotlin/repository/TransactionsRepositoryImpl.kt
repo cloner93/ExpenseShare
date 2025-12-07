@@ -36,20 +36,20 @@ class TransactionsRepositoryImpl(private val networkManager: NetworkManager) :
 
     override suspend fun approveTransaction(
         groupId: String, transactionId: String
-    ): Flow<Result<Unit>> {
+    ): Flow<Result<String>> {
         return networkManager.post("/groups/$groupId/transactions/$transactionId/approve", Unit)
     }
 
     override suspend fun rejectTransaction(
         groupId: String, transactionId: String
-    ): Flow<Result<Unit>> {
+    ): Flow<Result<String>> {
         return networkManager.post("/groups/$groupId/transactions/$transactionId/reject", Unit)
     }
 
     override suspend fun deleteTransaction(
         groupId: String,
         transactionId: String
-    ): Flow<Result<Unit>> {
+    ): Flow<Result<String>> {
         return networkManager.delete("/groups/$groupId/transactions/$transactionId")
     }
 }
