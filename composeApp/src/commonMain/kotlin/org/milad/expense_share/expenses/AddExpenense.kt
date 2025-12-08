@@ -113,10 +113,10 @@ fun AddExpense(
     var payers by remember { mutableStateOf<List<User>>(emptyList()) }
     var members by remember { mutableStateOf<List<User>>(emptyList()) }
 
-    val payerAmounts = remember { mutableStateMapOf<Int, String>() }
-    var finalPayerMap by remember { mutableStateOf<Map<Int, Double>>(emptyMap()) }
+    val payerAmounts = remember { mutableStateMapOf<User, String>() }
+    var finalPayerMap by remember { mutableStateOf<Map<User, Double>>(emptyMap()) }
 
-    var memberAmounts by remember { mutableStateOf<Map<Int, Double>>(emptyMap()) }
+    var memberAmounts by remember { mutableStateOf<Map<User, Double>>(emptyMap()) }
 
     var nameError by remember { mutableStateOf<String?>(null) }
     var priceError by remember { mutableStateOf<String?>(null) }
@@ -131,20 +131,20 @@ fun AddExpense(
     }
 
     val percents = remember(members) {
-        mutableStateMapOf<Int, Float>().apply {
-            members.forEach { put(it.id, 0f) }
+        mutableStateMapOf<User, Float>().apply {
+            members.forEach { put(it, 0f) }
         }
     }
 
     val weights = remember(members) {
-        mutableStateMapOf<Int, Float>().apply {
-            members.forEach { put(it.id, 1f) }
+        mutableStateMapOf<User, Float>().apply {
+            members.forEach { put(it, 1f) }
         }
     }
 
     val amounts = remember(members) {
-        mutableStateMapOf<Int, Float>().apply {
-            members.forEach { put(it.id, 0f) }
+        mutableStateMapOf<User, Float>().apply {
+            members.forEach { put(it, 0f) }
         }
     }
 
@@ -237,7 +237,7 @@ fun AddExpense(
                 onPayersClick = { showPayerBottomSheet = true },
                 onRemovePayer = { user ->
                     payers = payers - user
-                    payerAmounts.remove(user.id)
+                    payerAmounts.remove(user)
                 },
                 onAmountsUpdated = { updated ->
                     finalPayerMap = updated
@@ -420,17 +420,17 @@ fun ConfirmButtonP() {
 @Composable
 fun PayerOfExpense(
     payers: List<User>,
-    payerAmounts: SnapshotStateMap<Int, String>,
+    payerAmounts: SnapshotStateMap<User, String>,
     onPayersClick: () -> Unit,
     onRemovePayer: (User) -> Unit,
-    onAmountsUpdated: (Map<Int, Double>) -> Unit,
+    onAmountsUpdated: (Map<User, Double>) -> Unit,
     payerError: String?,
 ) {
 
     LaunchedEffect(payerAmounts.values.toList()) {
         val result = payers.associate { user ->
-            val amount = payerAmounts[user.id]?.toDoubleOrNull() ?: 0.0
-            user.id to amount
+            val amount = payerAmounts[user]?.toDoubleOrNull() ?: 0.0
+            user to amount
         }
         onAmountsUpdated(result)
     }
@@ -444,7 +444,7 @@ fun PayerOfExpense(
         )
 
         payers.forEachIndexed { index, user ->
-            val paidValue = payerAmounts[user.id] ?: ""
+            val paidValue = payerAmounts[user] ?: ""
 
             UserInfoRow(
                 user = user,
@@ -465,7 +465,7 @@ fun PayerOfExpense(
                             value = paidValue,
                             singleLine = true,
                             onValueChange = { input ->
-                                payerAmounts[user.id] = input
+                                payerAmounts[user] = input
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             shape = RoundedCornerShape(8.dp),
@@ -730,14 +730,14 @@ fun EqualSplitSection(
     amount: Double,
     users: List<User>,
     onRemoveClick: (User) -> Unit,
-    onAmountsUpdated: (Map<Int, Double>) -> Unit,
+    onAmountsUpdated: (Map<User, Double>) -> Unit,
 ) {
     val eachUser = remember(users.size, amount) {
         if (amount > 0) amount / users.size else 0.0
     }
 
     LaunchedEffect(eachUser, users.size) {
-        val result = users.associate { user -> user.id to eachUser }
+        val result = users.associate { user -> user to eachUser }
         onAmountsUpdated(result)
     }
 
@@ -769,16 +769,16 @@ fun EqualSplitSection(
 fun PercentSplitSection(
     users: List<User>,
     amount: Double,
-    percents: SnapshotStateMap<Int, Float>,
+    percents: SnapshotStateMap<User, Float>,
     onRemoveClick: (User) -> Unit,
-    onAmountsUpdated: (Map<Int, Double>) -> Unit,
+    onAmountsUpdated: (Map<User, Double>) -> Unit,
 ) {
 
     LaunchedEffect(percents.values.toList(), amount) {
         val result = users.associate { user ->
-            val percent = percents[user.id] ?: 0f
+            val percent = percents[user] ?: 0f
             val userAmount = if (amount > 0) amount * (percent / 100f) else 0.0
-            user.id to userAmount
+            user to userAmount
         }
         onAmountsUpdated(result)
     }
@@ -788,7 +788,7 @@ fun PercentSplitSection(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         users.forEachIndexed { index, user ->
-            val percent = percents[user.id] ?: 0f
+            val percent = percents[user] ?: 0f
 
             val userAmount = if (amount > 0)
                 amount * (percent / 100f)
@@ -829,7 +829,7 @@ fun PercentSplitSection(
                         enabled = amount != 0.0,
                         value = percent,
                         onValueChange = { newValue ->
-                            percents[user.id] = newValue
+                            percents[user] = newValue
                         },
                         valueRange = 0f..100f,
                         modifier = Modifier.padding(top = 4.dp)
@@ -845,9 +845,9 @@ fun PercentSplitSection(
 fun WeightSplitSection(
     users: List<User>,
     amount: Double,
-    weights: SnapshotStateMap<Int, Float>,
+    weights: SnapshotStateMap<User, Float>,
     onRemoveClick: (User) -> Unit,
-    onAmountsUpdated: (Map<Int, Double>) -> Unit,
+    onAmountsUpdated: (Map<User, Double>) -> Unit,
 ) {
     val totalWeight = remember(weights.values.toList()) {
         weights.values.sum().coerceAtLeast(1f)
@@ -855,17 +855,17 @@ fun WeightSplitSection(
 
     LaunchedEffect(weights.values.toList(), amount) {
         val result = users.associate { user ->
-            val w = weights[user.id] ?: 1f
+            val w = weights[user] ?: 1f
             val userAmount =
                 if (amount > 0) amount * (w / totalWeight) else 0.0
-            user.id to userAmount
+            user to userAmount
         }
         onAmountsUpdated(result)
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         users.forEachIndexed { index, user ->
-            val weight = weights[user.id] ?: 1f
+            val weight = weights[user] ?: 1f
 
             val userAmount = if (amount > 0)
                 amount * (weight / totalWeight)
@@ -898,7 +898,7 @@ fun WeightSplitSection(
                     Slider(
                         enabled = amount != 0.0,
                         value = weight,
-                        onValueChange = { weights[user.id] = it },
+                        onValueChange = { weights[user] = it },
                         valueRange = 1f..3f,
                         steps = 1,
                         modifier = Modifier.padding(top = 4.dp)
@@ -913,24 +913,24 @@ fun WeightSplitSection(
 fun ManualSplitSection(
     users: List<User>,
     amount: Double,
-    amounts: SnapshotStateMap<Int, Float>,
+    amounts: SnapshotStateMap<User, Float>,
     onRemoveClick: (User) -> Unit,
-    onAmountsUpdated: (Map<Int, Double>) -> Unit,
+    onAmountsUpdated: (Map<User, Double>) -> Unit,
 ) {
     val defaultShare = remember(amount, users) {
         (amount / users.size).toFloat()
     }
 
     users.forEach { user ->
-        if (!amounts.containsKey(user.id)) {
-            amounts[user.id] = defaultShare
+        if (!amounts.containsKey(user)) {
+            amounts[user] = defaultShare
         }
     }
 
     LaunchedEffect(amounts.values.toList(), amount) {
         val result = users.associate { user ->
-            val value = (amounts[user.id] ?: 0f).toDouble()
-            user.id to value
+            val value = (amounts[user] ?: 0f).toDouble()
+            user to value
         }
         onAmountsUpdated(result)
     }
@@ -938,7 +938,7 @@ fun ManualSplitSection(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         users.forEachIndexed { index, user ->
 
-            val currentValue by remember { derivedStateOf { amounts[user.id] ?: 0f } }
+            val currentValue by remember { derivedStateOf { amounts[user] ?: 0f } }
 
             UserInfoRow(
                 user = user,
@@ -959,7 +959,7 @@ fun ManualSplitSection(
                             value = if (currentValue != 0f) currentValue.toString() else "",
                             singleLine = true,
                             onValueChange = { input ->
-                                amounts[user.id] = input.toFloatOrNull() ?: 0f
+                                amounts[user] = input.toFloatOrNull() ?: 0f
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             shape = RoundedCornerShape(8.dp),

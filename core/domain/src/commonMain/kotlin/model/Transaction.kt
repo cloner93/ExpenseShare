@@ -27,7 +27,7 @@ enum class TransactionStatus {
 
 @Serializable
 data class PayerDto(
-    val userId: Int,
+    val user: User,
     val amountPaid: Double,
 )
 
@@ -39,6 +39,6 @@ data class ShareDetailsRequest(
 
 @Serializable
 data class MemberShareDto(
-    val userId: Int,
+    val user: User,
     val share: Double? = null,
 )
