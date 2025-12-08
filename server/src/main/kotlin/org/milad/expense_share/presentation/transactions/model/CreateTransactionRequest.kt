@@ -1,6 +1,7 @@
 package org.milad.expense_share.presentation.transactions.model
 
 import kotlinx.serialization.Serializable
+import org.milad.expense_share.data.models.User
 
 @Serializable
 data class CreateTransactionRequest(
@@ -13,7 +14,7 @@ data class CreateTransactionRequest(
 
 @Serializable
 data class PayerRequest(
-    val userId: Int,
+    val user: User,
     val amountPaid: Double
 )
 
@@ -25,7 +26,7 @@ data class ShareDetailsRequest(
 
 @Serializable
 data class ShareMemberRequest(
-    val userId: Int,
+    val user: User,
     val share: Double
 )
 

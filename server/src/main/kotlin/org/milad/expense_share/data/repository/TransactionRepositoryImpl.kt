@@ -4,6 +4,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.selectAll
@@ -14,8 +15,10 @@ import org.milad.expense_share.data.db.table.TransactionPayers
 import org.milad.expense_share.data.db.table.TransactionShareMembers
 import org.milad.expense_share.data.db.table.TransactionShares
 import org.milad.expense_share.data.db.table.Transactions
+import org.milad.expense_share.data.db.table.Users
 import org.milad.expense_share.data.models.Transaction
 import org.milad.expense_share.data.models.TransactionStatus
+import org.milad.expense_share.data.models.User
 import org.milad.expense_share.domain.repository.TransactionRepository
 import org.milad.expense_share.presentation.transactions.model.PayerRequest
 import org.milad.expense_share.presentation.transactions.model.ShareDetailsRequest
@@ -50,7 +53,7 @@ class TransactionRepositoryImpl : TransactionRepository {
             throw IllegalArgumentException("sum of payers (${sumPayers}) does not equal total amount ($amount)")
         }
 
-        val memberIdsFromReq = shareDetails.members.map { it.userId }.distinct()
+        val memberIdsFromReq = shareDetails.members.map { it.user }.distinct()
 
         val finalMemberIds =
             memberIdsFromReq.ifEmpty { throw IllegalArgumentException("members required for ${shareDetails.type} split") }
@@ -69,7 +72,7 @@ class TransactionRepositoryImpl : TransactionRepository {
 
         TransactionPayers.batchInsert(payers) { payer ->
             this[TransactionPayers.transactionId] = txnId
-            this[TransactionPayers.userId] = payer.userId
+            this[TransactionPayers.userId] = payer.user.id
             this[TransactionPayers.amountPaid] = payer.amountPaid
         }
 
@@ -78,7 +81,7 @@ class TransactionRepositoryImpl : TransactionRepository {
             it[TransactionShares.type] = shareDetails.type.name
         } get TransactionShares.id
 
-        val shareMembersToInsert: List<Pair<Int, Double>> = when (shareDetails.type) {
+        val shareMembersToInsert: List<Pair<User, Double>> = when (shareDetails.type) {
             ShareType.Equal -> {
                 val n = finalMemberIds.size
                 val per = amount / n
@@ -91,14 +94,14 @@ class TransactionRepositoryImpl : TransactionRepository {
                 if (abs(sumPercent - 100.0) > 1e-6) {
                     throw IllegalArgumentException("percent shares must sum to 100, sum=$sumPercent")
                 }
-                members.map { it.userId to (amount * it.share / 100.0) }
+                members.map { it.user to (amount * it.share / 100.0) }
             }
 
             ShareType.Weight -> {
                 val members = shareDetails.members
                 val totalWeight = members.sumOf { it.share }
                 if (totalWeight <= 0.0) throw IllegalArgumentException("total weight must be > 0")
-                members.map { it.userId to (amount * (it.share / totalWeight)) }
+                members.map { it.user to (amount * (it.share / totalWeight)) }
             }
 
             ShareType.Manual -> {
@@ -107,14 +110,14 @@ class TransactionRepositoryImpl : TransactionRepository {
                 if (abs(sumShares - amount) > 1e-6) {
                     throw IllegalArgumentException("manual shares must sum to amount; sum=$sumShares amount=$amount")
                 }
-                members.map { it.userId to it.share }
+                members.map { it.user to it.share }
             }
         }
 
         TransactionShareMembers.batchInsert(shareMembersToInsert) { pair ->
-            val (uid, shareVal) = pair
+            val (user, shareVal) = pair
             this[TransactionShareMembers.shareId] = shareId
-            this[TransactionShareMembers.userId] = uid
+            this[TransactionShareMembers.userId] = user.id
             this[TransactionShareMembers.share] = shareVal
         }
 
@@ -134,67 +137,6 @@ class TransactionRepositoryImpl : TransactionRepository {
         )
     }
 
-//    override fun getTransactions(userId: Int, groupId: Int): List<Transaction> = transaction {
-//        val group = Groups
-//            .selectAll().where { Groups.id eq groupId }
-//            .singleOrNull() ?: return@transaction emptyList()
-//
-//        val ownerId = group[Groups.ownerId]
-//
-//        val baseQuery = if (ownerId == userId) {
-//            Transactions.selectAll().where { Transactions.groupId eq groupId }
-//        } else {
-//            Transactions.selectAll().where {
-//                (Transactions.groupId eq groupId) and
-//                        (
-//                                (Transactions.status eq TransactionStatus.APPROVED) or
-//                                        ((Transactions.status eq TransactionStatus.PENDING) and (Transactions.createdBy eq userId))
-//                                )
-//            }
-//        }
-//
-//        val txList = baseQuery.map { it.toTransaction() }
-//
-//        txList.map { tx ->
-//
-//            val payers = TransactionPayers
-//                .selectAll().where { TransactionPayers.transactionId eq tx.id }
-//                .map {
-//                    PayerRequest(
-//                        userId = it[TransactionPayers.userId],
-//                        amountPaid = it[TransactionPayers.amountPaid]
-//                    )
-//                }
-//
-//            val split = TransactionShares
-//                .selectAll().where { TransactionShares.transactionId eq tx.id }
-//                .singleOrNull()
-//
-//            val shareDetails =
-//                if (split == null) null
-//                else {
-//                    val members = TransactionShareMembers
-//                        .selectAll().where { TransactionShareMembers.shareId eq tx.id }
-//                        .map {
-//                            ShareMemberRequest(
-//                                userId = it[TransactionShareMembers.userId],
-//                                share = it[TransactionShareMembers.share]
-//                            )
-//                        }
-//
-//                    ShareDetailsRequest(
-//                        type = split[TransactionShares.type],
-//                        members = members
-//                    )
-//                }
-//
-//            tx.copy(
-//                payers = payers,
-//                shareDetails = shareDetails
-//            )
-//        }
-//    }
-
     override fun getTransactions(userId: Int, groupId: Int): List<Transaction> = transaction {
         val group = Groups
             .selectAll()
@@ -203,7 +145,6 @@ class TransactionRepositoryImpl : TransactionRepository {
 
         val ownerId = group[Groups.ownerId]
 
-        // --- تعیین سطح دسترسی کاربر ---
         val baseQuery = if (ownerId == userId) {
             Transactions
                 .selectAll()
@@ -221,21 +162,24 @@ class TransactionRepositoryImpl : TransactionRepository {
                 }
         }
 
-        // --- ساختن مدل کامل Transaction ---
         baseQuery.map { row ->
             val transactionId = row[Transactions.id]
 
-            // ----- payers -----
             val payers = TransactionPayers
+                .innerJoin(Users, { TransactionPayers.userId }, { Users.id })
                 .selectAll().where { TransactionPayers.transactionId eq transactionId }
                 .map {
+                    val user = User(
+                        id = it[Users.id],
+                        username = it[Users.username],
+                        phone = it[Users.phone]
+                    )
                     PayerRequest(
-                        userId = it[TransactionPayers.userId],
+                        user = user,
                         amountPaid = it[TransactionPayers.amountPaid]
                     )
                 }
 
-            // ----- Share Type -----
             val shareMain = TransactionShares
                 .selectAll().where { TransactionShares.transactionId eq transactionId }
                 .singleOrNull()
@@ -243,13 +187,18 @@ class TransactionRepositoryImpl : TransactionRepository {
 
             val shareDetails = if (shareMain != null) {
 
-                // members
                 val members = TransactionShareMembers
+                    .innerJoin(Users, { TransactionShareMembers.userId }, { Users.id })
                     .selectAll()
                     .where { TransactionShareMembers.shareId eq shareMain[TransactionShares.id] }
                     .map {
+                        val user = User(
+                            id = it[Users.id],
+                            username = it[Users.username],
+                            phone = it[Users.phone]
+                        )
                         ShareMemberRequest(
-                            userId = it[TransactionShareMembers.userId],
+                            user = user,
                             share = it[TransactionShareMembers.share]
                         )
                     }
@@ -260,7 +209,6 @@ class TransactionRepositoryImpl : TransactionRepository {
                     members = members
                 )
             } else {
-                // هیچ داده‌ای ثبت نشده، ولی مدل باید برگرده
                 ShareDetailsRequest(
                     type = ShareType.Equal,
                     members = emptyList()
@@ -324,7 +272,8 @@ class TransactionRepositoryImpl : TransactionRepository {
             Groups.selectAll().where { Groups.id eq tx[Transactions.groupId] }.singleOrNull()
                 ?: return@transaction false
 
-        if (group[Groups.ownerId] != managerId) return@transaction false
-        Transactions.deleteWhere { Transactions.id eq transactionId } > 0
+        if (group[Groups.ownerId] == managerId || tx[Transactions.createdBy] == managerId)
+            Transactions.deleteWhere { Transactions.id eq transactionId } > 0
+        else return@transaction false
     }
 }
