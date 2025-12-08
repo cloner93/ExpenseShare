@@ -1,5 +1,6 @@
 package org.milad.expense_share.data.db.table
 
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 import org.milad.expense_share.data.models.TransactionStatus
 
@@ -19,7 +20,7 @@ object Transactions : Table("transactions") {
 
 object TransactionPayers : Table("transaction_payers") {
     val id = integer("id").autoIncrement()
-    val transactionId = integer("transaction_id") references Transactions.id
+    val transactionId = integer("transaction_id").references(Transactions.id, onDelete = ReferenceOption.CASCADE)
     val userId = integer("user_id") references Users.id
     val amountPaid = double("amount_paid")
 
@@ -28,7 +29,7 @@ object TransactionPayers : Table("transaction_payers") {
 
 object TransactionShares : Table("transaction_shares") {
     val id = integer("id").autoIncrement()
-    val transactionId = integer("transaction_id") references Transactions.id
+    val transactionId = integer("transaction_id").references(Transactions.id, onDelete = ReferenceOption.CASCADE)
     val type = varchar("type", 20)
 
     override val primaryKey = PrimaryKey(id)
@@ -36,7 +37,7 @@ object TransactionShares : Table("transaction_shares") {
 
 object TransactionShareMembers : Table("transaction_share_members") {
     val id = integer("id").autoIncrement()
-    val shareId = integer("share_id") references TransactionShares.id
+    val shareId = integer("share_id").references(TransactionShares.id, onDelete = ReferenceOption.CASCADE)
     val userId = integer("user_id") references Users.id
     val share = double("share")
 
