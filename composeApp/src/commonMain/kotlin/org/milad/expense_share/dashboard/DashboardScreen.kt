@@ -113,13 +113,13 @@ fun DashboardScreen(
                     viewModel.handle(DashboardAction.ApproveTransaction(it))
                 },
                 onRejectTransactionClick = {
-                    viewModel.handle(DashboardAction.ApproveTransaction(it))
+                    viewModel.handle(DashboardAction.RejectTransaction(it))
                 },
                 onEditTransactionClick = {
 
                 },
                 onDeleteTransactionClick = {
-//                    viewModel.handle(DashboardAction.ApproveTransaction(it))
+                    viewModel.handle(DashboardAction.DeleteTransaction(it))
                 },
             )
         },

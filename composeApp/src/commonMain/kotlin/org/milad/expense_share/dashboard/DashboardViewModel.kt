@@ -85,6 +85,13 @@ class DashboardViewModel(
                 )
             }
 
+            is DashboardAction.RejectTransaction -> {
+                rejectTransaction(
+                    viewState.value.selectedGroup?.id.toString(),
+                    action.trxId
+                )
+            }
+
             is DashboardAction.DeleteTransaction -> {
                 deleteTransaction(
                     viewState.value.selectedGroup?.id.toString(),
@@ -93,7 +100,6 @@ class DashboardViewModel(
             }
 
             is DashboardAction.EditTransaction -> {}
-            is DashboardAction.RejectTransaction -> {}
         }
     }
 
@@ -134,14 +140,24 @@ class DashboardViewModel(
     private fun approveTransaction(groupId: String, transactionId: String) {
         viewModelScope.launch {
             setState { it.copy(transactionLoading = true, transactionError = null) }
-            delay(3000)
-            setState { it.copy(transactionLoading = false, transactionError = null) }
-            delay(3000)
-            setState { it.copy(transactionLoading = true, transactionError = null) }
-            delay(3000)
-            setState { it.copy(transactionLoading = false, transactionError = null) }
 
-            /*approveTransactionUseCase(groupId, transactionId).collect { result ->
+            approveTransactionUseCase(groupId, transactionId).collect { result ->
+                result.onSuccess {
+                    setState { it.copy(transactionLoading = false, transactionError = null) }
+//                  update groups
+                    loadData()
+                }.onFailure { e ->
+                    setState { it.copy(transactionError = e, transactionLoading = false) }
+                }
+            }
+        }
+    }
+
+    private fun rejectTransaction(groupId: String, transactionId: String) {
+        viewModelScope.launch {
+            setState { it.copy(transactionLoading = true, transactionError = null) }
+
+            rejectTransactionUseCase(groupId, transactionId).collect { result ->
                 result.onSuccess {
                     setState { it.copy(transactionLoading = false, transactionError = null) }
 //                     update groups
@@ -150,7 +166,7 @@ class DashboardViewModel(
                 }.onFailure { e ->
                     setState { it.copy(transactionError = e, transactionLoading = false) }
                 }
-            }*/
+            }
         }
     }
 
@@ -158,7 +174,7 @@ class DashboardViewModel(
         viewModelScope.launch {
             setState { it.copy(transactionLoading = true, transactionError = null) }
 
-/*            deleteTransactionUseCase(groupId, transactionId).collect { result ->
+            deleteTransactionUseCase(groupId, transactionId).collect { result ->
                 result.onSuccess {
                     setState { it.copy(transactionLoading = false, transactionError = null) }
 //                     update groups
@@ -167,7 +183,7 @@ class DashboardViewModel(
                 }.onFailure { e ->
                     setState { it.copy(transactionError = e, transactionLoading = false) }
                 }
-            }*/
+            }
         }
     }
 
