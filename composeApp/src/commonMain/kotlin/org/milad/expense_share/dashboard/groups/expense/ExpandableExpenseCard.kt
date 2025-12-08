@@ -125,10 +125,10 @@ fun ExpandableExpenseCard(
                     )
                     currentUser?.let { (currentUserId, _, _) ->
                         val myShare =
-                            transaction.shareDetails.members.find { it.userId == currentUserId }?.share
+                            transaction.shareDetails.members.find { it.user.id == currentUserId }?.share
                                 ?: 0.0
                         val iPaid =
-                            transaction.payers.find { it.userId == currentUserId }?.amountPaid
+                            transaction.payers.find { it.user.id == currentUserId }?.amountPaid
                                 ?: 0.0
                         val net = iPaid - myShare
 
@@ -174,12 +174,14 @@ fun ExpandableExpenseCard(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                DetailRow(label = "Description", value = transaction.description)
-                Spacer(modifier = Modifier.height(16.dp))
+                if (transaction.description.isNotEmpty()) {
+                    SectionRow(title = "Description", value = transaction.description)
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
                 SectionRow(title = "Payer(s) & Amounts", value = "Remains")
                 transaction.payers.forEach { payer ->
-                    val name = if (payer.userId == currentUserId) "me" else "User ${payer.userId}"
+                    val name = if (payer.user.id == currentUserId) "me" else payer.user.username
                     DetailRow(
                         label = "$name:",
                         value = "+$${payer.amountPaid.toInt()}",
@@ -192,77 +194,79 @@ fun ExpandableExpenseCard(
                 SectionRow(title = "Split Breakdown & Debt", value = "")
                 transaction.shareDetails.members.forEach { member ->
                     val name =
-                        if (member.userId == currentUserId) "me:" else "User ${member.userId}:"
+                        if (member.user.id == currentUserId) "me" else member.user.username
                     val share = (member.share ?: 0.0).toInt()
-                    DetailRow(label = name, value = "$$share")
+                    DetailRow(label = name, value = "$$share",isBold = true)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 DetailRow(label = "Methodology", value = transaction.shareDetails.type)
 
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Spacer(modifier = Modifier.height(16.dp))
+                if (isCreator || isUserAdminOfGroup) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        if (showApprovalButtons) {
-                            AnimatedLoadingButton(
-                                text = "Approve",
-                                enabled = currentTrxActionLoading != TrxActions.Approve && isLoading,
-                                loading = currentTrxActionLoading == TrxActions.Approve && isLoading,
-                                onClick = { onApproveTransactionClick(transaction) },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (showApprovalButtons) {
+                                AnimatedLoadingButton(
+                                    text = "Approve",
+                                    enabled = currentTrxActionLoading != TrxActions.Approve && isLoading,
+                                    loading = currentTrxActionLoading == TrxActions.Approve && isLoading,
+                                    onClick = { onApproveTransactionClick(transaction) },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                    )
                                 )
-                            )
-                            AnimatedLoadingButton(
-                                text = "Reject",
-                                enabled = currentTrxActionLoading != TrxActions.Reject && isLoading,
-                                loading = currentTrxActionLoading == TrxActions.Reject && isLoading,
-                                onClick = { onRejectTransactionClick(transaction) },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                AnimatedLoadingButton(
+                                    text = "Reject",
+                                    enabled = currentTrxActionLoading != TrxActions.Reject && isLoading,
+                                    loading = currentTrxActionLoading == TrxActions.Reject && isLoading,
+                                    onClick = { onRejectTransactionClick(transaction) },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                    )
                                 )
-                            )
 
-                        } else {
-                            OutlinedButton(
-                                onClick = { onEditTransactionClick(transaction) },
-                            ) {
-                                Text("Edit")
+                            } else {
+                                OutlinedButton(
+                                    onClick = { onEditTransactionClick(transaction) },
+                                ) {
+                                    Text("Edit")
+                                }
+
+                                AnimatedLoadingButton(
+                                    text = "Delete",
+                                    enabled = currentTrxActionLoading != TrxActions.Delete && isLoading,
+                                    loading = currentTrxActionLoading == TrxActions.Delete && isLoading,
+                                    onClick = { onDeleteTransactionClick(transaction) },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                )
                             }
-
-                            AnimatedLoadingButton(
-                                text = "Delete",
-                                enabled = currentTrxActionLoading != TrxActions.Delete && isLoading,
-                                loading = currentTrxActionLoading == TrxActions.Delete && isLoading,
-                                onClick = { onDeleteTransactionClick(transaction) },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            )
                         }
+
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Options",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.clickable {
+                                onMoreMenuTransactionClick(transaction)
+                            }
+                        )
                     }
-
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Options",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.clickable {
-                            onMoreMenuTransactionClick(transaction)
-                        }
-                    )
                 }
             }
         }
@@ -317,58 +321,102 @@ fun DetailRow(label: String, value: String, isBold: Boolean = false) {
     }
 }
 
-@Preview
-@Composable
-fun ExpandableExpenseCardPreview() {
-    val t = Transaction(
-        id = 1,
-        groupId = 1,
-        title = "Hotel Booking",
-        amount = 500.0,
-        description = "2 nights stay",
-        createdBy = 1,
-        status = TransactionStatus.APPROVED,
-        approvedBy = 1,
-        createdAt = 0,
-        transactionDate = 0,
-        payers = listOf(
-            PayerDto(
-                userId = 0,
-                amountPaid = 300.0,
-            ),
-            PayerDto(
-                userId = 1,
-                amountPaid = 200.0,
-            )
+
+val t = Transaction(
+    id = 1,
+    groupId = 1,
+    title = "Hotel Booking",
+    amount = 500.0,
+    description = "2 nights stay",
+    createdBy = 1,
+    status = TransactionStatus.APPROVED,
+    approvedBy = 1,
+    createdAt = 0,
+    transactionDate = 0,
+    payers = listOf(
+        PayerDto(
+            user= User(0, "milad", "09137511005"),
+            amountPaid = 300.0,
         ),
-        shareDetails = ShareDetailsRequest(
-            type = "Equal",
-            members = listOf(
-                MemberShareDto(
-                    userId = 0,
-                    share = 250.0,
-                ),
-                MemberShareDto(
-                    userId = 1,
-                    share = 250.0,
-                )
+        PayerDto(
+            user= User(1, "mahdi", "09137511001"),
+            amountPaid = 200.0,
+        )
+    ),
+    shareDetails = ShareDetailsRequest(
+        type = "Equal",
+        members = listOf(
+            MemberShareDto(
+                user= User(0, "milad", "09137511005"),
+                share = 250.0,
+            ),
+            MemberShareDto(
+                user = User(1, "mahdi", "09137511001"),
+                share = 250.0,
             )
         )
     )
+)
+
+@Preview
+@Composable
+fun ExpandableExpenseCardPreview() {
 
     AppTheme {
         Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)) {
-            /* ExpandableExpenseCard(
-                 transaction = t,
-                 currentUser = User(0, "milad", "09137511005"), ,
+            ExpandableExpenseCard(
+                transaction = t,
+                currentUser = User(0, "milad", "09137511005")
 
-             )
-             ExpandableExpenseCard(
-                 transaction = t.copy(status = TransactionStatus.PENDING),
-                 currentUser = User(0, "milad", "09137511005"),
-                 isUserAdminOfGroup = true,
-                 isExpanded = true, ,
-             )*/
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ExpandableExpenseCardPreview2() {
+    AppTheme {
+        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)) {
+
+            ExpandableExpenseCard(
+                transaction = t.copy(status = TransactionStatus.PENDING),
+                currentUser = User(0, "milad", "09137511005"),
+                isUserAdminOfGroup = false,
+                isExpanded = true
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ExpandableExpenseCardPreview3() {
+    AppTheme {
+        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)) {
+
+            ExpandableExpenseCard(
+                transaction = t.copy(status = TransactionStatus.PENDING),
+                currentUser = User(0, "milad", "09137511005"),
+                isUserAdminOfGroup = true,
+                isExpanded = true
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ExpandableExpenseCardPreview4() {
+    AppTheme {
+        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)) {
+
+            ExpandableExpenseCard(
+                transaction = t.copy(status = TransactionStatus.APPROVED),
+                currentUser = User(0, "milad", "09137511005"),
+                isUserAdminOfGroup = true,
+                isExpanded = true
+            )
         }
     }
 }
