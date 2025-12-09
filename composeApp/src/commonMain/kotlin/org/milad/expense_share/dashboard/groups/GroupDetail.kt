@@ -1,6 +1,14 @@
 package org.milad.expense_share.dashboard.groups
 
 import EmptySelectionPlaceholder
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Person
@@ -38,6 +47,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.pmb.common.ui.emptyState.EmptyListState
@@ -46,7 +58,6 @@ import expenseshare.composeapp.generated.resources.paris
 import model.Group
 import model.User
 import org.jetbrains.compose.resources.painterResource
-import org.milad.expense_share.chat.ChatScreen
 import org.milad.expense_share.dashboard.AppExtendedButton
 import org.milad.expense_share.dashboard.groups.expense.ExpenseList
 
@@ -93,11 +104,49 @@ fun GroupDetailScreen(
             },
             topBar = {
                 TopAppBar(
-                    title = {
-                        Text(
-                            selectedGroup.name,
-                            style = MaterialTheme.typography.titleLarge
+                    title = { Text(selectedGroup.name) },
+                    actions = {
+                        val infiniteTransition =
+                            rememberInfiniteTransition(label = "infinite animation")
+
+                        val scale by infiniteTransition.animateFloat(
+                            initialValue = 0.8f,
+                            targetValue = 1.2f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(800, easing = FastOutSlowInEasing),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "scale animation"
                         )
+                        val rotation by infiniteTransition.animateFloat(
+                            initialValue = 0f,
+                            targetValue = 360f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(3000, easing = LinearEasing),
+                                repeatMode = RepeatMode.Restart
+                            ),
+                            label = "rotation animation"
+                        )
+                        val color by infiniteTransition.animateColor(
+                            initialValue = MaterialTheme.colorScheme.primary,
+                            targetValue = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                .compositeOver(MaterialTheme.colorScheme.onSurface),
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1000, easing = LinearEasing),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "color animation"
+                        )
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.Filled.AutoAwesome,
+                                contentDescription = "AI Assistant",
+                                tint = color,
+                                modifier = Modifier
+                                    .scale(scale)
+                                    .rotate(rotation)
+                            )
+                        }
                     },
                     navigationIcon = {
                         if (isDetailVisible && !isListAndDetailVisible) {
@@ -106,7 +155,6 @@ fun GroupDetailScreen(
                             }
                         }
                     },
-                    actions = {}
                 )
             }
         ) { innerPadding ->
@@ -124,8 +172,8 @@ fun GroupDetailScreen(
                         selectedGroup.transactions,
                         currentUser,
                         selectedGroup,
-                        transactionLoading= transactionLoading,
-                        transactionError= transactionError,
+                        transactionLoading = transactionLoading,
+                        transactionError = transactionError,
                         onApproveTransactionClick = { onApproveTransactionClick(it) },
                         onRejectTransactionClick = { onRejectTransactionClick(it) },
                         onEditTransactionClick = { onEditTransactionClick(it) },
@@ -133,12 +181,23 @@ fun GroupDetailScreen(
                     )
 
                     GroupTab.Members -> MemberList(selectedGroup.members)
-                    GroupTab.Chat -> ChatScreen()
+                    GroupTab.Feed -> FeedScreen()
                 }
             }
         }
     else
         EmptySelectionPlaceholder()
+}
+
+@Composable
+fun FeedScreen() {
+    // TODO
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Feed")
+    }
 }
 
 @Composable
@@ -160,14 +219,14 @@ fun MemberList(members: List<User>) {
     }
 }
 
-enum class GroupTab { Expenses, Members, Chat }
+enum class GroupTab { Expenses, Members, Feed }
 
 @Composable
 fun GroupTabs(selectedTab: GroupTab, onTabSelected: (GroupTab) -> Unit) {
     val tabs = listOf(
         GroupTab.Expenses to Icons.Default.ReceiptLong,
         GroupTab.Members to Icons.Default.Person,
-        GroupTab.Chat to Icons.Default.Chat,
+        GroupTab.Feed to Icons.Default.Chat,
     )
 
     TabRow(

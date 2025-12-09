@@ -8,12 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFrom
 import androidx.compose.foundation.layout.size
@@ -25,13 +22,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.LastBaseline
 import androidx.compose.ui.semantics.semantics
@@ -70,7 +66,7 @@ fun ChatScreen(
 
     val scrollState = rememberLazyListState()
     val topBarState = rememberTopAppBarState()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topBarState)
+    var text by remember { mutableStateOf("") }
 
 
     var background by remember {
@@ -81,57 +77,84 @@ fun ChatScreen(
         mutableStateOf(Color.Transparent)
     }
 
+    LaunchedEffect(Unit) {
+        scrollState.scrollToItem(0)
+    }
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(color = background)
+            .border(width = 2.dp, color = borderStroke),
+    ) {
+        Messages(
+            messages = messages,
+            navigateToProfile = navigateToProfile,
+            modifier = Modifier.weight(1f),
+            scrollState = scrollState,
+        )
+        ChatInputBar(
+            value = text,
+            onValueChange = { text = it },
+            onSend = {
+                if (text.isNotBlank()) {
+                    text = ""
+                }
+            }
+        )
+    }
+}
 
-    Scaffold(
-        contentWindowInsets = ScaffoldDefaults
-            .contentWindowInsets
-            .exclude(WindowInsets.navigationBars)
-            .exclude(WindowInsets.ime),
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    ) { paddingValues ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(color = background)
-                .border(width = 2.dp, color = borderStroke),
-            /* .dragAndDropTarget(
-                 shouldStartDragAndDrop = { event ->
-                     event
-                         .mimeTypes()
-                         .contains(
-                             ClipDescription.MIMETYPE_TEXT_PLAIN,
-                         )
-                 },
-                 target = dragAndDropCallback,
-             )*/
+@Composable
+fun ChatInputBar(
+    value: String,
+    onValueChange: (String) -> Unit,
+    onSend: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Surface(
+            tonalElevation = 2.dp,
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier
+                .weight(1f)
         ) {
-            Messages(
-                messages = messages,
-                navigateToProfile = navigateToProfile,
-                modifier = Modifier.weight(1f),
-                scrollState = scrollState,
-            )
-            /*UserInput(
-                onMessageSent = { content ->
-                    uiState.addMessage(
-                        Message(authorMe, content, timeNow),
-                    )
-                },
-                resetScroll = {
-                    scope.launch {
-                        scrollState.scrollToItem(0)
-                    }
-                },
-                // let this element handle the padding so that the elevation is shown behind the
-                // navigation bar
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                placeholder = { Text("Message…") },
+                singleLine = true,
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                ),
                 modifier = Modifier
-                    .navigationBarsPadding()
-                    .imePadding(),
-            )*/
+                    .fillMaxWidth()
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable { onSend() },
+            contentAlignment = Alignment.Center
+        ) {
+            Text("➤", color = Color.White)
         }
     }
 }
+
 
 @Composable
 fun Messages(
@@ -248,30 +271,6 @@ fun Message(
                 shape = ChatBubbleShape,
                 modifier = Modifier
             ) {
-                /*val uriHandler = LocalUriHandler.current
-
-                val styledMessage = messageFormatter(
-                    text = message.content,
-                    primary = isUserMe,
-                )
-
-                ClickableText(
-                    text = styledMessage,
-                    style = MaterialTheme.typography.bodyLarge.copy(color = LocalContentColor.current),
-                    modifier = Modifier.padding(16.dp),
-                    onClick = {
-                        styledMessage
-                            .getStringAnnotations(start = it, end = it)
-                            .firstOrNull()
-                            ?.let { annotation ->
-                                when (annotation.tag) {
-                                    SymbolAnnotationType.LINK.name -> uriHandler.openUri(annotation.item)
-                                    SymbolAnnotationType.PERSON.name -> authorClicked(annotation.item)
-                                    else -> Unit
-                                }
-                            }
-                    },
-                )*/
                 Text(
                     modifier = Modifier.padding(16.dp),
                     text = msg.content,
