@@ -21,7 +21,7 @@ typealias ApiResult<T> = Flow<Result<T>>
 inline fun <reified T> safeNetworkCall(
     crossinline block: suspend () -> SuccessResponse<T>
 ): Flow<Result<T>> = flow {
-    delay(1500)
+//    delay(1500)
     val response = block()
     if (response.success) {
         emit(Result.success(response.data))

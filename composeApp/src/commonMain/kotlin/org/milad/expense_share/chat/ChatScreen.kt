@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.paddingFrom
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +20,10 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,30 +42,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.LastBaseline
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-@Preview
-@Composable
-fun MessagesPreview() {
-    ChatScreen(
-        messages = initialMessages,
-        navigateToProfile = {},
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     messages: List<Message> = initialMessages,
     navigateToProfile: (String) -> Unit = {},
+    onAddMessage: (Message)-> Unit ={},
     modifier: Modifier = Modifier,
 ) {
+
+    val authorMe = "me"
+    val timeNow = "8:30 PM"
 
     val scrollState = rememberLazyListState()
     val topBarState = rememberTopAppBarState()
@@ -97,6 +94,8 @@ fun ChatScreen(
             onValueChange = { text = it },
             onSend = {
                 if (text.isNotBlank()) {
+                    onAddMessage(Message(authorMe, text, timeNow))
+                    println(text)
                     text = ""
                 }
             }
@@ -114,7 +113,7 @@ fun ChatInputBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+//            .background(MaterialTheme.colorScheme.surface)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -146,11 +145,15 @@ fun ChatInputBar(
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
+                .background(MaterialTheme.colorScheme.primaryContainer)
                 .clickable { onSend() },
             contentAlignment = Alignment.Center
         ) {
-            Text("➤", color = Color.White)
+            Icon(
+                Icons.Default.Send,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                contentDescription = null
+            )
         }
     }
 }
@@ -227,120 +230,117 @@ fun Message(
 
     Row(
         modifier = spaceBetweenAuthors
+            .fillMaxWidth(),
+        horizontalArrangement = if (isUserMe) Arrangement.End else Arrangement.Start
     ) {
-        // img
-        if (isLastMessageByAuthor) Image(
+
+        if (!isUserMe) {
+            Avatar(isLastMessageByAuthor, borderColor)
+        }
+
+        Column(
             modifier = Modifier
-                .clickable(onClick = { })
+                .padding(horizontal = 8.dp)
+                .weight(1f, fill = false)
+        ) {
+            AuthorHeader(isUserMe,msg, isLastMessageByAuthor)
+            MessageBubble(isUserMe, msg, messageColor)
+        }
+
+        if (isUserMe) {
+            Avatar(isLastMessageByAuthor, borderColor)
+        }
+    }
+
+}
+
+@Composable
+private fun Avatar(show: Boolean, borderColor: Color) {
+    if (show) {
+        Image(
+            modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .size(42.dp)
                 .border(1.5.dp, borderColor, CircleShape)
-                .border(3.dp, MaterialTheme.colorScheme.surface, CircleShape)
-                .clip(CircleShape)
-                .align(Alignment.Top),
+                .clip(CircleShape),
             painter = painterResource(Res.drawable.paris),
-            contentScale = ContentScale.Crop,
-            contentDescription = null,
-        ) else
-            Spacer(modifier = Modifier.width(74.dp))
-        // column
-        Column(
-            modifier = Modifier
-                .padding(end = 16.dp)
-                .weight(1f)
+            contentDescription = null
+        )
+    } else {
+        Spacer(modifier = Modifier.width(74.dp))
+    }
+}
 
+@Composable
+private fun AuthorHeader(isUserMe: Boolean, msg: Message, isLastMessageByAuthor: Boolean) {
+    if (!isLastMessageByAuthor) {
+        Spacer(modifier = Modifier.height(8.dp))
+        return
+    }
+
+    Row (){
+       if (!isUserMe) {
+           Text(msg.author)
+           Spacer(modifier = Modifier.width(8.dp))
+       }
+        Text(msg.timestamp)
+    }
+}
+
+@Composable
+private fun MessageBubble(isUserMe: Boolean, msg: Message, messageColor: Color) {
+    val chatShape = if (isUserMe) ChatBubbleShapeMe else ChatBubbleShape
+    Surface(
+        color = messageColor,
+        shape = chatShape
+    ) {
+        Text(
+            modifier = Modifier.padding(16.dp),
+            text = msg.content,
+        )
+    }
+
+    msg.image?.let {
+        Spacer(modifier = Modifier.height(4.dp))
+        Surface(
+            color = messageColor,
+            shape = chatShape
         ) {
-            if (isLastMessageByAuthor) Row(modifier = Modifier.semantics(mergeDescendants = true) {}) {
-                Text(
-                    text = msg.author,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier
-                        .alignBy(LastBaseline)
-                        .paddingFrom(LastBaseline, after = 8.dp), // Space to 1st bubble
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = msg.timestamp,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.alignBy(LastBaseline),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else Spacer(modifier = Modifier.height(8.dp))
-            Surface(
-                color = messageColor,
-                shape = ChatBubbleShape,
-                modifier = Modifier
-            ) {
-                Text(
-                    modifier = Modifier.padding(16.dp),
-                    text = msg.content,
-                )
-            }
-            msg.image?.let {
-                Spacer(modifier = Modifier.height(4.dp))
-                Surface(
-                    color = messageColor,
-                    shape = ChatBubbleShape,
-                ) {
-                    Image(
-                        painter = it,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(160.dp),
-                        contentDescription = null,
-                    )
-                }
-            }
+            Image(
+                painter = it,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(160.dp),
+                contentDescription = null,
+            )
         }
     }
 }
 
-@Preview(showBackground = true)
+private val ChatBubbleShape = RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
+private val ChatBubbleShapeMe = RoundedCornerShape(20.dp, 4.dp, 20.dp, 20.dp)
+
+@Preview
 @Composable
-fun MessageP() {
-    Column {
-        Message(
-            msg = Message(
-                author = "me",
-                content = "Check it out!",
-                timestamp = "14:25",
-            ),
-            isUserMe = false,
-            isFirstMessageByAuthor = true,
-            isLastMessageByAuthor = true,
-        )
-        Message(
-            msg = Message(
-                author = "me",
-                content = "Check it out!",
-                timestamp = "14:25",
-                image = painterResource(Res.drawable.paris),
-            ),
-            isUserMe = false,
-            isFirstMessageByAuthor = false,
-            isLastMessageByAuthor = false,
-        )
-        Message(
-            msg = Message(
-                author = "me",
-                content = "Check it out ❤️!",
-                timestamp = "14:25",
-            ),
-            isUserMe = true,
-            isFirstMessageByAuthor = true,
-            isLastMessageByAuthor = true,
-        )
-        Message(
-            msg = Message(
-                author = "me",
-                content = "Check it out!",
-                timestamp = "14:25",
-                image = painterResource(Res.drawable.paris),
-            ),
-            isUserMe = true,
-            isFirstMessageByAuthor = true,
-            isLastMessageByAuthor = false,
-        )
+fun MessagesPreview() {
+    AppTheme {
+        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.background)) {
+            ChatScreen(
+                messages = initialMessages,
+                navigateToProfile = {},
+            )
+        }
     }
 }
 
-private val ChatBubbleShape = RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
+@Preview
+@Composable
+fun MessagesPreview2() {
+    AppTheme(true) {
+        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.background)) {
+            ChatScreen(
+                messages = initialMessages,
+                navigateToProfile = {},
+            )
+        }
+    }
+}
