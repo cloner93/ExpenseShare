@@ -1,5 +1,6 @@
 package org.milad.expense_share.data.inMemoryRepository
 
+import org.milad.expense_share.Amount
 import org.milad.expense_share.data.db.FakeDatabase.groups
 import org.milad.expense_share.data.db.FakeDatabase.transactions
 import org.milad.expense_share.data.models.Transaction
@@ -13,7 +14,7 @@ class InMemoryTransactionRepository : TransactionRepository {
         groupId: Int,
         userId: Int,
         title: String,
-        amount: Double,
+        amount: Amount,
         description: String,
         payers: List<PayerRequest>,
         shareDetails: ShareDetailsRequest

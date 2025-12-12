@@ -1,5 +1,6 @@
 package org.milad.expense_share.domain.repository
 
+import org.milad.expense_share.Amount
 import org.milad.expense_share.data.models.Transaction
 import org.milad.expense_share.presentation.transactions.model.PayerRequest
 import org.milad.expense_share.presentation.transactions.model.ShareDetailsRequest
@@ -9,7 +10,7 @@ interface TransactionRepository {
         groupId: Int,
         userId: Int,
         title: String,
-        amount: Double,
+        amount: Amount,
         description: String,
         payers: List<PayerRequest>,
         shareDetails: ShareDetailsRequest

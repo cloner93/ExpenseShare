@@ -71,6 +71,7 @@ import model.TransactionStatus
 import model.User
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.milad.expense_share.Amount
 import org.milad.expense_share.chat.ChatScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,8 +84,8 @@ fun Dashboard(
     isListAndDetailVisible: Boolean,
     isDetailVisible: Boolean,
     onAddGroupClick: () -> Unit,
-    totalOwe: Double,
-    totalOwed: Double,
+    totalOwe: Amount,
+    totalOwed: Amount,
     selectedGroup: Group?,
 ) {
     var showAiAssistant by mutableStateOf(false)
@@ -193,8 +194,8 @@ fun Dashboard(
 @Composable
 fun BalanceSummaryRow(
     modifier: Modifier = Modifier,
-    totalOwe: Double,
-    totalOwed: Double,
+    totalOwe: Amount,
+    totalOwed: Amount,
 ) {
     Row(
         modifier = modifier
@@ -224,7 +225,7 @@ fun BalanceSummaryRow(
 private fun BalanceCard(
     modifier: Modifier,
     title: String,
-    amount: Double,
+    amount: Amount,
     backgroundColor: Color,
     textColor: Color,
 ) {
@@ -244,7 +245,7 @@ private fun BalanceCard(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "$ ${amount}",
+            text = "$ ${amount.value}",
             style = MaterialTheme.typography.headlineSmall.copy(
                 color = textColor,
                 fontWeight = FontWeight.Bold
@@ -303,7 +304,7 @@ private fun GroupItem(
 ) {
     val balance =
         group.transactions.filter { it.status == TransactionStatus.APPROVED }
-            .sumOf { it.amount }
+            .sumOf { it.amount.value }
             .toInt()
 
     Card(

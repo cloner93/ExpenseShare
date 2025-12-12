@@ -44,6 +44,7 @@ import model.Transaction
 import model.TransactionStatus
 import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.milad.expense_share.Amount
 import org.milad.expense_share.expenses.AnimatedLoadingButton
 import kotlin.math.abs
 
@@ -119,17 +120,17 @@ fun ExpandableExpenseCard(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         modifier = Modifier.padding(horizontal = 8.dp),
-                        text = "$${transaction.amount.toInt()}",
+                        text = "$${transaction.amount}",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     currentUser?.let { (currentUserId, _, _) ->
                         val myShare =
                             transaction.shareDetails.members.find { it.user.id == currentUserId }?.share
-                                ?: 0.0
+                                ?: Amount(0)
                         val iPaid =
                             transaction.payers.find { it.user.id == currentUserId }?.amountPaid
-                                ?: 0.0
+                                ?: Amount(0)
                         val net = iPaid - myShare
 
                         if (net < 0) {
@@ -140,7 +141,7 @@ fun ExpandableExpenseCard(
                                     .padding(8.dp),
                             ) {
                                 Text(
-                                    text = "You owe $${abs(net.toInt())}",
+                                    text = "You owe $${net.abs()}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
@@ -153,7 +154,7 @@ fun ExpandableExpenseCard(
                                     .padding(8.dp),
                             ) {
                                 Text(
-                                    text = "You lent $${abs(net.toInt())}",
+                                    text = "You lent $${net.abs()}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer
                                 )
@@ -184,7 +185,7 @@ fun ExpandableExpenseCard(
                     val name = if (payer.user.id == currentUserId) "me" else payer.user.username
                     DetailRow(
                         label = "$name:",
-                        value = "+$${payer.amountPaid.toInt()}",
+                        value = "+$${payer.amountPaid}",
                         isBold = true
                     )
                 }
@@ -195,7 +196,7 @@ fun ExpandableExpenseCard(
                 transaction.shareDetails.members.forEach { member ->
                     val name =
                         if (member.user.id == currentUserId) "me" else member.user.username
-                    val share = (member.share ?: 0.0).toInt()
+                    val share = member.share
                     DetailRow(label = name, value = "$$share",isBold = true)
                 }
 
@@ -326,7 +327,7 @@ val t = Transaction(
     id = 1,
     groupId = 1,
     title = "Hotel Booking",
-    amount = 500.0,
+    amount = Amount(500),
     description = "2 nights stay",
     createdBy = 1,
     status = TransactionStatus.APPROVED,
@@ -336,11 +337,11 @@ val t = Transaction(
     payers = listOf(
         PayerDto(
             user= User(0, "milad", "09137511005"),
-            amountPaid = 300.0,
+            amountPaid = Amount(300),
         ),
         PayerDto(
             user= User(1, "mahdi", "09137511001"),
-            amountPaid = 200.0,
+            amountPaid = Amount(200),
         )
     ),
     shareDetails = ShareDetailsRequest(
@@ -348,11 +349,11 @@ val t = Transaction(
         members = listOf(
             MemberShareDto(
                 user= User(0, "milad", "09137511005"),
-                share = 250.0,
+                share = Amount(250),
             ),
             MemberShareDto(
                 user = User(1, "mahdi", "09137511001"),
-                share = 250.0,
+                share = Amount(250),
             )
         )
     )

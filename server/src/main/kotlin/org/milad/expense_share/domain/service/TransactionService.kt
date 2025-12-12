@@ -1,5 +1,6 @@
 package org.milad.expense_share.domain.service
 
+import org.milad.expense_share.Amount
 import org.milad.expense_share.data.models.Transaction
 import org.milad.expense_share.domain.repository.TransactionRepository
 import org.milad.expense_share.presentation.transactions.model.PayerRequest
@@ -11,7 +12,7 @@ class TransactionService(private val transactionRepository: TransactionRepositor
         groupId: Int,
         userId: Int,
         title: String,
-        amount: Double,
+        amount: Amount,
         description: String,
         payers: List<PayerRequest>,
         shareDetails: ShareDetailsRequest,

@@ -6,6 +6,7 @@ import model.CreateTransactionRequest
 import model.PayerDto
 import model.ShareDetailsRequest
 import model.Transaction
+import org.milad.expense_share.Amount
 
 
 class TransactionsRepositoryImpl(private val networkManager: NetworkManager) :
@@ -17,7 +18,7 @@ class TransactionsRepositoryImpl(private val networkManager: NetworkManager) :
     override suspend fun createTransaction(
         groupId: Int,
         title: String,
-        amount: Double,
+        amount: Amount,
         description: String?,
         payers: List<PayerDto>?,
         shareDetails: ShareDetailsRequest?

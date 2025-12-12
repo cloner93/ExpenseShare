@@ -56,6 +56,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation("io.mockative:mockative:3.0.1")
             implementation(libs.kotlinx.serialization.json)
+            implementation(projects.core.currency)
         }
         commonTest {
             dependencies {

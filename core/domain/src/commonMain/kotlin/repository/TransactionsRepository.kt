@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import model.PayerDto
 import model.ShareDetailsRequest
 import model.Transaction
+import org.milad.expense_share.Amount
 
 @Mockable
 interface TransactionsRepository {
@@ -12,7 +13,7 @@ interface TransactionsRepository {
     suspend fun createTransaction(
         groupId: Int,
         title: String,
-        amount: Double,
+        amount: Amount,
         description: String?,
         payers: List<PayerDto>?,
         shareDetails: ShareDetailsRequest?,

@@ -56,6 +56,7 @@ kotlin {
 
             implementation(projects.core.domain)
             implementation(projects.core.network)
+            implementation(projects.core.currency)
         }
         commonTest.dependencies {
             implementation(libs.kotest.framework.engine)

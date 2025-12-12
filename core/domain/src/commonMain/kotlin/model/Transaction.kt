@@ -1,13 +1,14 @@
 package model
 
 import kotlinx.serialization.Serializable
+import org.milad.expense_share.Amount
 
 @Serializable
 data class Transaction(
     val id: Int,
     val groupId: Int,
     val title: String,
-    val amount: Double,
+    val amount: Amount,
     val description: String,
     val createdBy: Int,
     var status: TransactionStatus,
@@ -28,7 +29,7 @@ enum class TransactionStatus {
 @Serializable
 data class PayerDto(
     val user: User,
-    val amountPaid: Double,
+    val amountPaid: Amount,
 )
 
 @Serializable
@@ -40,5 +41,5 @@ data class ShareDetailsRequest(
 @Serializable
 data class MemberShareDto(
     val user: User,
-    val share: Double? = null,
+    val share: Amount = Amount(0),
 )

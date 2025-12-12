@@ -20,6 +20,7 @@ application {
 }
 
 dependencies {
+    implementation(projects.core.currency)
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.ktor)

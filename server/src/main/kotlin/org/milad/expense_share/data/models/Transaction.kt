@@ -1,6 +1,7 @@
 package org.milad.expense_share.data.models
 
 import kotlinx.serialization.Serializable
+import org.milad.expense_share.Amount
 import org.milad.expense_share.presentation.transactions.model.PayerRequest
 import org.milad.expense_share.presentation.transactions.model.ShareDetailsRequest
 
@@ -9,7 +10,7 @@ data class Transaction(
     val id: Int,
     val groupId: Int,
     val title: String,
-    val amount: Double,
+    val amount: Amount,
     val description: String,
     val createdBy: Int,
     var status: TransactionStatus = TransactionStatus.PENDING,

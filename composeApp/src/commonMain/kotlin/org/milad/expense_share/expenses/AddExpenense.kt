@@ -94,7 +94,7 @@ import model.ShareDetailsRequest
 import model.User
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
+import org.milad.expense_share.Amount
 
 @Composable
 fun AddExpense(
@@ -102,7 +102,7 @@ fun AddExpense(
     onBackClick: () -> Unit,
     isLoading: Boolean,
     hasError: Throwable?,
-    onConfirmClick: (String, Double, String, List<PayerDto>, ShareDetailsRequest) -> Unit,
+    onConfirmClick: (String, Amount, String, List<PayerDto>, ShareDetailsRequest) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     var groupName by rememberSaveable { mutableStateOf("") }
@@ -114,9 +114,9 @@ fun AddExpense(
     var members by remember { mutableStateOf<List<User>>(emptyList()) }
 
     val payerAmounts = remember { mutableStateMapOf<User, String>() }
-    var finalPayerMap by remember { mutableStateOf<Map<User, Double>>(emptyMap()) }
+    var finalPayerMap by remember { mutableStateOf<Map<User, Amount>>(emptyMap()) }
 
-    var memberAmounts by remember { mutableStateOf<Map<User, Double>>(emptyMap()) }
+    var memberAmounts by remember { mutableStateOf<Map<User, Amount>>(emptyMap()) }
 
     var nameError by remember { mutableStateOf<String?>(null) }
     var priceError by remember { mutableStateOf<String?>(null) }
@@ -173,8 +173,8 @@ fun AddExpense(
             shareTypeError = null
 
             if (groupName.isBlank()) nameError = "Name cannot be empty"
-            val priceVal = expensePrice.toDoubleOrNull()
-            if (priceVal == null || priceVal <= 0) priceError = "Invalid price"
+            val priceVal = Amount(expensePrice)
+            if (priceVal <= 0) priceError = "Invalid price"
             if (payers.isEmpty()) payerError = "Select at least one payer"
             if (members.isEmpty()) memberError = "Select at least one member"
             if (shareType == null) shareTypeError = "Choose a share type"
@@ -187,10 +187,10 @@ fun AddExpense(
                 payerError = "One or more payers have no amount"
             }
 
-            val payerTotal = finalPayerMap.values.sum()
-            if (priceVal != null && priceVal > 0 && payerTotal != priceVal) {
+            val payerTotal = Amount(finalPayerMap.values.sumOf { it.value })
+            if (priceVal > 0 && payerTotal != priceVal) {
                 payerError =
-                    "Total payer amounts (${payerTotal.toInt()}) must equal the expense price"
+                    "Total payer amounts (${payerTotal}) must equal the expense price"
             }
 
             val isValid =
@@ -198,7 +198,7 @@ fun AddExpense(
 
             if (isValid) {
                 onConfirmClick(
-                    groupName, priceVal ?: 0.0,
+                    groupName, priceVal,
                     expenseDesc, finalPayerMap.map { PayerDto(it.key, it.value) },
                     ShareDetailsRequest(
                         shareType!!.title,
@@ -263,7 +263,7 @@ fun AddExpense(
             }
 
             Column {
-                val amount = expensePrice.toDoubleOrNull() ?: 0.0
+                val amount: Amount = Amount(expensePrice)
                 when (shareType) {
                     ShareType.Equal -> EqualSplitSection(
                         amount,
@@ -423,13 +423,13 @@ fun PayerOfExpense(
     payerAmounts: SnapshotStateMap<User, String>,
     onPayersClick: () -> Unit,
     onRemovePayer: (User) -> Unit,
-    onAmountsUpdated: (Map<User, Double>) -> Unit,
+    onAmountsUpdated: (Map<User, Amount>) -> Unit,
     payerError: String?,
 ) {
 
     LaunchedEffect(payerAmounts.values.toList()) {
         val result = payers.associate { user ->
-            val amount = payerAmounts[user]?.toDoubleOrNull() ?: 0.0
+            val amount = Amount(payerAmounts[user] ?: "0")
             user to amount
         }
         onAmountsUpdated(result)
@@ -727,13 +727,13 @@ enum class ShareType(val title: String, val icon: ImageVector, val enable: Boole
 
 @Composable
 fun EqualSplitSection(
-    amount: Double,
+    amount: Amount,
     users: List<User>,
     onRemoveClick: (User) -> Unit,
-    onAmountsUpdated: (Map<User, Double>) -> Unit,
+    onAmountsUpdated: (Map<User, Amount>) -> Unit,
 ) {
     val eachUser = remember(users.size, amount) {
-        if (amount > 0) amount / users.size else 0.0
+        if (amount > 0) amount / users.size else Amount(0)
     }
 
     LaunchedEffect(eachUser, users.size) {
@@ -749,7 +749,7 @@ fun EqualSplitSection(
                 tailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "$${eachUser.toInt()}",
+                            text = "$${eachUser}",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         )
 
@@ -768,17 +768,18 @@ fun EqualSplitSection(
 @Composable
 fun PercentSplitSection(
     users: List<User>,
-    amount: Double,
+    amount: Amount,
     percents: SnapshotStateMap<User, Float>,
     onRemoveClick: (User) -> Unit,
-    onAmountsUpdated: (Map<User, Double>) -> Unit,
+    onAmountsUpdated: (Map<User, Amount>) -> Unit,
 ) {
 
     LaunchedEffect(percents.values.toList(), amount) {
-        val result = users.associate { user ->
+        val result = users.associateWith { user ->
             val percent = percents[user] ?: 0f
-            val userAmount = if (amount > 0) amount * (percent / 100f) else 0.0
-            user to userAmount
+            val userAmount = if (amount > 0) Amount((amount.value * (percent / 100f)).toLong()) else
+                Amount(0)
+            userAmount
         }
         onAmountsUpdated(result)
     }
@@ -791,7 +792,7 @@ fun PercentSplitSection(
             val percent = percents[user] ?: 0f
 
             val userAmount = if (amount > 0)
-                amount * (percent / 100f)
+                amount * (percent / 100f).toLong()
             else 0.0
 
             UserInfoRow(
@@ -802,7 +803,7 @@ fun PercentSplitSection(
 
                         Row {
                             Text(
-                                text = "${userAmount.toInt()}",
+                                text = "$userAmount",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
@@ -826,7 +827,7 @@ fun PercentSplitSection(
                 },
                 bottom = {
                     Slider(
-                        enabled = amount != 0.0,
+                        enabled = amount != Amount(0),
                         value = percent,
                         onValueChange = { newValue ->
                             percents[user] = newValue
@@ -840,25 +841,24 @@ fun PercentSplitSection(
     }
 }
 
-
 @Composable
 fun WeightSplitSection(
     users: List<User>,
-    amount: Double,
+    amount: Amount,
     weights: SnapshotStateMap<User, Float>,
     onRemoveClick: (User) -> Unit,
-    onAmountsUpdated: (Map<User, Double>) -> Unit,
+    onAmountsUpdated: (Map<User, Amount>) -> Unit,
 ) {
     val totalWeight = remember(weights.values.toList()) {
         weights.values.sum().coerceAtLeast(1f)
     }
 
     LaunchedEffect(weights.values.toList(), amount) {
-        val result = users.associate { user ->
+        val result = users.associateWith { user ->
             val w = weights[user] ?: 1f
             val userAmount =
-                if (amount > 0) amount * (w / totalWeight) else 0.0
-            user to userAmount
+                if (amount > 0) amount * (w / totalWeight).toLong() else Amount(0)
+            userAmount
         }
         onAmountsUpdated(result)
     }
@@ -867,8 +867,8 @@ fun WeightSplitSection(
         users.forEachIndexed { index, user ->
             val weight = weights[user] ?: 1f
 
-            val userAmount = if (amount > 0)
-                amount * (weight / totalWeight)
+            val userAmount = if (amount > Amount(0))
+                amount * (weight / totalWeight).toLong()
             else 0.0
 
             UserInfoRow(
@@ -878,7 +878,7 @@ fun WeightSplitSection(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                text = "${userAmount.toInt()}",
+                                text = "$userAmount",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Text(
@@ -896,7 +896,7 @@ fun WeightSplitSection(
                 },
                 bottom = {
                     Slider(
-                        enabled = amount != 0.0,
+                        enabled = amount != Amount(0),
                         value = weight,
                         onValueChange = { weights[user] = it },
                         valueRange = 1f..3f,
@@ -912,13 +912,13 @@ fun WeightSplitSection(
 @Composable
 fun ManualSplitSection(
     users: List<User>,
-    amount: Double,
+    amount: Amount,
     amounts: SnapshotStateMap<User, Float>,
     onRemoveClick: (User) -> Unit,
-    onAmountsUpdated: (Map<User, Double>) -> Unit,
+    onAmountsUpdated: (Map<User, Amount>) -> Unit,
 ) {
     val defaultShare = remember(amount, users) {
-        (amount / users.size).toFloat()
+        (amount.value / users.size).toFloat()
     }
 
     users.forEach { user ->
@@ -928,9 +928,9 @@ fun ManualSplitSection(
     }
 
     LaunchedEffect(amounts.values.toList(), amount) {
-        val result = users.associate { user ->
+        val result = users.associateWith { user ->
             val value = (amounts[user] ?: 0f).toDouble()
-            user to value
+            Amount(value.toLong())
         }
         onAmountsUpdated(result)
     }

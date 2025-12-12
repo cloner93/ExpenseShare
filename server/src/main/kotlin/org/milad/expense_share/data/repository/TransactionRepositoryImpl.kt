@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import org.milad.expense_share.Amount
 import org.milad.expense_share.data.db.table.Groups
 import org.milad.expense_share.data.db.table.TransactionPayers
 import org.milad.expense_share.data.db.table.TransactionShareMembers
@@ -32,7 +33,7 @@ class TransactionRepositoryImpl : TransactionRepository {
         groupId: Int,
         userId: Int,
         title: String,
-        amount: Double,
+        amount: Amount,
         description: String,
         payers: List<PayerRequest>,
         shareDetails: ShareDetailsRequest,
@@ -47,9 +48,9 @@ class TransactionRepositoryImpl : TransactionRepository {
 
         if (payers.isEmpty()) throw IllegalArgumentException("payers must not be empty")
 
-        val sumPayers = payers.sumOf { it.amountPaid }
+        val sumPayers = payers.sumOf { it.amountPaid.value }
         val eps = 0.0001
-        if (abs(sumPayers - amount) > eps) {
+        if (abs(sumPayers - amount.value) > eps) {
             throw IllegalArgumentException("sum of payers (${sumPayers}) does not equal total amount ($amount)")
         }
 
@@ -81,7 +82,7 @@ class TransactionRepositoryImpl : TransactionRepository {
             it[TransactionShares.type] = shareDetails.type.name
         } get TransactionShares.id
 
-        val shareMembersToInsert: List<Pair<User, Double>> = when (shareDetails.type) {
+        val shareMembersToInsert: List<Pair<User, Amount>> = when (shareDetails.type) {
             ShareType.Equal -> {
                 val n = finalMemberIds.size
                 val per = amount / n
@@ -90,24 +91,24 @@ class TransactionRepositoryImpl : TransactionRepository {
 
             ShareType.Percent -> {
                 val members = shareDetails.members
-                val sumPercent = members.sumOf { it.share }
+                val sumPercent = members.sumOf { it.share.value }
                 if (abs(sumPercent - 100.0) > 1e-6) {
                     throw IllegalArgumentException("percent shares must sum to 100, sum=$sumPercent")
                 }
-                members.map { it.user to (amount * it.share / 100.0) }
+                members.map { it.user to (amount * it.share.value / 100) }
             }
 
             ShareType.Weight -> {
                 val members = shareDetails.members
-                val totalWeight = members.sumOf { it.share }
+                val totalWeight = members.sumOf { it.share.value }
                 if (totalWeight <= 0.0) throw IllegalArgumentException("total weight must be > 0")
-                members.map { it.user to (amount * (it.share / totalWeight)) }
+                members.map { it.user to (amount * (it.share.value / totalWeight)) }
             }
 
             ShareType.Manual -> {
                 val members = shareDetails.members
-                val sumShares = members.sumOf { it.share }
-                if (abs(sumShares - amount) > 1e-6) {
+                val sumShares = members.sumOf { it.share.value }
+                if (abs(sumShares - amount.value) > 1e-6) {
                     throw IllegalArgumentException("manual shares must sum to amount; sum=$sumShares amount=$amount")
                 }
                 members.map { it.user to it.share }

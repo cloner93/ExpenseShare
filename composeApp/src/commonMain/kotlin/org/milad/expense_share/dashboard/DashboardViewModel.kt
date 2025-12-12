@@ -12,6 +12,7 @@ import model.Group
 import model.PayerDto
 import model.ShareDetailsRequest
 import model.User
+import org.milad.expense_share.Amount
 import usecase.friends.GetFriendsUseCase
 import usecase.groups.CreateGroupUseCase
 import usecase.groups.GetGroupsUseCase
@@ -105,7 +106,7 @@ class DashboardViewModel(
 
     private fun createTransaction(
         title: String,
-        amount: Double,
+        amount: Amount,
         desc: String,
         payers: List<PayerDto>?,
         shareDetails: ShareDetailsRequest?,
@@ -249,8 +250,8 @@ class DashboardViewModel(
              for (group in groups) {
                  for (tx in group.transactions) {
                      when (userId) {
-                         tx.payerId -> totalOwed += tx.amount
-                         tx.receiverId -> totalOwe += tx.amount
+                         tx.payerId -> totalOwed += tx.value
+                         tx.receiverId -> totalOwe += tx.value
                      }
                  }
              }*/
@@ -258,8 +259,8 @@ class DashboardViewModel(
 
             setState {
                 it.copy(
-                    totalOwed = 1.0,
-                    totalOwe = 2.0
+                    totalOwed = Amount(1),
+                    totalOwe = Amount(2)
                 )
             }
         }
@@ -305,7 +306,7 @@ sealed interface DashboardAction : BaseViewAction {
     data class AddGroup(val groupName: String, val members: List<Int>) : DashboardAction
     data class AddExpense(
         val expenseName: String,
-        val amount: Double,
+        val amount: Amount,
         val desc: String,
         val payers: List<PayerDto>?,
         val shareDetails: ShareDetailsRequest?,
@@ -334,8 +335,8 @@ data class DashboardState(
     val extraPaneError: Throwable? = null,
     val isExtraActionSuccess: Boolean = false,
     val isDetailVisible: Boolean = false,
-    val totalOwe: Double = 0.0,
-    val totalOwed: Double = 0.0,
+    val totalOwe: Amount = Amount(0),
+    val totalOwed: Amount = Amount(0),
 ) : BaseViewState
 
 sealed interface DashboardEvent : BaseViewEvent {
