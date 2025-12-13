@@ -141,7 +141,7 @@ fun ExpandableExpenseCard(
                                     .padding(8.dp),
                             ) {
                                 Text(
-                                    text = "You owe $${net.abs()}",
+                                    text = "You owe $${net.abs().showSeparate()}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
@@ -154,7 +154,7 @@ fun ExpandableExpenseCard(
                                     .padding(8.dp),
                             ) {
                                 Text(
-                                    text = "You lent $${net.abs()}",
+                                    text = "You lent $${net.abs().showSeparate()}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer
                                 )

@@ -242,25 +242,31 @@ class DashboardViewModel(
 
     private fun launchTotalCalculation(groups: List<Group>) {
         viewModelScope.launch(Dispatchers.Default) {
-            // TODO:
-            /* val userId = currentUserId() // implement this
-             var totalOwed = 0.0
-             var totalOwe = 0.0
+            val userId = getUserInfoUseCase().id
+            var totalOwed = Amount(0)
+            var totalOwe = Amount(0)
 
-             for (group in groups) {
-                 for (tx in group.transactions) {
-                     when (userId) {
-                         tx.payerId -> totalOwed += tx.value
-                         tx.receiverId -> totalOwe += tx.value
-                     }
-                 }
-             }*/
+            // TODO: i know this is wrong.
+            for (group in groups) {
+                for (trx in group.transactions) {
+                    for (payer in trx.payers) {
+                        if (payer.user.id == userId) {
+                            totalOwe += payer.amountPaid
+                        }
+                    }
+                    for (share in trx.shareDetails.members) {
+                        if (share.user.id == userId) {
+                            totalOwed += share.share
+                        }
+                    }
+                }
+            }
             delay(1000)
 
             setState {
                 it.copy(
-                    totalOwed = Amount(1),
-                    totalOwe = Amount(2)
+                    totalOwed = totalOwed,
+                    totalOwe = totalOwe
                 )
             }
         }

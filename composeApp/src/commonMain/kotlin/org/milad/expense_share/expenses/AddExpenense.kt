@@ -734,7 +734,7 @@ fun EqualSplitSection(
     onAmountsUpdated: (Map<User, Amount>) -> Unit,
 ) {
     val eachUser = remember(users.size, amount) {
-        if (amount > 0) amount / users.size else Amount(0)
+        if (amount > 0 || users.isNotEmpty()) amount / users.size else Amount(0)
     }
 
     LaunchedEffect(eachUser, users.size) {
