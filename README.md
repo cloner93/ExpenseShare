@@ -8,6 +8,14 @@ AI-powered features will be added later to assist with categorization, analysis,
 
 This repository includes both the **CMP client** and the **Ktor backend**.
 
+## 📸 Screenshots
+
+Here is a glimpse of **ExpenseShare** in action across different platforms:
+
+|                               Group List                                |                               Two pane view (Canonical layouts)                              |                               List of transaction                                |                                 Add Transaction                                 |                                       Desktop                                        |
+|:-----------------------------------------------------------------------:|:-----------------------------------------------------------------------:|:-----------------------------------------------------------------------:|:-----------------------------------------------------------------------:|:------------------------------------------------------------------------------------:|
+| <img src="docs/screenshot/Screenshot_20251213_152144.png" width="200"/> | <img src="docs/screenshot/Screenshot_20251213_152240.png" width="200"/> | <img src="docs/screenshot/Screenshot_20251213_152252.png" width="200"/> | <img src="docs/screenshot/Screenshot_20251213_152329.png" width="200"/> | <img src="docs/screenshot/Screenshot%202025-12-13%20at%2015.24.58.png" width="200"/> |
+
 ---
 
 ## ⭐ Core Features
@@ -38,20 +46,6 @@ This repository includes both the **CMP client** and the **Ktor backend**.
 - Smart settlement suggestions  
 - Expense pattern insights  
 
-
-
-## 📸 Screenshots
-
-Here is a glimpse of **ExpenseShare** in action across different platforms:
-
-<div align="center">
-  <img src="docs/screenshot/Screenshot_20251213_152144.png" width="1236" alt="Group List" />
-  <img src="docs/screenshot/Screenshot_20251213_152240.png" width="2204" alt="Group Details" />
-  <img src="docs/screenshot/Screenshot_20251213_152252.png" width="2204" alt="Add Transaction" />
-  <img src="docs/screenshot/Screenshot_20251213_152329.png" width="2204" alt="Friends List" />
-  <img src="docs/screenshot/Screenshot%202025-12-13%20at%2015.24.58.png" width="2552" alt="Settlement" />
-</div>
----
 
 ## 🧱 Architecture Overview
 
