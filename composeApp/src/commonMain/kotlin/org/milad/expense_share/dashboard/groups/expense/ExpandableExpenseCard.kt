@@ -46,7 +46,6 @@ import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
 import org.milad.expense_share.expenses.AnimatedLoadingButton
-import kotlin.math.abs
 
 @Composable
 fun ExpandableExpenseCard(
@@ -120,7 +119,7 @@ fun ExpandableExpenseCard(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         modifier = Modifier.padding(horizontal = 8.dp),
-                        text = "$${transaction.amount}",
+                        text = "$${transaction.amount.value}",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -185,7 +184,7 @@ fun ExpandableExpenseCard(
                     val name = if (payer.user.id == currentUserId) "me" else payer.user.username
                     DetailRow(
                         label = "$name:",
-                        value = "+$${payer.amountPaid}",
+                        value = "+$${payer.amountPaid.value}",
                         isBold = true
                     )
                 }
@@ -196,7 +195,7 @@ fun ExpandableExpenseCard(
                 transaction.shareDetails.members.forEach { member ->
                     val name =
                         if (member.user.id == currentUserId) "me" else member.user.username
-                    val share = member.share
+                    val share = member.share.value
                     DetailRow(label = name, value = "$$share",isBold = true)
                 }
 

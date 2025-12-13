@@ -749,7 +749,7 @@ fun EqualSplitSection(
                 tailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "$${eachUser}",
+                            text = "$${eachUser.value}",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         )
 
@@ -793,7 +793,7 @@ fun PercentSplitSection(
 
             val userAmount = if (amount > 0)
                 amount * (percent / 100f).toLong()
-            else 0.0
+            else Amount(0)
 
             UserInfoRow(
                 user = user,
@@ -803,7 +803,7 @@ fun PercentSplitSection(
 
                         Row {
                             Text(
-                                text = "$userAmount",
+                                text = "${userAmount.value}",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
@@ -869,7 +869,7 @@ fun WeightSplitSection(
 
             val userAmount = if (amount > Amount(0))
                 amount * (weight / totalWeight).toLong()
-            else 0.0
+            else Amount(0)
 
             UserInfoRow(
                 user = user,
@@ -878,7 +878,7 @@ fun WeightSplitSection(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                text = "$userAmount",
+                                text = "${userAmount.value}",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Text(

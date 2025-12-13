@@ -6,7 +6,7 @@ import kotlin.jvm.JvmInline
 @Serializable(with = AmountSerializer::class)
 @JvmInline
 value class Amount(val value: Long) : Comparable<Amount> {
-    constructor(value: String) : this(value.toLong())
+    constructor(value: String) : this(if (value.equals("")) 0 else value.toLong())
 
     operator fun plus(other: Amount): Amount = Amount(value + other.value)
 
