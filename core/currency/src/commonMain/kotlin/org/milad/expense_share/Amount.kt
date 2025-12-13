@@ -31,3 +31,31 @@ value class Amount(val value: Long) : Comparable<Amount> {
 
     fun abs(): Amount = Amount(kotlin.math.abs(value))
 }
+
+fun Amount.showSeparate(): String {
+    val s = value.toString()
+    val isNegative = s.startsWith('-')
+    val digits = if (isNegative) s.drop(1) else s
+
+    val separated = digits
+        .reversed()
+        .chunked(3)
+        .joinToString(",")
+        .reversed()
+
+    return if (isNegative) "-$separated" else separated
+}
+
+fun Long.showSeparate(): String {
+    val s = this.toString()
+    val isNegative = s.startsWith('-')
+    val digits = if (isNegative) s.drop(1) else s
+
+    val separated = digits
+        .reversed()
+        .chunked(3)
+        .joinToString(",")
+        .reversed()
+
+    return if (isNegative) "-$separated" else separated
+}

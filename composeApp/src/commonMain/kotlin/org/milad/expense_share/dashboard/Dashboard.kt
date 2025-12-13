@@ -73,6 +73,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
 import org.milad.expense_share.chat.ChatScreen
+import org.milad.expense_share.showSeparate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -245,7 +246,7 @@ private fun BalanceCard(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "$ ${amount.value}",
+            text = "$ ${amount.showSeparate()}",
             style = MaterialTheme.typography.headlineSmall.copy(
                 color = textColor,
                 fontWeight = FontWeight.Bold
@@ -305,7 +306,7 @@ private fun GroupItem(
     val balance =
         group.transactions.filter { it.status == TransactionStatus.APPROVED }
             .sumOf { it.amount.value }
-            .toInt()
+//            .toInt()
 
     Card(
         modifier = Modifier
@@ -362,7 +363,7 @@ private fun GroupItem(
                 }
                 Spacer(modifier = Modifier.padding(8.dp))
                 Text(
-                    text = "$$balance",
+                    text = "$${balance.showSeparate()}",
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Bold

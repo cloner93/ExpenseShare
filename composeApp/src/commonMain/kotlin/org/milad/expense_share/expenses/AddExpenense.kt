@@ -95,6 +95,7 @@ import model.User
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
+import org.milad.expense_share.showSeparate
 
 @Composable
 fun AddExpense(
@@ -749,7 +750,7 @@ fun EqualSplitSection(
                 tailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "$${eachUser.value}",
+                            text = "$${eachUser.showSeparate()}",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         )
 
@@ -803,7 +804,7 @@ fun PercentSplitSection(
 
                         Row {
                             Text(
-                                text = "${userAmount.value}",
+                                text = userAmount.showSeparate(),
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
@@ -878,7 +879,7 @@ fun WeightSplitSection(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                text = "${userAmount.value}",
+                                text = userAmount.showSeparate(),
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Text(
