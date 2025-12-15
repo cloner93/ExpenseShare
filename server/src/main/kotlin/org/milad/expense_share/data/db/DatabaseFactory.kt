@@ -15,6 +15,9 @@ import org.milad.expense_share.data.db.table.TransactionShareMembers
 import org.milad.expense_share.data.db.table.TransactionShares
 import org.milad.expense_share.data.db.table.Transactions
 import org.milad.expense_share.data.db.table.Users
+import org.milad.expense_share.data.db.table.chat.BotContexts
+import org.milad.expense_share.data.db.table.chat.ChatMessages
+import org.milad.expense_share.data.db.table.chat.ChatSessions
 
 object DatabaseFactory {
 
@@ -32,7 +35,10 @@ object DatabaseFactory {
                 Transactions,
                 TransactionPayers,
                 TransactionShares,
-                TransactionShareMembers
+                TransactionShareMembers,
+                ChatSessions,
+                ChatMessages,
+                BotContexts
             )
         }
     }
