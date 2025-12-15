@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotest)
     alias(libs.plugins.jacoco)
 }
+
 jacoco {
     toolVersion = libs.versions.jacoco.get()
 }
@@ -35,6 +36,12 @@ dependencies {
     implementation(libs.ktor.server.cros)
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.auth.jwt)
+
+    implementation(libs.ktor.server.websockets)
+
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
 
     implementation(libs.jbcrypt)
 
