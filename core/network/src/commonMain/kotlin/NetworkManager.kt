@@ -51,7 +51,7 @@ class NetworkManager(val client: ApiClient) {
         }.body<SuccessResponse<T>>()
     }
 
-    suspend inline fun <Req, reified Res> post(
+    suspend inline fun <reified Req, reified Res> post(
         endpoint: String,
         body: Req? = null,
         headers: Map<String, String> = mapOf()
@@ -63,7 +63,7 @@ class NetworkManager(val client: ApiClient) {
         }.body<SuccessResponse<Res>>()
     }
 
-    suspend inline fun <Req, reified Res> put(
+    suspend inline fun <reified Req, reified Res> put(
         endpoint: String,
         body: Req? = null,
         headers: Map<String, String> = mapOf()

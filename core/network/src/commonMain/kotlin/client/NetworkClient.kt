@@ -43,6 +43,7 @@ fun createHttpClient(
             prettyPrint = config.isDebug
             isLenient = true
             ignoreUnknownKeys = true
+            encodeDefaults = true
         })
     }
     install(HttpTimeout) {
