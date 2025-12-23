@@ -1,8 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-</dict>
+    <dict>
+        <key>CADisableMinimumFrameDurationOnPhone</key>
+        <true/>
+
+        <!-- App Transport Security Settings -->
+        <key>NSAppTransportSecurity</key>
+        <dict>
+            <!-- Allow insecure HTTP loads for development -->
+            <key>NSAllowsArbitraryLoads</key>
+            <true/>
+
+            <!-- Optional: Specific domain exceptions (more secure approach) -->
+            <key>NSExceptionDomains</key>
+            <dict>
+                <!-- For localhost development -->
+                <key>localhost</key>
+                <dict>
+                    <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                    <true/>
+                    <key>NSIncludesSubdomains</key>
+                    <true/>
+                </dict>
+
+                <!-- For 0.0.0.0 development -->
+                <key>0.0.0.0</key>
+                <dict>
+                    <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                    <true/>
+                </dict>
+
+                <!-- For 10.1.50.119 development -->
+                <key>10.1.50.119</key>
+                <dict>
+                    <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                    <true/>
+                </dict>
+            </dict>
+        </dict>
+
+        <!-- Bundle Display Name -->
+        <key>CFBundleDisplayName</key>
+        <string>ExpenseShare</string>
+
+        <!-- Bundle Name -->
+        <key>CFBundleName</key>
+        <string>ExpenseShare</string>
+
+        <!-- User-facing app name -->
+        <key>CFBundleExecutable</key>
+        <string>$(EXECUTABLE_NAME)</string>
+
+        <!-- Bundle Identifier -->
+        <key>CFBundleIdentifier</key>
+        <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+
+        <!-- Bundle Version -->
+        <key>CFBundleShortVersionString</key>
+        <string>1.0</string>
+        <key>CFBundleVersion</key>
+        <string>1</string>
+
+        <!-- Supported Interface Orientations -->
+        <key>UISupportedInterfaceOrientations</key>
+        <array>
+            <string>UIInterfaceOrientationPortrait</string>
+            <string>UIInterfaceOrientationLandscapeLeft</string>
+            <string>UIInterfaceOrientationLandscapeRight</string>
+        </array>
+
+        <!-- iPad Specific Orientations -->
+        <key>UISupportedInterfaceOrientations~ipad</key>
+        <array>
+            <string>UIInterfaceOrientationPortrait</string>
+            <string>UIInterfaceOrientationPortraitUpsideDown</string>
+            <string>UIInterfaceOrientationLandscapeLeft</string>
+            <string>UIInterfaceOrientationLandscapeRight</string>
+        </array>
+
+        <!-- Status Bar Style -->
+        <key>UIStatusBarStyle</key>
+        <string>UIStatusBarStyleDefault</string>
+
+        <!-- Launch Screen -->
+        <key>UILaunchScreen</key>
+        <dict/>
+    </dict>
 </plist>
