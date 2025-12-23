@@ -239,29 +239,33 @@ class DashboardViewModel(
             }
         }
     }
-
+/*
     private fun launchTotalCalculation(groups: List<Group>) {
         viewModelScope.launch(Dispatchers.Default) {
             val userId = getUserInfoUseCase().id
             var totalOwed = Amount(0)
             var totalOwe = Amount(0)
 
-            // TODO: i know this is wrong.
-            for (group in groups) {
-                for (trx in group.transactions) {
-                    for (payer in trx.payers) {
-                        if (payer.user.id == userId) {
-                            totalOwe += payer.amountPaid
-                        }
-                    }
-                    for (share in trx.shareDetails.members) {
-                        if (share.user.id == userId) {
-                            totalOwed += share.share
-                        }
-                    }
+            groups.forEach { group ->
+                val groupPaid: Amount = group.transactions.fold(Amount(0)) { acc, trx ->
+                    acc + trx.payers
+                        .filter { payer -> payer.user.id == userId }
+                        .fold(Amount(0)) { innerAcc, payer -> innerAcc + payer.amountPaid }
+                }
+
+                val groupShare: Amount = group.transactions.fold(Amount(0)) { acc, trx ->
+                    acc + trx.shareDetails.members
+                        .filter { share -> share.user.id == userId }
+                        .fold(Amount(0)) { innerAcc, share -> innerAcc + share.share }
+                }
+
+                val net = groupPaid - groupShare
+                if (net > 0) {
+                    totalOwed += net
+                } else if (net < 0) {
+                    totalOwe += -net  // Assuming Amount supports unary minus; if not, use net.abs() or equivalent
                 }
             }
-            delay(1000)
 
             setState {
                 it.copy(
@@ -270,7 +274,58 @@ class DashboardViewModel(
                 )
             }
         }
+    }*/
+
+    private fun launchTotalCalculation(groups: List<Group>) {
+        viewModelScope.launch(Dispatchers.Default) {
+            val userId = getUserInfoUseCase().id
+            val balance = groups.calculateBalance(userId)
+
+            setState {
+                it.copy(
+                    totalOwed = balance.owed,
+                    totalOwe = balance.owe
+                )
+            }
+        }
     }
+
+    data class Balance(
+        val owed: Amount,
+        val owe: Amount
+    )
+
+    fun List<Group>.calculateBalance(userId: Int): Balance {
+        var owed = Amount(0)
+        var owe = Amount(0)
+
+        forEach { group ->
+            var paidByUser = Amount(0)
+            var shareOfUser = Amount(0)
+
+            group.transactions.forEach { trx ->
+                trx.payers
+                    .filter { it.user.id == userId }
+                    .forEach { paidByUser += it.amountPaid }
+
+                trx.shareDetails.members
+                    .filter { it.user.id == userId }
+                    .forEach { shareOfUser += it.share }
+            }
+
+            val net = paidByUser - shareOfUser
+            when {
+                net.isPositive() -> owed += net
+                net.isNegative() -> owe += net.abs()
+            }
+        }
+
+        return Balance(
+            owed = owed,
+            owe = owe
+        )
+    }
+
 
     private fun createGroup(groupName: String, members: List<Int>) {
         viewModelScope.launch {
