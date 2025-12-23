@@ -30,8 +30,7 @@ kotlinx-coroutines = "1.10.2"
 kotlinx-serialization = "1.8.0"
 
 # Ktor (server + client)
-ktor = "3.2.2"
-ktor-auth = "3.0.0"
+ktor = "3.3.3"
 
 # Logging
 logback = "1.5.18"
@@ -93,8 +92,8 @@ ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negoti
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 ktor-server-cros = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
-ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor-auth" }
-ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor-auth" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 
 # Ktor Client
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }

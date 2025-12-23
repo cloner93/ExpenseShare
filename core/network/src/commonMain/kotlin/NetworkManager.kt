@@ -24,11 +24,14 @@ inline fun <reified T> safeNetworkCall(
 //    delay(1500)
     val response = block()
     if (response.success) {
+        AppLogger.i("NetworkManager", "Response: $response")
         emit(Result.success(response.data))
     } else {
+        AppLogger.e("NetworkManager", "Response: $response")
         emit(Result.failure(IllegalStateException("Request failed")))
     }
 }.catch { e ->
+    AppLogger.e("NetworkManager", "Exception: ${e.stackTraceToString()}")
     emit(Result.failure(e))
 }
 
