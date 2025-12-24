@@ -25,7 +25,7 @@ class GroupsRepositoryImpl(private val networkManager: NetworkManager) : GroupsR
         return networkManager.put("/groups/$groupId/updateMembers", body = memberIds)
     }
 
-    override suspend fun deleteGroup(groupId: String): Flow<Result<Unit>> {
+    override suspend fun deleteGroup(groupId: String): Flow<Result<String>> {
         return networkManager.delete("/groups/$groupId")
     }
 }
