@@ -91,16 +91,16 @@ fun DashboardScreen(
         },
         detailPane = {
             GroupDetailScreen(
-                onBackClick = {
-                    viewModel.handle(DashboardAction.NavigateBack)
-                    scope.launch { navigator.navigateBack() }
-                },
                 currentUser = state.currentUser,
                 isListAndDetailVisible = isListAndDetailVisible,
                 isDetailVisible = isDetailVisible,
                 selectedGroup = state.selectedGroup,
-                transactionLoading= state.transactionLoading,
-                transactionError= state.transactionError,
+                transactionLoading = state.transactionLoading,
+                transactionError = state.transactionError,
+                onBackClick = {
+                    viewModel.handle(DashboardAction.NavigateBack)
+                    scope.launch { navigator.navigateBack() }
+                },
                 onAddExpenseClick = {
                     viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddExpense))
                     scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
@@ -108,6 +108,15 @@ fun DashboardScreen(
                 onAddMemberClick = {
                     viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddMember))
                     scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
+                },
+                onGroupDeleteClick = {
+                    viewModel.handle(DashboardAction.DeleteGroup(it))
+                },
+                onGroupRenameClick = {
+
+                },
+                onGroupHelpClick = {
+
                 },
                 onApproveTransactionClick = {
                     viewModel.handle(DashboardAction.ApproveTransaction(it))
