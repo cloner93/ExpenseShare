@@ -15,6 +15,7 @@ import model.User
 import org.milad.expense_share.Amount
 import usecase.friends.GetFriendsUseCase
 import usecase.groups.CreateGroupUseCase
+import usecase.groups.DeleteGroupUseCase
 import usecase.groups.GetGroupsUseCase
 import usecase.transactions.ApproveTransactionUseCase
 import usecase.transactions.CreateTransactionUseCase
@@ -26,6 +27,7 @@ class DashboardViewModel(
     private val getUserInfoUseCase: GetUserInfoUseCase,
     private val getGroupsUseCase: GetGroupsUseCase,
     private val createGroupUseCase: CreateGroupUseCase,
+    private val deleteGroupUseCase: DeleteGroupUseCase,
     private val getFriendsUseCase: GetFriendsUseCase,
     private val createTransactionUseCase: CreateTransactionUseCase,
 
@@ -101,6 +103,9 @@ class DashboardViewModel(
             }
 
             is DashboardAction.EditTransaction -> {}
+            is DashboardAction.DeleteGroup -> {
+deleteGroup(action.id)
+            }
         }
     }
 
@@ -239,42 +244,42 @@ class DashboardViewModel(
             }
         }
     }
-/*
-    private fun launchTotalCalculation(groups: List<Group>) {
-        viewModelScope.launch(Dispatchers.Default) {
-            val userId = getUserInfoUseCase().id
-            var totalOwed = Amount(0)
-            var totalOwe = Amount(0)
+    /*
+        private fun launchTotalCalculation(groups: List<Group>) {
+            viewModelScope.launch(Dispatchers.Default) {
+                val userId = getUserInfoUseCase().id
+                var totalOwed = Amount(0)
+                var totalOwe = Amount(0)
 
-            groups.forEach { group ->
-                val groupPaid: Amount = group.transactions.fold(Amount(0)) { acc, trx ->
-                    acc + trx.payers
-                        .filter { payer -> payer.user.id == userId }
-                        .fold(Amount(0)) { innerAcc, payer -> innerAcc + payer.amountPaid }
+                groups.forEach { group ->
+                    val groupPaid: Amount = group.transactions.fold(Amount(0)) { acc, trx ->
+                        acc + trx.payers
+                            .filter { payer -> payer.user.id == userId }
+                            .fold(Amount(0)) { innerAcc, payer -> innerAcc + payer.amountPaid }
+                    }
+
+                    val groupShare: Amount = group.transactions.fold(Amount(0)) { acc, trx ->
+                        acc + trx.shareDetails.members
+                            .filter { share -> share.user.id == userId }
+                            .fold(Amount(0)) { innerAcc, share -> innerAcc + share.share }
+                    }
+
+                    val net = groupPaid - groupShare
+                    if (net > 0) {
+                        totalOwed += net
+                    } else if (net < 0) {
+                        totalOwe += -net  // Assuming Amount supports unary minus; if not, use net.abs() or equivalent
+                    }
                 }
 
-                val groupShare: Amount = group.transactions.fold(Amount(0)) { acc, trx ->
-                    acc + trx.shareDetails.members
-                        .filter { share -> share.user.id == userId }
-                        .fold(Amount(0)) { innerAcc, share -> innerAcc + share.share }
-                }
-
-                val net = groupPaid - groupShare
-                if (net > 0) {
-                    totalOwed += net
-                } else if (net < 0) {
-                    totalOwe += -net  // Assuming Amount supports unary minus; if not, use net.abs() or equivalent
+                setState {
+                    it.copy(
+                        totalOwed = totalOwed,
+                        totalOwe = totalOwe
+                    )
                 }
             }
-
-            setState {
-                it.copy(
-                    totalOwed = totalOwed,
-                    totalOwe = totalOwe
-                )
-            }
-        }
-    }*/
+        }*/
 
     private fun launchTotalCalculation(groups: List<Group>) {
         viewModelScope.launch(Dispatchers.Default) {
@@ -292,7 +297,7 @@ class DashboardViewModel(
 
     data class Balance(
         val owed: Amount,
-        val owe: Amount
+        val owe: Amount,
     )
 
     fun List<Group>.calculateBalance(userId: Int): Balance {
@@ -353,6 +358,26 @@ class DashboardViewModel(
         }
     }
 
+    private fun deleteGroup(groupId: String) {
+        viewModelScope.launch {
+            deleteGroupUseCase(groupId).collect { result ->
+                result.onSuccess {
+                    setState {
+                        it.selectedGroup?.let { selectedGroup ->
+                            it.copy(
+                                groups = it.groups - selectedGroup,
+                                selectedGroup = null
+                            )
+                        } ?: it.copy()
+                    }
+                    postEvent(DashboardEvent.GroupCreatedSuccessful)
+                }.onFailure {
+                    print(it)
+                }
+            }
+        }
+    }
+
     private fun navigateBack() {
         setState { it.copy(selectedGroup = null, isDetailVisible = false) }
     }
@@ -377,6 +402,8 @@ sealed interface DashboardAction : BaseViewAction {
     data class RejectTransaction(val trxId: String) : DashboardAction
     data class DeleteTransaction(val trxId: String) : DashboardAction
     data class EditTransaction(val trxId: String) : DashboardAction
+
+    data class DeleteGroup(val id: String) : DashboardAction
 }
 
 data class DashboardState(
