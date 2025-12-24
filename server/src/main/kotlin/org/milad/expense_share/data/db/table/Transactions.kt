@@ -10,7 +10,7 @@ import java.sql.ResultSet
 
 object Transactions : Table("transactions") {
     val id = integer("id").autoIncrement()
-    val groupId = integer("group_id") references Groups.id
+    val groupId = integer("group_id").references(Groups.id, onDelete = ReferenceOption.CASCADE)
     val title = varchar("title", 255)
     val amount = amount("amount")
     val description = text("description")

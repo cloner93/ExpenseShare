@@ -101,12 +101,8 @@ class GroupRepositoryImpl : GroupRepository {
     }
 
     override fun deleteGroup(ownerId: Int, groupId: Int): Boolean = transaction {
-        val deleted = Groups.deleteWhere {
+        Groups.deleteWhere {
             (Groups.id eq groupId) and (Groups.ownerId eq ownerId)
-        }
-        if (deleted > 0) {
-            GroupMembers.deleteWhere { GroupMembers.groupId eq groupId }
-            true
-        } else false
+        } > 0
     }
 }
