@@ -21,7 +21,7 @@ class GroupsRepositoryImpl(private val networkManager: NetworkManager) : GroupsR
     override suspend fun updateGroupMembers(
         groupId: String,
         memberIds: List<String>
-    ): Flow<Result<Unit>> {
+    ): Flow<Result<String>> {
         return networkManager.put("/groups/$groupId/updateMembers", body = memberIds)
     }
 

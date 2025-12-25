@@ -17,6 +17,7 @@ import usecase.friends.GetFriendsUseCase
 import usecase.groups.CreateGroupUseCase
 import usecase.groups.DeleteGroupUseCase
 import usecase.groups.GetGroupsUseCase
+import usecase.groups.UpdateGroupMembersUseCase
 import usecase.transactions.ApproveTransactionUseCase
 import usecase.transactions.CreateTransactionUseCase
 import usecase.transactions.DeleteTransactionUseCase
@@ -28,6 +29,7 @@ class DashboardViewModel(
     private val getGroupsUseCase: GetGroupsUseCase,
     private val createGroupUseCase: CreateGroupUseCase,
     private val deleteGroupUseCase: DeleteGroupUseCase,
+    private val updateGroupUseCase: UpdateGroupMembersUseCase,
     private val getFriendsUseCase: GetFriendsUseCase,
     private val createTransactionUseCase: CreateTransactionUseCase,
 
@@ -52,13 +54,11 @@ class DashboardViewModel(
                     isDetailVisible = true,
                 )
             }
-
             is DashboardAction.NavigateBack -> navigateBack()
             is DashboardAction.AddGroup -> createGroup(action.groupName, action.members)
             is DashboardAction.ShowExtraPane -> {
                 setState { it.copy(extraPaneContentState = action.content) }
             }
-
             is DashboardAction.AddExpense -> createTransaction(
                 action.expenseName,
                 action.amount,
@@ -66,7 +66,6 @@ class DashboardViewModel(
                 action.payers,
                 action.shareDetails,
             )
-
             DashboardAction.LoadTesting -> {
                 viewModelScope.launch {
                     print("strat")
@@ -80,31 +79,46 @@ class DashboardViewModel(
                     setState { it.copy(extraPaneError = Throwable("Test Error")) }
                 }
             }
-
             is DashboardAction.ApproveTransaction -> {
                 approveTransaction(
                     viewState.value.selectedGroup?.id.toString(),
                     action.trxId
                 )
             }
-
             is DashboardAction.RejectTransaction -> {
                 rejectTransaction(
                     viewState.value.selectedGroup?.id.toString(),
                     action.trxId
                 )
             }
-
             is DashboardAction.DeleteTransaction -> {
                 deleteTransaction(
                     viewState.value.selectedGroup?.id.toString(),
                     action.trxId
                 )
             }
-
             is DashboardAction.EditTransaction -> {}
             is DashboardAction.DeleteGroup -> {
 deleteGroup(action.id)
+            }
+            is DashboardAction.UpdateGroupMembers -> {
+                updateGroupMembers(action.userId)
+            }
+        }
+    }
+
+    private fun updateGroupMembers(userId: List<String>) {
+        viewModelScope.launch {
+//        setState { it.copy(selectedGroup = it.selectedGroup?.copy(members = userId)) }
+            updateGroupUseCase(
+                viewState.value.selectedGroup?.id.toString(),
+                userId
+            ).collect { result ->
+                result.onSuccess {
+                    loadData()
+                }.onFailure {
+
+                }
             }
         }
     }
@@ -397,13 +411,12 @@ sealed interface DashboardAction : BaseViewAction {
         val payers: List<PayerDto>?,
         val shareDetails: ShareDetailsRequest?,
     ) : DashboardAction
-
     data class ApproveTransaction(val trxId: String) : DashboardAction
     data class RejectTransaction(val trxId: String) : DashboardAction
     data class DeleteTransaction(val trxId: String) : DashboardAction
     data class EditTransaction(val trxId: String) : DashboardAction
-
     data class DeleteGroup(val id: String) : DashboardAction
+    data class UpdateGroupMembers(val userId: List<String>) : DashboardAction
 }
 
 data class DashboardState(

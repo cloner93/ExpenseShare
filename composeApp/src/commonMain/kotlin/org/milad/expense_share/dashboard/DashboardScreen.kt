@@ -112,6 +112,9 @@ fun DashboardScreen(
                 onGroupDeleteClick = {
                     viewModel.handle(DashboardAction.DeleteGroup(it))
                 },
+                onGroupUpdateMember = {
+                    viewModel.handle(DashboardAction.UpdateGroupMembers(it))
+                },
                 onGroupRenameClick = {
 
                 },
