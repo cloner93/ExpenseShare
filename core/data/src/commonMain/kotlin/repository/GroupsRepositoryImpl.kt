@@ -20,9 +20,9 @@ class GroupsRepositoryImpl(private val networkManager: NetworkManager) : GroupsR
 
     override suspend fun updateGroupMembers(
         groupId: String,
-        memberIds: List<String>
+        memberIds: List<Int>
     ): Flow<Result<String>> {
-        return networkManager.put("/groups/$groupId/updateMembers", body = memberIds)
+        return networkManager.post("/groups/$groupId/updateMembers", body = memberIds)
     }
 
     override suspend fun deleteGroup(groupId: String): Flow<Result<String>> {
