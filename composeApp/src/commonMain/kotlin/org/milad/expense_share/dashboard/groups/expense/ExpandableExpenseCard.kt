@@ -133,7 +133,7 @@ fun ExpandableExpenseCard(
                                 ?: Amount(0)
                         val net = iPaid - myShare
 
-                        if (net < 0) {
+                        if (net.isNegative()) {
                             Column(
                                 modifier = Modifier
                                     .clip(CardDefaults.shape)
@@ -146,7 +146,7 @@ fun ExpandableExpenseCard(
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
                             }
-                        } else if (net > 0) {
+                        } else if (net.isPositive()) {
                             Column(
                                 modifier = Modifier
                                     .clip(CardDefaults.shape)

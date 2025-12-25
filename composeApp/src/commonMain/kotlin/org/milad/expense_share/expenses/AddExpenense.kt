@@ -175,7 +175,7 @@ fun AddExpense(
 
             if (groupName.isBlank()) nameError = "Name cannot be empty"
             val priceVal = Amount(expensePrice)
-            if (priceVal <= 0) priceError = "Invalid price"
+            if (priceVal.isNegative() || priceVal.isZero()) priceError = "Invalid price"
             if (payers.isEmpty()) payerError = "Select at least one payer"
             if (members.isEmpty()) memberError = "Select at least one member"
             if (shareType == null) shareTypeError = "Choose a share type"
@@ -189,7 +189,7 @@ fun AddExpense(
             }
 
             val payerTotal = Amount(finalPayerMap.values.sumOf { it.value })
-            if (priceVal > 0 && payerTotal != priceVal) {
+            if (priceVal.isPositive() && payerTotal != priceVal) {
                 payerError =
                     "Total payer amounts (${payerTotal}) must equal the expense price"
             }
@@ -734,7 +734,7 @@ fun EqualSplitSection(
     onAmountsUpdated: (Map<User, Amount>) -> Unit,
 ) {
     val eachUser = remember(users.size, amount) {
-        if (amount > 0 || users.isNotEmpty()) amount / users.size else Amount(0)
+        if (amount.isPositive() || users.isNotEmpty()) amount / users.size else Amount(0)
     }
 
     LaunchedEffect(eachUser, users.size) {
@@ -778,7 +778,7 @@ fun PercentSplitSection(
     LaunchedEffect(percents.values.toList(), amount) {
         val result = users.associateWith { user ->
             val percent = percents[user] ?: 0f
-            val userAmount = if (amount > 0) Amount((amount.value * (percent / 100f)).toLong()) else
+            val userAmount = if (amount.isPositive()) Amount((amount.value * (percent / 100f)).toLong()) else
                 Amount(0)
             userAmount
         }
@@ -792,7 +792,7 @@ fun PercentSplitSection(
         users.forEachIndexed { index, user ->
             val percent = percents[user] ?: 0f
 
-            val userAmount = if (amount > 0)
+            val userAmount = if (amount.isPositive())
                 amount * (percent / 100f).toLong()
             else Amount(0)
 
@@ -828,7 +828,7 @@ fun PercentSplitSection(
                 },
                 bottom = {
                     Slider(
-                        enabled = amount != Amount(0),
+                        enabled = !amount.isZero(),
                         value = percent,
                         onValueChange = { newValue ->
                             percents[user] = newValue
@@ -858,7 +858,7 @@ fun WeightSplitSection(
         val result = users.associateWith { user ->
             val w = weights[user] ?: 1f
             val userAmount =
-                if (amount > 0) amount * (w / totalWeight).toLong() else Amount(0)
+                if (amount.isPositive()) amount * (w / totalWeight).toLong() else Amount(0)
             userAmount
         }
         onAmountsUpdated(result)
@@ -868,7 +868,7 @@ fun WeightSplitSection(
         users.forEachIndexed { index, user ->
             val weight = weights[user] ?: 1f
 
-            val userAmount = if (amount > Amount(0))
+            val userAmount = if (amount.isPositive())
                 amount * (weight / totalWeight).toLong()
             else Amount(0)
 
@@ -897,7 +897,7 @@ fun WeightSplitSection(
                 },
                 bottom = {
                     Slider(
-                        enabled = amount != Amount(0),
+                        enabled = !amount.isZero(),
                         value = weight,
                         onValueChange = { weights[user] = it },
                         valueRange = 1f..3f,
