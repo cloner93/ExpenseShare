@@ -1,7 +1,6 @@
 package org.milad.expense_share.presentation.groups
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
@@ -13,12 +12,10 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import org.milad.expense_share.domain.service.GroupService
-import org.milad.expense_share.domain.service.TransactionService
 import org.milad.expense_share.presentation.api_model.ErrorResponse
 import org.milad.expense_share.presentation.api_model.SuccessResponse
 import org.milad.expense_share.presentation.groups.model.AddUserRequest
 import org.milad.expense_share.presentation.groups.model.CreateGroupRequest
-import org.milad.expense_share.presentation.transactions.model.CreateTransactionRequest
 import org.milad.expense_share.utils.getIntParameter
 import org.milad.expense_share.utils.getUserId
 
@@ -86,8 +83,8 @@ internal fun Routing.groupsRoutes(
                         ErrorResponse("Invalid group ID", "INVALID_GROUP_ID")
                     )
 
-                val request = call.receive<AddUserRequest>()
-                groupService.addUsers(userId, groupId, request.memberIds)
+                val request = call.receive<List<Int>>()
+                groupService.updateGroupUsers(userId, groupId, request)
                     .onSuccess { call.respond(HttpStatusCode.OK, SuccessResponse(data = it)) }
                     .onFailure {
                         call.respond(

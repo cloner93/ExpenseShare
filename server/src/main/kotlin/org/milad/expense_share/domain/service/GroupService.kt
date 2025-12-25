@@ -59,11 +59,11 @@ class GroupService(
         return users
     }
 
-    fun addUsers(userId: Int, groupId: Int, memberIds: List<Int>): Result<String> {
-        return if (groupRepository.addUsersToGroup(userId, groupId, memberIds)) {
-            Result.success("Users added successfully")
+    fun updateGroupUsers(userId: Int, groupId: Int, memberIds: List<Int>): Result<String> {
+        return if (groupRepository.updateGroupUsers(userId, groupId, memberIds)) {
+            Result.success("Users update successfully")
         } else {
-            Result.failure(IllegalAccessException("Only group owner can add members"))
+            Result.failure(IllegalAccessException("Only group owner can update members"))
         }
     }
 

@@ -37,7 +37,7 @@ class InMemoryGroupRepository : GroupRepository {
         )
     }
 
-    override fun addUsersToGroup(
+    override fun updateGroupUsers(
         ownerId: Int,
         groupId: Int,
         memberIds: List<Int>

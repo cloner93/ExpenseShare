@@ -60,26 +60,37 @@ class GroupRepositoryImpl : GroupRepository {
     }
 
 
-    override fun addUsersToGroup(ownerId: Int, groupId: Int, memberIds: List<Int>): Boolean =
-        transaction {
-            val group = Groups.selectAll()
-                .where { (Groups.id eq groupId) and (Groups.ownerId eq ownerId) }
-                .singleOrNull()
-                ?: throw IllegalArgumentException("Group not found or you are not the owner")
+    override fun updateGroupUsers(
+        ownerId: Int,
+        groupId: Int,
+        memberIds: List<Int>
+    ): Boolean = transaction {
 
-            GroupMembers.deleteWhere { GroupMembers.groupId eq groupId }
+        val groupExists = Groups
+            .selectAll().where { (Groups.id eq groupId) and (Groups.ownerId eq ownerId) }
+            .any()
 
-            // add back owner + members
-            val allMembers = memberIds.distinct() + ownerId
-            allMembers.forEach { memberId ->
-                GroupMembers.insert {
-                    it[GroupMembers.groupId] = groupId
-                    it[GroupMembers.userId] = memberId
-                }
-            }
+        if (!groupExists) return@transaction false
 
-            true
+        val allMembers = (memberIds + ownerId).distinct()
+
+        val validUserIds = Users
+            .selectAll().where { Users.id inList allMembers }
+            .map { it[Users.id] }
+            .toSet()
+
+        if (validUserIds.size != allMembers.size) return@transaction false
+
+        GroupMembers.deleteWhere { GroupMembers.groupId eq groupId }
+
+        GroupMembers.batchInsert(validUserIds) { userId ->
+            this[GroupMembers.groupId] = groupId
+            this[GroupMembers.userId] = userId
         }
+
+        true
+    }
+
 
     override fun getUsersOfGroup(groupId: Int): List<Int> = transaction {
         GroupMembers.selectAll().where { GroupMembers.groupId eq groupId }
