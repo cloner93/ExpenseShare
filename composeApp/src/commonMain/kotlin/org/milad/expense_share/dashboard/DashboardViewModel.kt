@@ -33,7 +33,6 @@ class DashboardViewModel(
     private val getFriendsUseCase: GetFriendsUseCase,
     private val createTransactionUseCase: CreateTransactionUseCase,
 
-//    private val getTransactionsUseCase: GetTransactionsUseCase,
     private val approveTransactionUseCase: ApproveTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val rejectTransactionUseCase: RejectTransactionUseCase,
@@ -107,17 +106,33 @@ deleteGroup(action.id)
         }
     }
 
-    private fun updateGroupMembers(userId: List<String>) {
+    private fun updateGroupMembers(userId: List<Int>) {
         viewModelScope.launch {
-//        setState { it.copy(selectedGroup = it.selectedGroup?.copy(members = userId)) }
+            setState {
+                it.copy(
+                    detailPaneLoading = true,
+                    detailPaneError = null
+                )
+            }
             updateGroupUseCase(
                 viewState.value.selectedGroup?.id.toString(),
                 userId
             ).collect { result ->
                 result.onSuccess {
+                    setState {
+                        it.copy(
+                            detailPaneLoading = false,
+                            detailPaneError = null
+                        )
+                    }
                     loadData()
-                }.onFailure {
-
+                }.onFailure { e ->
+                    setState {
+                        it.copy(
+                            detailPaneLoading = false,
+                            detailPaneError = e
+                        )
+                    }
                 }
             }
         }
@@ -155,7 +170,6 @@ deleteGroup(action.id)
             }
         }
     }
-
 
     private fun approveTransaction(groupId: String, transactionId: String) {
         viewModelScope.launch {
@@ -345,7 +359,6 @@ deleteGroup(action.id)
         )
     }
 
-
     private fun createGroup(groupName: String, members: List<Int>) {
         viewModelScope.launch {
             setState { it.copy(extraPaneLoading = true, extraPaneError = null) }
@@ -416,7 +429,7 @@ sealed interface DashboardAction : BaseViewAction {
     data class DeleteTransaction(val trxId: String) : DashboardAction
     data class EditTransaction(val trxId: String) : DashboardAction
     data class DeleteGroup(val id: String) : DashboardAction
-    data class UpdateGroupMembers(val userId: List<String>) : DashboardAction
+    data class UpdateGroupMembers(val userId: List<Int>) : DashboardAction
 }
 
 data class DashboardState(

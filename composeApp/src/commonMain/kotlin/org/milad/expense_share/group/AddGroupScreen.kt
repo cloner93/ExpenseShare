@@ -285,7 +285,7 @@ private fun MemberRow(user: User, onDeleteClick: () -> Unit) {
 }
 
 @Composable
-private fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> Unit) {
+fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

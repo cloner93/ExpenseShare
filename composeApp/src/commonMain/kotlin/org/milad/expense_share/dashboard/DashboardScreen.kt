@@ -97,6 +97,7 @@ fun DashboardScreen(
                 selectedGroup = state.selectedGroup,
                 transactionLoading = state.transactionLoading,
                 transactionError = state.transactionError,
+                listOfFriends = state.friends,
                 onBackClick = {
                     viewModel.handle(DashboardAction.NavigateBack)
                     scope.launch { navigator.navigateBack() }
