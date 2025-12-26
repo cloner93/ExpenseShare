@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package org.milad.expense_share.dashboard.groups.expense
+package org.milad.expense_share.dashboard.expense
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring

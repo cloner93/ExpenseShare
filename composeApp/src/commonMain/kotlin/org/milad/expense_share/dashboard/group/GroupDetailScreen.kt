@@ -1,4 +1,4 @@
-package org.milad.expense_share.dashboard.groups
+package org.milad.expense_share.dashboard.group
 
 import EmptySelectionPlaceholder
 import androidx.compose.foundation.layout.Arrangement
@@ -52,9 +52,9 @@ import kotlinx.coroutines.launch
 import model.Group
 import model.User
 import org.milad.expense_share.dashboard.AppExtendedButton
-import org.milad.expense_share.dashboard.groups.expense.ConfirmBottomSheet
-import org.milad.expense_share.dashboard.groups.expense.ExpenseList
-import org.milad.expense_share.dashboard.groups.expense.MemberList
+import org.milad.expense_share.dashboard.expense.ConfirmBottomSheet
+import org.milad.expense_share.dashboard.expense.ExpenseList
+import org.milad.expense_share.dashboard.expense.MemberList
 import org.milad.expense_share.group.FriendSelectionRow
 
 @OptIn(ExperimentalMaterial3Api::class)

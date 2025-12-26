@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package org.milad.expense_share.dashboard.groups.expense
+package org.milad.expense_share.dashboard.expense
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

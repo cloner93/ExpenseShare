@@ -1,4 +1,4 @@
-package org.milad.expense_share.dashboard.groups.expense
+package org.milad.expense_share.dashboard.expense
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column

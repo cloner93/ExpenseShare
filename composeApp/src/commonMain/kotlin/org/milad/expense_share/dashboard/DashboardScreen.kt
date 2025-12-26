@@ -16,7 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
-import org.milad.expense_share.dashboard.groups.GroupDetailScreen
+import org.milad.expense_share.dashboard.group.GroupDetailScreen
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
