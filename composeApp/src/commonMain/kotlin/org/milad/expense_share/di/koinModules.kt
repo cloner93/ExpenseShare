@@ -6,6 +6,7 @@ import org.koin.dsl.module
 import org.milad.expense_share.auth.login.LoginViewModel
 import org.milad.expense_share.auth.register.RegisterViewModel
 import org.milad.expense_share.dashboard.DashboardViewModel
+import org.milad.expense_share.dashboard.group.GroupDetailViewModel
 import usecase.auth.LoginUserUseCase
 import usecase.auth.RegisterUserUseCase
 import usecase.friends.GetFriendsUseCase
@@ -51,6 +52,10 @@ val dashboardModule = module {
             get(),
             get()
         )
+    }
+
+    viewModel {
+        GroupDetailViewModel()
     }
 }
 val registerModule = module {

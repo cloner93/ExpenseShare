@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,8 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import model.Group
 import model.User
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 import org.milad.expense_share.dashboard.AppExtendedButton
 import org.milad.expense_share.dashboard.expense.ConfirmBottomSheet
 import org.milad.expense_share.dashboard.expense.ExpenseList
@@ -79,6 +82,13 @@ fun GroupDetailScreen(
     onEditTransactionClick: (String) -> Unit = {},
     onDeleteTransactionClick: (String) -> Unit = {},
 ) {
+    val viewModel: GroupDetailViewModel = koinViewModel(/*parameters = { parametersOf("groupId") }*/)
+    val state by viewModel.viewState.collectAsState()
+
+
+
+
+
     val sheetState = rememberModalBottomSheetState()
 
     var selectedTab by remember { mutableStateOf(GroupTab.Expenses) }
