@@ -1,6 +1,9 @@
 package org.milad.expense_share.dashboard
 
+import EmptySelectionPlaceholder
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
@@ -14,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import com.pmb.common.loading.FullScreenLoading
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.milad.expense_share.dashboard.group.GroupDetailScreen
@@ -70,24 +74,30 @@ fun DashboardScreen(
         directive = navigator.scaffoldDirective,
         value = navigator.scaffoldValue,
         listPane = {
-            Dashboard(
-                navLayoutType = navLayoutType,
-                currentUser = state.currentUser,
-                groups = state.groups,
-                onGroupClick = { group ->
-                    viewModel.handle(DashboardAction.SelectGroup(group))
-                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) }
-                },
-                selectedGroup = state.selectedGroup,
-                isListAndDetailVisible = isListAndDetailVisible,
-                isDetailVisible = !isDetailVisible,
-                totalOwed = state.totalOwed,
-                totalOwe = state.totalOwe,
-                onAddGroupClick = {
-                    viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddGroup))
-                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
-                }
-            )
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Dashboard(
+                    navLayoutType = navLayoutType,
+                    currentUser = state.currentUser,
+                    groups = state.groups,
+                    onGroupClick = { group ->
+                        viewModel.handle(DashboardAction.SelectGroup(group))
+                        scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) }
+                    },
+                    selectedGroup = state.selectedGroup,
+                    isListAndDetailVisible = isListAndDetailVisible,
+                    isDetailVisible = !isDetailVisible,
+                    totalOwed = state.totalOwed,
+                    totalOwe = state.totalOwe,
+                    onAddGroupClick = {
+                        viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddGroup))
+                        scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
+                    }
+                )
+                if (state.listPaneLoading)
+                    FullScreenLoading()
+            }
         },
         detailPane = {
             GroupDetailScreen(
