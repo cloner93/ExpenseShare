@@ -20,7 +20,9 @@ import androidx.compose.ui.Modifier
 import com.pmb.common.loading.FullScreenLoading
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 import org.milad.expense_share.dashboard.group.GroupDetailScreen
+import org.milad.expense_share.dashboard.group.GroupDetailViewModel
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -100,51 +102,19 @@ fun DashboardScreen(
             }
         },
         detailPane = {
-            GroupDetailScreen(
-                currentUser = state.currentUser,
-                isListAndDetailVisible = isListAndDetailVisible,
-                isDetailVisible = isDetailVisible,
-                selectedGroup = state.selectedGroup,
-                transactionLoading = state.transactionLoading,
-                transactionError = state.transactionError,
-                listOfFriends = state.friends,
-                onBackClick = {
-                    viewModel.handle(DashboardAction.NavigateBack)
-                    scope.launch { navigator.navigateBack() }
-                },
-                onAddExpenseClick = {
-                    viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddExpense))
-                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
-                },
-                onAddMemberClick = {
-                    viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddMember))
-                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
-                },
-                onGroupDeleteClick = {
-                    viewModel.handle(DashboardAction.DeleteGroup(it))
-                },
-                onGroupUpdateMember = {
-                    viewModel.handle(DashboardAction.UpdateGroupMembers(it))
-                },
-                onGroupRenameClick = {
+            state.selectedGroup?.let { selectedGroup ->
+                val viewModel: GroupDetailViewModel = koinViewModel(
+                    key = "group_${selectedGroup.id}",
+                    parameters = { parametersOf(selectedGroup) }
+                )
 
-                },
-                onGroupHelpClick = {
-
-                },
-                onApproveTransactionClick = {
-                    viewModel.handle(DashboardAction.ApproveTransaction(it))
-                },
-                onRejectTransactionClick = {
-                    viewModel.handle(DashboardAction.RejectTransaction(it))
-                },
-                onEditTransactionClick = {
-
-                },
-                onDeleteTransactionClick = {
-                    viewModel.handle(DashboardAction.DeleteTransaction(it))
-                },
-            )
+                GroupDetailScreen(
+                    state = viewModel.viewState.collectAsState().value,
+                    onAction = viewModel::handle
+                )
+            } ?: run {
+                EmptySelectionPlaceholder()
+            }
         },
         extraPane = {
             ExtraPaneContent(
