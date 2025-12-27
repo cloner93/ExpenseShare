@@ -97,6 +97,7 @@ kotlin {
             implementation(projects.core.common)
             implementation(projects.core.navigation)
             implementation(projects.core.currency)
+            implementation(projects.core.logger)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

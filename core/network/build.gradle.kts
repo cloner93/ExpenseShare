@@ -65,6 +65,8 @@ kotlin {
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
             implementation("io.mockative:mockative:3.0.1")
+
+            implementation(projects.core.logger)
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
