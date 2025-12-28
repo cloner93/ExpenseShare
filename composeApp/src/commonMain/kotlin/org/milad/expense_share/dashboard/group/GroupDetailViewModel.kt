@@ -10,16 +10,21 @@ import org.milad.expense_share.dashboard.group.components.GroupTab
 
 class GroupDetailViewModel(
     initialGroup: Group,
+    currentUser: User,
+    isListAndDetailVisible: Boolean,
+    isDetailVisible: Boolean
 ) : BaseViewModel<GroupDetailAction, GroupDetailState, GroupDetailEvent>(
     initialState = GroupDetailState(
-        selectedGroup = initialGroup
+        selectedGroup = initialGroup,
+        currentUser = currentUser,
+        isListAndDetailVisible = isListAndDetailVisible,
+        isDetailVisible = isDetailVisible
     )
 ) {
     override fun handle(action: GroupDetailAction) {
         when (action) {
-            GroupDetailAction.AddExpense -> TODO()
             GroupDetailAction.DismissDialog -> TODO()
-            GroupDetailAction.NavigateBack -> TODO()
+            GroupDetailAction.NavigateBack -> postEvent(GroupDetailEvent.NavigateBack)
             GroupDetailAction.ShowMemberSheet -> TODO()
             GroupDetailAction.ShowDeleteGroupDialog -> TODO()
             is GroupDetailAction.ApproveTransaction -> TODO()
@@ -28,10 +33,13 @@ class GroupDetailViewModel(
             is GroupDetailAction.RejectTransaction -> TODO()
             is GroupDetailAction.DeleteGroup -> TODO()
             is GroupDetailAction.RenameGroup -> TODO()
-            is GroupDetailAction.SelectTab -> TODO()
+            is GroupDetailAction.SelectTab -> setState { it.copy(selectedTab = action.tab) }
             is GroupDetailAction.ShowDeleteMemberDialog -> TODO()
             is GroupDetailAction.ShowHelp -> TODO()
             is GroupDetailAction.UpdateMembers -> TODO()
+            is GroupDetailAction.UpdateGroup -> {
+                setState { it.copy(selectedGroup = action.group) }
+            }
         }
     }
 }
@@ -41,7 +49,6 @@ sealed interface GroupDetailAction : BaseViewAction {
 
     data class SelectTab(val tab: GroupTab) : GroupDetailAction
 
-    data object AddExpense : GroupDetailAction
     data class ApproveTransaction(val transactionId: String) : GroupDetailAction
     data class RejectTransaction(val transactionId: String) : GroupDetailAction
     data class EditTransaction(val transactionId: String) : GroupDetailAction
@@ -51,6 +58,7 @@ sealed interface GroupDetailAction : BaseViewAction {
     data object ShowDeleteGroupDialog : GroupDetailAction
     data class ShowDeleteMemberDialog(val user: User) : GroupDetailAction
     data class UpdateMembers(val memberIds: List<Int>) : GroupDetailAction
+    data class UpdateGroup(val group: Group) : GroupDetailAction
 
     data class DeleteGroup(val groupId: Int) : GroupDetailAction
     data class RenameGroup(val groupId: Int) : GroupDetailAction
@@ -61,7 +69,7 @@ sealed interface GroupDetailAction : BaseViewAction {
 
 data class GroupDetailState(
     val selectedGroup: Group,
-    val currentUser: User? = null,
+    val currentUser: User,
     val selectedTab: GroupTab = GroupTab.Expenses,
     val friends: List<User> = emptyList(),
     val transactionLoading: Boolean = false,
@@ -72,13 +80,14 @@ data class GroupDetailState(
     val isDetailVisible: Boolean = false,
 ) : BaseViewState {
     val isOwner: Boolean
-        get() = selectedGroup.ownerId == currentUser?.id
+        get() = selectedGroup.ownerId == currentUser.id
 
     val showBackButton: Boolean
         get() = isDetailVisible && !isListAndDetailVisible
 }
 
 sealed interface GroupDetailEvent : BaseViewEvent {
+    data object NavigateBack : GroupDetailEvent
 }
 
 sealed interface DialogState {

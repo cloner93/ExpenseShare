@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import org.milad.expense_share.dashboard.ExtraPaneContentState
 import org.milad.expense_share.dashboard.group.components.GroupContent
 import org.milad.expense_share.dashboard.group.components.GroupFAB
 import org.milad.expense_share.dashboard.group.components.GroupTopBar
@@ -13,6 +14,7 @@ import org.milad.expense_share.dashboard.group.dialogs.GroupDialogs
 fun GroupDetailScreen(
     state: GroupDetailState,
     onAction: (GroupDetailAction) -> Unit,
+    onExtraAction: (ExtraPaneContentState) -> Unit,
 ){
 
     Scaffold(
@@ -27,7 +29,7 @@ fun GroupDetailScreen(
         floatingActionButton = {
             GroupFAB(
                 tab = state.selectedTab,
-                onAddExpense = { onAction(GroupDetailAction.AddExpense) },
+                onAddExpense = { onExtraAction(ExtraPaneContentState.AddExpense) },
                 onAddMember = { onAction(GroupDetailAction.ShowMemberSheet) }
             )
         }

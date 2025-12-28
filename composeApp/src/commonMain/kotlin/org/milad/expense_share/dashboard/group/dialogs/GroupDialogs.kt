@@ -19,9 +19,7 @@ fun GroupDialogs(
                 content = "Are you sure you want to delete this group? This action cannot be undone.",
                 isVisible = true,
                 onConfirm = {
-                    state.selectedGroup?.let {
-                        onAction(GroupDetailAction.DeleteGroup(it.id))
-                    }
+                    onAction(GroupDetailAction.DeleteGroup(state.selectedGroup.id))
                 },
                 onDismiss = { onAction(GroupDetailAction.DismissDialog) }
             )
@@ -33,10 +31,9 @@ fun GroupDialogs(
                 content = "Are you sure you want to remove ${dialogState.user.username} from this group?",
                 isVisible = true,
                 onConfirm = {
-                    val remainingMemberIds = state.selectedGroup?.members
-                        ?.filter { it.id != dialogState.user.id }
-                        ?.map { it.id }
-                        ?: emptyList()
+                    val remainingMemberIds = state.selectedGroup.members
+                        .filter { it.id != dialogState.user.id }
+                        .map { it.id }
                     
                     onAction(GroupDetailAction.UpdateMembers(remainingMemberIds))
                 },
@@ -48,7 +45,7 @@ fun GroupDialogs(
             MemberSelectionSheet(
                 visible = true,
                 friends = state.friends,
-                currentMembers = state.selectedGroup?.members ?: emptyList(),
+                currentMembers = state.selectedGroup.members,
                 onConfirm = { memberIds ->
                     onAction(GroupDetailAction.UpdateMembers(memberIds))
                 },
