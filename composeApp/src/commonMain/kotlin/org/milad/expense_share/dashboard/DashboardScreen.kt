@@ -21,6 +21,8 @@ import com.pmb.common.loading.FullScreenLoading
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import org.milad.expense_share.dashboard.group.GroupDetailAction
+import org.milad.expense_share.dashboard.group.GroupDetailEvent
 import org.milad.expense_share.dashboard.group.GroupDetailScreen
 import org.milad.expense_share.dashboard.group.GroupDetailViewModel
 
@@ -28,17 +30,17 @@ import org.milad.expense_share.dashboard.group.GroupDetailViewModel
 @Composable
 fun DashboardScreen(
     navLayoutType: NavigationSuiteType,
-    viewModel: DashboardViewModel = koinViewModel(),
+    dashboardViewModel: DashboardViewModel = koinViewModel(),
     shouldOpenAddGroup: Boolean = false,
     onAddGroupConsumed: () -> Unit = {},
 ) {
-    val state by viewModel.viewState.collectAsState()
+    val state by dashboardViewModel.viewState.collectAsState()
 
     val navigator = rememberListDetailPaneScaffoldNavigator<Nothing>()
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        viewModel.viewEvent.collect { event ->
+        dashboardViewModel.viewEvent.collect { event ->
             when (event) {
                 is DashboardEvent.ShowToast -> {
                 }
@@ -49,7 +51,7 @@ fun DashboardScreen(
                         navigator.navigateBack()
                     }
 
-                    viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.None))
+                    dashboardViewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.None))
                 }
             }
         }
@@ -57,7 +59,7 @@ fun DashboardScreen(
 
     LaunchedEffect(shouldOpenAddGroup) {
         if (shouldOpenAddGroup) {
-            viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddGroup))
+            dashboardViewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddGroup))
 
             navigator.navigateTo(ListDetailPaneScaffoldRole.Extra)
 
@@ -84,7 +86,7 @@ fun DashboardScreen(
                     currentUser = state.currentUser,
                     groups = state.groups,
                     onGroupClick = { group ->
-                        viewModel.handle(DashboardAction.SelectGroup(group))
+                        dashboardViewModel.handle(DashboardAction.SelectGroup(group))
                         scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) }
                     },
                     selectedGroup = state.selectedGroup,
@@ -93,7 +95,11 @@ fun DashboardScreen(
                     totalOwed = state.totalOwed,
                     totalOwe = state.totalOwe,
                     onAddGroupClick = {
-                        viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.AddGroup))
+                        dashboardViewModel.handle(
+                            DashboardAction.ShowExtraPane(
+                                ExtraPaneContentState.AddGroup
+                            )
+                        )
                         scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
                     }
                 )
@@ -105,12 +111,37 @@ fun DashboardScreen(
             state.selectedGroup?.let { selectedGroup ->
                 val viewModel: GroupDetailViewModel = koinViewModel(
                     key = "group_${selectedGroup.id}",
-                    parameters = { parametersOf(selectedGroup) }
+                    parameters = {
+                        parametersOf(
+                            selectedGroup,
+                            state.currentUser,
+                            isListAndDetailVisible,
+                            isDetailVisible
+                        )
+                    }
                 )
+                LaunchedEffect(selectedGroup) {
+                    viewModel.handle(GroupDetailAction.UpdateGroup(selectedGroup))
+                }
+
+                LaunchedEffect(Unit) {
+                    viewModel.viewEvent.collect { event ->
+                        when (event) {
+                            is GroupDetailEvent.NavigateBack -> {
+                                dashboardViewModel.handle(DashboardAction.NavigateBack)
+                                scope.launch { navigator.navigateBack() }
+                            }
+                        }
+                    }
+                }
 
                 GroupDetailScreen(
                     state = viewModel.viewState.collectAsState().value,
-                    onAction = viewModel::handle
+                    onAction = viewModel::handle,
+                    onExtraAction = {
+                        dashboardViewModel.handle(DashboardAction.ShowExtraPane(it))
+                        scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Extra) }
+                    }
                 )
             } ?: run {
                 EmptySelectionPlaceholder()
@@ -118,13 +149,13 @@ fun DashboardScreen(
         },
         extraPane = {
             ExtraPaneContent(
-                viewModel = viewModel
+                viewModel = dashboardViewModel
             ) {
                 scope.launch {
                     navigator.navigateBack()
                 }
 
-                viewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.None))
+                dashboardViewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.None))
             }
         },
     )

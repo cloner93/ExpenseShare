@@ -53,11 +53,13 @@ class DashboardViewModel(
                     isDetailVisible = true,
                 )
             }
+
             is DashboardAction.NavigateBack -> navigateBack()
             is DashboardAction.AddGroup -> createGroup(action.groupName, action.members)
             is DashboardAction.ShowExtraPane -> {
                 setState { it.copy(extraPaneContentState = action.content) }
             }
+
             is DashboardAction.AddExpense -> createTransaction(
                 action.expenseName,
                 action.amount,
@@ -65,6 +67,7 @@ class DashboardViewModel(
                 action.payers,
                 action.shareDetails,
             )
+
             DashboardAction.LoadTesting -> {
                 viewModelScope.launch {
                     print("strat")
@@ -78,28 +81,33 @@ class DashboardViewModel(
                     setState { it.copy(extraPaneError = Throwable("Test Error")) }
                 }
             }
+
             is DashboardAction.ApproveTransaction -> {
                 approveTransaction(
                     viewState.value.selectedGroup?.id.toString(),
                     action.trxId
                 )
             }
+
             is DashboardAction.RejectTransaction -> {
                 rejectTransaction(
                     viewState.value.selectedGroup?.id.toString(),
                     action.trxId
                 )
             }
+
             is DashboardAction.DeleteTransaction -> {
                 deleteTransaction(
                     viewState.value.selectedGroup?.id.toString(),
                     action.trxId
                 )
             }
+
             is DashboardAction.EditTransaction -> {}
             is DashboardAction.DeleteGroup -> {
-deleteGroup(action.id)
+                deleteGroup(action.id)
             }
+
             is DashboardAction.UpdateGroupMembers -> {
                 updateGroupMembers(action.userId)
             }
@@ -147,24 +155,28 @@ deleteGroup(action.id)
     ) {
         viewModelScope.launch {
             setState { it.copy(extraPaneLoading = true, extraPaneError = null) }
-            viewState.value.selectedGroup?.let {
+            viewState.value.selectedGroup?.let { group ->
                 createTransactionUseCase(
-                    groupId = it.id,
+                    groupId = group.id,
                     title = title,
                     amount = amount,
                     description = desc,
                     payers = payers,
                     shareDetails = shareDetails
                 ).collect { result ->
-                    result.onSuccess {
-                        setState { it.copy(extraPaneLoading = false, extraPaneError = null) }
+                    result.onSuccess { trx ->
+                        setState { state ->
+                            state.copy(
+                                extraPaneLoading = false,
+                                extraPaneError = null,
+                                selectedGroup = state.selectedGroup?.copy(
+                                    transactions = state.selectedGroup.transactions + trx
+                                )
+                            )
+                        }
                         postEvent(DashboardEvent.ExtraPaneSuccessful)
-                        // update groups
-                        loadData()
-
                     }.onFailure { e ->
                         setState { it.copy(extraPaneError = e, extraPaneLoading = false) }
-
                     }
                 }
             }
@@ -272,42 +284,6 @@ deleteGroup(action.id)
             }
         }
     }
-    /*
-        private fun launchTotalCalculation(groups: List<Group>) {
-            viewModelScope.launch(Dispatchers.Default) {
-                val userId = getUserInfoUseCase().id
-                var totalOwed = Amount(0)
-                var totalOwe = Amount(0)
-
-                groups.forEach { group ->
-                    val groupPaid: Amount = group.transactions.fold(Amount(0)) { acc, trx ->
-                        acc + trx.payers
-                            .filter { payer -> payer.user.id == userId }
-                            .fold(Amount(0)) { innerAcc, payer -> innerAcc + payer.amountPaid }
-                    }
-
-                    val groupShare: Amount = group.transactions.fold(Amount(0)) { acc, trx ->
-                        acc + trx.shareDetails.members
-                            .filter { share -> share.user.id == userId }
-                            .fold(Amount(0)) { innerAcc, share -> innerAcc + share.share }
-                    }
-
-                    val net = groupPaid - groupShare
-                    if (net > 0) {
-                        totalOwed += net
-                    } else if (net < 0) {
-                        totalOwe += -net  // Assuming Amount supports unary minus; if not, use net.abs() or equivalent
-                    }
-                }
-
-                setState {
-                    it.copy(
-                        totalOwed = totalOwed,
-                        totalOwe = totalOwe
-                    )
-                }
-            }
-        }*/
 
     private fun launchTotalCalculation(groups: List<Group>) {
         viewModelScope.launch(Dispatchers.Default) {
@@ -424,6 +400,7 @@ sealed interface DashboardAction : BaseViewAction {
         val payers: List<PayerDto>?,
         val shareDetails: ShareDetailsRequest?,
     ) : DashboardAction
+
     data class ApproveTransaction(val trxId: String) : DashboardAction
     data class RejectTransaction(val trxId: String) : DashboardAction
     data class DeleteTransaction(val trxId: String) : DashboardAction

@@ -55,7 +55,12 @@ val dashboardModule = module {
     }
 
     viewModel {
-        GroupDetailViewModel(get())
+        GroupDetailViewModel(
+            get(),
+            get(),
+            get(),
+            get()
+        )
     }
 }
 val registerModule = module {
