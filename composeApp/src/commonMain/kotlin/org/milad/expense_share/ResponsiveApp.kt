@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,7 +24,7 @@ import org.milad.expense_share.profile.ProfileScreen
 fun ResponsiveApp(
     onLogout: () -> Unit,
 ) {
-    var selectedItem by remember { mutableStateOf(NavItem.Dashboard) }
+    var selectedItem by rememberSaveable { mutableStateOf(NavItem.Dashboard) }
     val navController = rememberNavController()
     var triggerAddGroup by remember { mutableStateOf(false) }
 
@@ -33,18 +34,25 @@ fun ResponsiveApp(
             selectedItem = item
             when (item) {
                 NavItem.Dashboard -> navController.navigate(MainRoute.Dashboard) {
-                    popUpTo(MainRoute.Dashboard) { inclusive = true }
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
                     launchSingleTop = true
+                    restoreState = true
                 }
 
                 NavItem.Friends -> navController.navigate(MainRoute.Friends) {
-                    popUpTo(MainRoute.Dashboard)
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
 
                 NavItem.Profile -> navController.navigate(MainRoute.Profile) {
-                    popUpTo(MainRoute.Dashboard)
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
             }
         },
