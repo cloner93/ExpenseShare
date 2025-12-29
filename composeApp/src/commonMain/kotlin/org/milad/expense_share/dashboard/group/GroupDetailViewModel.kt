@@ -8,6 +8,7 @@ import com.pmb.common.viewmodel.BaseViewState
 import kotlinx.coroutines.launch
 import model.Group
 import model.Transaction
+import model.TransactionStatus
 import model.User
 import org.milad.expense_share.dashboard.group.components.GroupTab
 import usecase.transactions.ApproveTransactionUseCase
@@ -77,8 +78,24 @@ class GroupDetailViewModel(
 
             approveTransactionUseCase(groupId, transactionId).collect { result ->
                 result.onSuccess {
-                    setState { it.copy(transactionLoading = false, transactionError = null) }
-                    TODO()
+                    val trx =
+                        viewState.value.selectedGroup.transactions.find { it.id == transactionId.toInt() }
+                            ?.copy(status = TransactionStatus.APPROVED)!!
+                    setState {
+                        it.copy(
+                            transactionLoading = false, transactionError = null,
+                            selectedGroup = it.selectedGroup.copy(
+                                transactions = it.selectedGroup.transactions.map { item ->
+                                    if (item.id == trx.id) trx else item
+                                }
+                            )
+                        )
+                    }
+                    postEvent(
+                        GroupDetailEvent.UpdateTransactionsOfGroup(
+                            transactions = viewState.value.selectedGroup.transactions
+                        )
+                    )
                 }.onFailure { e ->
                     setState { it.copy(transactionError = e, transactionLoading = false) }
                 }
@@ -92,8 +109,25 @@ class GroupDetailViewModel(
 
             rejectTransactionUseCase(groupId, transactionId).collect { result ->
                 result.onSuccess {
-                    setState { it.copy(transactionLoading = false, transactionError = null) }
-                    TODO()
+                    val trx =
+                        viewState.value.selectedGroup.transactions.find { it.id == transactionId.toInt() }
+                            ?.copy(status = TransactionStatus.REJECTED)!!
+
+                    setState {
+                        it.copy(
+                            transactionLoading = false, transactionError = null,
+                            selectedGroup = it.selectedGroup.copy(
+                                transactions = it.selectedGroup.transactions.map { item ->
+                                    if (item.id == trx.id) trx else item
+                                }
+                            )
+                        )
+                    }
+                    postEvent(
+                        GroupDetailEvent.UpdateTransactionsOfGroup(
+                            transactions = viewState.value.selectedGroup.transactions
+                        )
+                    )
                 }.onFailure { e ->
                     setState { it.copy(transactionError = e, transactionLoading = false) }
                 }
@@ -116,9 +150,8 @@ class GroupDetailViewModel(
                     }
                     postEvent(
                         GroupDetailEvent.UpdateTransactionsOfGroup(
-                            transactions = viewState.value.selectedGroup.transactions.filter { trx -> trx.id != transactionId.toInt() }
-                        ))
-
+                            transactions = viewState.value.selectedGroup.transactions.filter { trx -> trx.id != transactionId.toInt() })
+                    )
                 }.onFailure { e ->
                     setState { it.copy(transactionError = e, transactionLoading = false) }
                 }
