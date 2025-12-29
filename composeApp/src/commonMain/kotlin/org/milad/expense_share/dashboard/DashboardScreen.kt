@@ -131,6 +131,9 @@ fun DashboardScreen(
                                 dashboardViewModel.handle(DashboardAction.NavigateBack)
                                 scope.launch { navigator.navigateBack() }
                             }
+                            is GroupDetailEvent.UpdateTransactionsOfGroup -> {
+                                dashboardViewModel.handle(DashboardAction.UpdateTransaction(event.transactions))
+                            }
                         }
                     }
                 }

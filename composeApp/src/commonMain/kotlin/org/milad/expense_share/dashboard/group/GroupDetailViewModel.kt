@@ -1,18 +1,28 @@
 package org.milad.expense_share.dashboard.group
 
+import androidx.lifecycle.viewModelScope
 import com.pmb.common.viewmodel.BaseViewAction
 import com.pmb.common.viewmodel.BaseViewEvent
 import com.pmb.common.viewmodel.BaseViewModel
 import com.pmb.common.viewmodel.BaseViewState
+import kotlinx.coroutines.launch
 import model.Group
+import model.Transaction
 import model.User
 import org.milad.expense_share.dashboard.group.components.GroupTab
+import usecase.transactions.ApproveTransactionUseCase
+import usecase.transactions.DeleteTransactionUseCase
+import usecase.transactions.RejectTransactionUseCase
 
 class GroupDetailViewModel(
     initialGroup: Group,
     currentUser: User,
     isListAndDetailVisible: Boolean,
-    isDetailVisible: Boolean
+    isDetailVisible: Boolean,
+
+    private val approveTransactionUseCase: ApproveTransactionUseCase,
+    private val deleteTransactionUseCase: DeleteTransactionUseCase,
+    private val rejectTransactionUseCase: RejectTransactionUseCase,
 ) : BaseViewModel<GroupDetailAction, GroupDetailState, GroupDetailEvent>(
     initialState = GroupDetailState(
         selectedGroup = initialGroup,
@@ -27,10 +37,28 @@ class GroupDetailViewModel(
             GroupDetailAction.NavigateBack -> postEvent(GroupDetailEvent.NavigateBack)
             GroupDetailAction.ShowMemberSheet -> TODO()
             GroupDetailAction.ShowDeleteGroupDialog -> TODO()
-            is GroupDetailAction.ApproveTransaction -> TODO()
-            is GroupDetailAction.DeleteTransaction -> TODO()
-            is GroupDetailAction.EditTransaction -> TODO()
-            is GroupDetailAction.RejectTransaction -> TODO()
+            is GroupDetailAction.ApproveTransaction -> {
+                approveTransaction(
+                    groupId = viewState.value.selectedGroup.id.toString(),
+                    transactionId = action.transactionId
+                )
+            }
+
+            is GroupDetailAction.DeleteTransaction -> {
+                deleteTransaction(
+                    groupId = viewState.value.selectedGroup.id.toString(),
+                    transactionId = action.transactionId
+                )
+            }
+
+            is GroupDetailAction.RejectTransaction -> {
+                rejectTransaction(
+                    groupId = viewState.value.selectedGroup.id.toString(),
+                    transactionId = action.transactionId
+                )
+            }
+
+            is GroupDetailAction.EditTransaction -> {}
             is GroupDetailAction.DeleteGroup -> TODO()
             is GroupDetailAction.RenameGroup -> TODO()
             is GroupDetailAction.SelectTab -> setState { it.copy(selectedTab = action.tab) }
@@ -39,6 +67,61 @@ class GroupDetailViewModel(
             is GroupDetailAction.UpdateMembers -> TODO()
             is GroupDetailAction.UpdateGroup -> {
                 setState { it.copy(selectedGroup = action.group) }
+            }
+        }
+    }
+
+    private fun approveTransaction(groupId: String, transactionId: String) {
+        viewModelScope.launch {
+            setState { it.copy(transactionLoading = true, transactionError = null) }
+
+            approveTransactionUseCase(groupId, transactionId).collect { result ->
+                result.onSuccess {
+                    setState { it.copy(transactionLoading = false, transactionError = null) }
+                    TODO()
+                }.onFailure { e ->
+                    setState { it.copy(transactionError = e, transactionLoading = false) }
+                }
+            }
+        }
+    }
+
+    private fun rejectTransaction(groupId: String, transactionId: String) {
+        viewModelScope.launch {
+            setState { it.copy(transactionLoading = true, transactionError = null) }
+
+            rejectTransactionUseCase(groupId, transactionId).collect { result ->
+                result.onSuccess {
+                    setState { it.copy(transactionLoading = false, transactionError = null) }
+                    TODO()
+                }.onFailure { e ->
+                    setState { it.copy(transactionError = e, transactionLoading = false) }
+                }
+            }
+        }
+    }
+
+    private fun deleteTransaction(groupId: String, transactionId: String) {
+        viewModelScope.launch {
+            setState { it.copy(transactionLoading = true, transactionError = null) }
+
+            deleteTransactionUseCase(groupId, transactionId).collect { result ->
+                result.onSuccess {
+                    setState {
+                        it.copy(
+                            transactionLoading = false, transactionError = null,
+                            selectedGroup = it.selectedGroup.copy(
+                                transactions = it.selectedGroup.transactions.filter { trx -> trx.id != transactionId.toInt() }
+                            ))
+                    }
+                    postEvent(
+                        GroupDetailEvent.UpdateTransactionsOfGroup(
+                            transactions = viewState.value.selectedGroup.transactions.filter { trx -> trx.id != transactionId.toInt() }
+                        ))
+
+                }.onFailure { e ->
+                    setState { it.copy(transactionError = e, transactionLoading = false) }
+                }
             }
         }
     }
@@ -88,6 +171,7 @@ data class GroupDetailState(
 
 sealed interface GroupDetailEvent : BaseViewEvent {
     data object NavigateBack : GroupDetailEvent
+    data class UpdateTransactionsOfGroup(val transactions: List<Transaction>) : GroupDetailEvent
 }
 
 sealed interface DialogState {

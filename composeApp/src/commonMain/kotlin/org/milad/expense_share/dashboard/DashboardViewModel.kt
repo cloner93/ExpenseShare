@@ -11,8 +11,10 @@ import kotlinx.coroutines.launch
 import model.Group
 import model.PayerDto
 import model.ShareDetailsRequest
+import model.Transaction
 import model.User
 import org.milad.expense_share.Amount
+import org.milad.expense_share.logger.AppLogger
 import usecase.friends.GetFriendsUseCase
 import usecase.groups.CreateGroupUseCase
 import usecase.groups.DeleteGroupUseCase
@@ -110,6 +112,27 @@ class DashboardViewModel(
 
             is DashboardAction.UpdateGroupMembers -> {
                 updateGroupMembers(action.userId)
+            }
+
+            is DashboardAction.UpdateTransaction -> {
+                viewState.value.selectedGroup?.let { group ->
+                    val group = group.copy(transactions = action.transactions)
+
+                    setState {
+                        it.copy(
+                            selectedGroup = group,
+                            groups = it.groups.map { g -> if (g.id == group.id) group else g }
+                        )
+                    }
+                    AppLogger.i("updateTransaction", "updated")
+                }
+
+                /*setState {
+                    it.copy(
+                        selectedGroup = action.group,
+                        groups = it.groups + action.group
+                    )
+                }*/
             }
         }
     }
@@ -407,6 +430,7 @@ sealed interface DashboardAction : BaseViewAction {
     data class EditTransaction(val trxId: String) : DashboardAction
     data class DeleteGroup(val id: String) : DashboardAction
     data class UpdateGroupMembers(val userId: List<Int>) : DashboardAction
+    data class UpdateTransaction(val transactions: List<Transaction>) : DashboardAction
 }
 
 data class DashboardState(
