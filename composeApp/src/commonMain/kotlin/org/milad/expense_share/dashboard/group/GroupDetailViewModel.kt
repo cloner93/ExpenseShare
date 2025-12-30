@@ -11,6 +11,9 @@ import model.Transaction
 import model.TransactionStatus
 import model.User
 import org.milad.expense_share.dashboard.group.components.GroupTab
+import usecase.friends.GetFriendsUseCase
+import usecase.groups.DeleteGroupUseCase
+import usecase.groups.UpdateGroupMembersUseCase
 import usecase.transactions.ApproveTransactionUseCase
 import usecase.transactions.DeleteTransactionUseCase
 import usecase.transactions.RejectTransactionUseCase
@@ -24,6 +27,9 @@ class GroupDetailViewModel(
     private val approveTransactionUseCase: ApproveTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val rejectTransactionUseCase: RejectTransactionUseCase,
+    private val deleteGroupUseCase: DeleteGroupUseCase,
+    private val updateGroupUseCase: UpdateGroupMembersUseCase,
+    private val getFriendsUseCase: GetFriendsUseCase,
 ) : BaseViewModel<GroupDetailAction, GroupDetailState, GroupDetailEvent>(
     initialState = GroupDetailState(
         selectedGroup = initialGroup,
@@ -34,10 +40,10 @@ class GroupDetailViewModel(
 ) {
     override fun handle(action: GroupDetailAction) {
         when (action) {
-            GroupDetailAction.DismissDialog -> TODO()
+            GroupDetailAction.DismissDialog -> setState { it.copy(dialogState = DialogState.None) }
             GroupDetailAction.NavigateBack -> postEvent(GroupDetailEvent.NavigateBack)
-            GroupDetailAction.ShowMemberSheet -> TODO()
-            GroupDetailAction.ShowDeleteGroupDialog -> TODO()
+            GroupDetailAction.ShowMemberSheet -> setState { it.copy(dialogState = DialogState.MemberSelection) }
+            GroupDetailAction.ShowDeleteGroupDialog -> setState { it.copy(dialogState = DialogState.DeleteGroup) }
             is GroupDetailAction.ApproveTransaction -> {
                 approveTransaction(
                     groupId = viewState.value.selectedGroup.id.toString(),
@@ -60,15 +66,27 @@ class GroupDetailViewModel(
             }
 
             is GroupDetailAction.EditTransaction -> {}
-            is GroupDetailAction.DeleteGroup -> TODO()
-            is GroupDetailAction.RenameGroup -> TODO()
-            is GroupDetailAction.SelectTab -> setState { it.copy(selectedTab = action.tab) }
-            is GroupDetailAction.ShowDeleteMemberDialog -> TODO()
-            is GroupDetailAction.ShowHelp -> TODO()
-            is GroupDetailAction.UpdateMembers -> TODO()
+
+            is GroupDetailAction.DeleteGroup -> deleteGroup(action.groupId.toString())
+            is GroupDetailAction.SelectTab -> {
+                setState { it.copy(selectedTab = action.tab) }
+                if (action.tab == GroupTab.Members && viewState.value.friends.isEmpty()) loadUserFriends()
+            }
+
+            is GroupDetailAction.ShowDeleteMemberDialog -> {
+                setState { it.copy(dialogState = DialogState.DeleteMember(action.user)) }
+            }
+
+            is GroupDetailAction.UpdateMembers -> {
+                updateGroupMembers(action.memberIds)
+            }
+
             is GroupDetailAction.UpdateGroup -> {
                 setState { it.copy(selectedGroup = action.group) }
             }
+
+            is GroupDetailAction.ShowHelp -> TODO("Not yet implemented")
+            is GroupDetailAction.RenameGroup -> TODO("Not yet implemented")
         }
     }
 
@@ -92,7 +110,7 @@ class GroupDetailViewModel(
                         )
                     }
                     postEvent(
-                        GroupDetailEvent.UpdateTransactionsOfGroup(
+                        GroupDetailEvent.UpdateTransactionsOfCurrentGroup(
                             transactions = viewState.value.selectedGroup.transactions
                         )
                     )
@@ -124,7 +142,7 @@ class GroupDetailViewModel(
                         )
                     }
                     postEvent(
-                        GroupDetailEvent.UpdateTransactionsOfGroup(
+                        GroupDetailEvent.UpdateTransactionsOfCurrentGroup(
                             transactions = viewState.value.selectedGroup.transactions
                         )
                     )
@@ -149,11 +167,98 @@ class GroupDetailViewModel(
                             ))
                     }
                     postEvent(
-                        GroupDetailEvent.UpdateTransactionsOfGroup(
+                        GroupDetailEvent.UpdateTransactionsOfCurrentGroup(
                             transactions = viewState.value.selectedGroup.transactions.filter { trx -> trx.id != transactionId.toInt() })
                     )
                 }.onFailure { e ->
                     setState { it.copy(transactionError = e, transactionLoading = false) }
+                }
+            }
+        }
+    }
+
+    private fun deleteGroup(groupId: String) {
+        viewModelScope.launch {
+            setState { it.copy(isLoading = true, error = null) }
+            deleteGroupUseCase(groupId).collect { result ->
+                result.onSuccess {
+                    setState { it.copy(isLoading = false, error = null) }
+
+                    postEvent(GroupDetailEvent.DeleteCurrentGroup)
+                }.onFailure {
+                    setState {
+                        it.copy(
+                            isLoading = false,
+                            error = it.error
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateGroupMembers(userId: List<Int>) {
+        viewModelScope.launch {
+            setState {
+                it.copy(
+                    isLoading = true,
+                    error = null
+                )
+            }
+            updateGroupUseCase(
+                viewState.value.selectedGroup.id.toString(),
+                userId
+            ).collect { result ->
+                result.onSuccess {
+                    var updatedMembers: List<User> = emptyList()
+                    setState { state ->
+                        val allPotentialUsers = (state.friends + state.selectedGroup.members + state.currentUser).distinct()
+                         updatedMembers = userId.mapNotNull { id ->
+                            allPotentialUsers.find { user -> user.id == id }
+                        }
+                        state.copy(
+                            isLoading = false,
+                            selectedGroup = state.selectedGroup.copy(
+                                members = updatedMembers
+                            )
+                        )
+                    }
+                    postEvent(GroupDetailEvent.UpdateMembersOfCurrentGroup(updatedMembers))
+                }.onFailure { e ->
+                    setState {
+                        it.copy(
+                            isLoading = false,
+                            error = e
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadUserFriends() {
+        viewModelScope.launch {
+            setState {
+                it.copy(
+                    isLoading = true,
+                    error = null
+                )
+            }
+            getFriendsUseCase().collect { result ->
+                result.onSuccess { newFriends ->
+                    setState {
+                        it.copy(
+                            isLoading = false,
+                            friends = it.friends + newFriends,
+                        )
+                    }
+                }.onFailure { e ->
+                    setState {
+                        it.copy(
+                            isLoading = false,
+                            error = e
+                        )
+                    }
                 }
             }
         }
@@ -188,7 +293,9 @@ data class GroupDetailState(
     val currentUser: User,
     val selectedTab: GroupTab = GroupTab.Expenses,
     val friends: List<User> = emptyList(),
+    val isLoading: Boolean = false,
     val transactionLoading: Boolean = false,
+    val error: Throwable? = null,
     val transactionError: Throwable? = null,
     val dialogState: DialogState = DialogState.None,
 
@@ -204,7 +311,11 @@ data class GroupDetailState(
 
 sealed interface GroupDetailEvent : BaseViewEvent {
     data object NavigateBack : GroupDetailEvent
-    data class UpdateTransactionsOfGroup(val transactions: List<Transaction>) : GroupDetailEvent
+    data class UpdateTransactionsOfCurrentGroup(val transactions: List<Transaction>) :
+        GroupDetailEvent
+
+    data class UpdateMembersOfCurrentGroup(val memberIds: List<User>) : GroupDetailEvent
+    data object DeleteCurrentGroup : GroupDetailEvent
 }
 
 sealed interface DialogState {
