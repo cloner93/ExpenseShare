@@ -52,6 +52,7 @@ fun GroupDropdownMenu(
             
             DropdownMenuItem(
                 text = { Text("Rename") },
+                enabled = false,
                 leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
                 onClick = {
                     expanded = false
@@ -64,6 +65,7 @@ fun GroupDropdownMenu(
 
         DropdownMenuItem(
             text = { Text("Help") },
+            enabled = false,
             leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Help, contentDescription = null) },
             trailingIcon = {
                 Icon(
