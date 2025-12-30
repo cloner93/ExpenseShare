@@ -21,6 +21,7 @@ import com.pmb.common.loading.FullScreenLoading
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import org.milad.expense_share.dashboard.DashboardAction.UpdateTransaction
 import org.milad.expense_share.dashboard.group.GroupDetailAction
 import org.milad.expense_share.dashboard.group.GroupDetailEvent
 import org.milad.expense_share.dashboard.group.GroupDetailScreen
@@ -131,8 +132,18 @@ fun DashboardScreen(
                                 dashboardViewModel.handle(DashboardAction.NavigateBack)
                                 scope.launch { navigator.navigateBack() }
                             }
-                            is GroupDetailEvent.UpdateTransactionsOfGroup -> {
-                                dashboardViewModel.handle(DashboardAction.UpdateTransaction(event.transactions))
+
+                            is GroupDetailEvent.UpdateTransactionsOfCurrentGroup -> {
+                                dashboardViewModel.handle(UpdateTransaction(event.transactions))
+                            }
+
+                            is GroupDetailEvent.DeleteCurrentGroup -> {
+                                dashboardViewModel.handle(DashboardAction.DeleteSelectedGroup)
+                                scope.launch { navigator.navigateBack() }
+                            }
+
+                            is GroupDetailEvent.UpdateMembersOfCurrentGroup -> {
+                                dashboardViewModel.handle(DashboardAction.UpdateGroupMembers(event.memberIds))
                             }
                         }
                     }
