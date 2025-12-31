@@ -265,7 +265,7 @@ class DashboardViewModel(
                             extraPaneError = null
                         )
                     }
-                    postEvent(DashboardEvent.GroupCreatedSuccessful)
+                    postEvent(DashboardEvent.ExtraPaneSuccessful)
                 }.onFailure { e ->
                     setState {
                         it.copy(
@@ -338,7 +338,6 @@ data class DashboardState(
 
 sealed interface DashboardEvent : BaseViewEvent {
     data class ShowToast(val message: String) : DashboardEvent
-    data object GroupCreatedSuccessful : DashboardEvent
     data object ExtraPaneSuccessful : DashboardEvent
 }
 
@@ -346,5 +345,4 @@ sealed class ExtraPaneContentState {
     data object None : ExtraPaneContentState()
     data object AddGroup : ExtraPaneContentState()
     data object AddExpense : ExtraPaneContentState()
-    data object AddMember : ExtraPaneContentState()
 }

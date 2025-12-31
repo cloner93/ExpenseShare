@@ -46,7 +46,6 @@ fun DashboardScreen(
                 is DashboardEvent.ShowToast -> {
                 }
 
-                DashboardEvent.GroupCreatedSuccessful -> scope.launch { navigator.navigateBack() }
                 DashboardEvent.ExtraPaneSuccessful -> {
                     scope.launch {
                         navigator.navigateBack()

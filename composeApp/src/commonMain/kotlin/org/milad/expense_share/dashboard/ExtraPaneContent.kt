@@ -48,9 +48,6 @@ fun ExtraPaneContent(
             }
         }
 
-        ExtraPaneContentState.AddMember -> {
-        }
-
         ExtraPaneContentState.None -> {
         }
     }
