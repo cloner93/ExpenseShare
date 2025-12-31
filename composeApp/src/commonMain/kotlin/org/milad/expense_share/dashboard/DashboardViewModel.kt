@@ -6,7 +6,6 @@ import com.pmb.common.viewmodel.BaseViewEvent
 import com.pmb.common.viewmodel.BaseViewModel
 import com.pmb.common.viewmodel.BaseViewState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import model.Group
 import model.PayerDto
@@ -58,20 +57,6 @@ class DashboardViewModel(
                 action.payers,
                 action.shareDetails,
             )
-
-            DashboardAction.LoadTesting -> {
-                viewModelScope.launch {
-                    print("strat")
-                    setState { it.copy(extraPaneLoading = true) }
-                    delay(1000)
-                    setState { it.copy(extraPaneLoading = false) }
-                    delay(1000)
-                    setState { it.copy(extraPaneLoading = true) }
-                    delay(1000)
-                    setState { it.copy(extraPaneLoading = false) }
-                    setState { it.copy(extraPaneError = Throwable("Test Error")) }
-                }
-            }
 
             DashboardAction.DeleteSelectedGroup -> deleteSelectedGroup()
 
@@ -298,7 +283,6 @@ class DashboardViewModel(
 sealed interface DashboardAction : BaseViewAction {
     data class ShowExtraPane(val content: ExtraPaneContentState) : DashboardAction
     data object LoadData : DashboardAction
-    data object LoadTesting : DashboardAction
     data class SelectGroup(val group: Group) : DashboardAction
     data object NavigateBack : DashboardAction
     data class AddGroup(val groupName: String, val members: List<Int>) : DashboardAction
@@ -321,7 +305,6 @@ data class DashboardState(
     val groups: List<Group> = emptyList(),
     val friends: List<User> = emptyList(),
     val selectedGroup: Group? = null,
-//    val transactions: List<Transaction> = emptyList(),
     val listPaneLoading: Boolean = true,
     val detailPaneLoading: Boolean = false,
     val transactionLoading: Boolean = false,
