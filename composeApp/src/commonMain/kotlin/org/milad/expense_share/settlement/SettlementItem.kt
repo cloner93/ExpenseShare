@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
@@ -34,7 +32,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,8 +50,6 @@ import com.pmb.common.theme.AppTheme
 import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
-import org.milad.expense_share.settlement.FakeDate.mockSettlementItems
-import org.milad.expense_share.settlement.FakeDate.userMilad
 import org.milad.expense_share.showSeparate
 
 data class SettlementItem(
@@ -103,23 +99,18 @@ fun SettlementListItem(
     )
 
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .alpha(alpha)
-            .then(
+        modifier = modifier.fillMaxWidth().alpha(alpha).then(
                 if (item.status is SettlementStatus.TheyPaid) {
                     Modifier.border(
                         1.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.medium
                     )
                 } else Modifier
-            ),
-        colors = CardDefaults.cardColors(
+            ), colors = CardDefaults.cardColors(
             containerColor = when (item.status) {
                 is SettlementStatus.Settled -> MaterialTheme.colorScheme.surfaceVariant
                 else -> MaterialTheme.colorScheme.surface
             }
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp)
@@ -130,8 +121,7 @@ fun SettlementListItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 UserColumn(
-                    name = item.debtor.username,
-                    isHighlighted = userRole == UserRole.DEBTOR
+                    name = item.debtor.username, isHighlighted = userRole == UserRole.DEBTOR
                 )
                 Column(
                     modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
@@ -146,8 +136,7 @@ fun SettlementListItem(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
+                        modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                     ) {
                         HorizontalDivider(color = amountColor)
                         Icon(
@@ -161,16 +150,14 @@ fun SettlementListItem(
                     }
                 }
                 UserColumn(
-                    name = item.creditor.username,
-                    isHighlighted = userRole == UserRole.CREDITOR
+                    name = item.creditor.username, isHighlighted = userRole == UserRole.CREDITOR
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
             StatusSection(
                 item = item,
                 onPayClick = { onPayClick(item) },
-                onApproveClick = { onApproveClick(item) }
-            ) { onCorrectClick(item) }
+                onApproveClick = { onApproveClick(item) }) { onCorrectClick(item) }
         }
     }
 }
@@ -232,8 +219,7 @@ private fun StatusSection(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
-                    onClick = onPayClick,
-                    colors = ButtonDefaults.buttonColors(
+                    onClick = onPayClick, colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
@@ -259,8 +245,7 @@ private fun StatusSection(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
-                    onClick = onApproveClick,
-                    colors = ButtonDefaults.buttonColors(
+                    onClick = onApproveClick, colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
@@ -345,22 +330,157 @@ private enum class UserRole {
     DEBTOR, CREDITOR, OBSERVER
 }
 
-
-@Preview
+@Preview(name = "1. You Owe")
 @Composable
-fun SettlementListItemPreview() {
-    AppTheme {
-        Scaffold { it ->
-            LazyColumn(
-                modifier = Modifier.padding(it),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+fun PreviewYouOwe() {
+    Column {
 
-            ) {
-                items(mockSettlementItems) {
-                    SettlementListItem(
-                        item = it, currentUserId = userMilad.id
-                    )
-                }
+        AppTheme(darkTheme = true) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[0], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+
+        AppTheme(darkTheme = false) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[0], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+    }
+    AppTheme(darkTheme = true) {
+        Surface {
+            SettlementListItem(
+                item = FakeDate.mockSettlementItems[0], currentUserId = FakeDate.userMilad.id
+            )
+        }
+    }
+}
+
+@Preview(name = "2. You Paid (Pending)")
+@Composable
+fun PreviewYouPaid() {
+    Column {
+        AppTheme(darkTheme = true) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[1], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+        AppTheme(darkTheme = false) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[1], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+    }
+}
+
+@Preview(name = "3. They Paid (Action Required)")
+@Composable
+fun PreviewTheyPaid() {
+    Column {
+        AppTheme(darkTheme = true) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[2], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+        AppTheme(darkTheme = false) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[2], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+    }
+}
+
+@Preview(name = "4. You Are Owed")
+@Composable
+fun PreviewYouAreOwed() {
+    Column {
+        AppTheme(darkTheme = true) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[3], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+        AppTheme(darkTheme = false) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[3], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+    }
+}
+
+@Preview(name = "5. Settled")
+@Composable
+fun PreviewSettled() {
+    Column {
+        AppTheme(darkTheme = true) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[4], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+        AppTheme(darkTheme = false) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[4], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+    }
+}
+
+@Preview(name = "6. Rejected")
+@Composable
+fun PreviewRejected() {
+    Column {
+        AppTheme(darkTheme = true) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[5], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+        AppTheme(darkTheme = false) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[5], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+    }
+}
+
+@Preview(name = "7. Third Party")
+@Composable
+fun PreviewThirdParty() {
+    Column {
+        AppTheme(darkTheme = true) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[6], currentUserId = FakeDate.userMilad.id
+                )
+            }
+        }
+        AppTheme(darkTheme = false) {
+            Surface {
+                SettlementListItem(
+                    item = FakeDate.mockSettlementItems[6], currentUserId = FakeDate.userMilad.id
+                )
             }
         }
     }
