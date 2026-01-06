@@ -1,4 +1,4 @@
-package org.milad.expense_share.settlement
+package org.milad.expense_share.dashboard.group.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -89,31 +90,37 @@ fun SettlementListItem(
         UserRole.CREDITOR -> MaterialTheme.colorScheme.tertiary
         UserRole.OBSERVER -> MaterialTheme.colorScheme.onBackground
     }
+    val backgroundColor = when (item.status) {
+        is SettlementStatus.Settled -> MaterialTheme.colorScheme.surfaceVariant
+        else -> MaterialTheme.colorScheme.surfaceContainerHighest
+    }
     val alpha by animateFloatAsState(
         targetValue = when (item.status) {
-            is SettlementStatus.YouPaid,
-                -> 0.7f
-
+            is SettlementStatus.YouPaid -> 0.7f
             else -> 1f
         }
     )
 
     Card(
-        modifier = modifier.fillMaxWidth().alpha(alpha).then(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .alpha(alpha).then(
                 if (item.status is SettlementStatus.TheyPaid) {
                     Modifier.border(
-                        1.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.medium
+                        1.dp,
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.shapes.medium
                     )
                 } else Modifier
-            ), colors = CardDefaults.cardColors(
-            containerColor = when (item.status) {
-                is SettlementStatus.Settled -> MaterialTheme.colorScheme.surfaceVariant
-                else -> MaterialTheme.colorScheme.surface
-            }
-        ), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -144,7 +151,7 @@ fun SettlementListItem(
                             contentDescription = null,
                             tint = amountColor,
                             modifier = Modifier.size(24.dp)
-                                .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                .background(backgroundColor, CircleShape)
                                 .padding(2.dp)
                         )
                     }
@@ -173,10 +180,14 @@ private fun UserColumn(
     ) {
 
         Box(
-            modifier = Modifier.size(56.dp).clip(CircleShape).background(
-                if (isHighlighted) MaterialTheme.colorScheme.primaryContainer
-                else MaterialTheme.colorScheme.surfaceVariant
-            ), contentAlignment = Alignment.Center
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(
+                    if (isHighlighted) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surfaceVariant
+                ),
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = name.firstOrNull()?.uppercase() ?: "?",
@@ -303,7 +314,7 @@ private fun StatusSection(
 @Composable
 private fun StatusLabel(
     text: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     color: Color,
 ) {
     Row(

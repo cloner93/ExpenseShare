@@ -1,9 +1,9 @@
 package org.milad.expense_share.dashboard.group.components
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -14,12 +14,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 @Composable
 fun GroupTabsRow(
     selectedTab: GroupTab,
-    onTabSelected: (GroupTab) -> Unit
+    onTabSelected: (GroupTab) -> Unit,
 ) {
     val tabs = listOf(
+        TabData(GroupTab.Settlement, Icons.Default.Wallet, "Settlement"),
         TabData(GroupTab.Expenses, Icons.Default.ReceiptLong, "Expenses"),
         TabData(GroupTab.Members, Icons.Default.Person, "Members"),
-        TabData(GroupTab.Feed, Icons.Default.Chat, "Feed"),
     )
 
     TabRow(
@@ -30,11 +30,11 @@ fun GroupTabsRow(
                 selected = selectedTab == tabData.tab,
                 onClick = { onTabSelected(tabData.tab) },
                 text = { Text(tabData.label) },
-                icon = { 
+                icon = {
                     Icon(
                         imageVector = tabData.icon,
                         contentDescription = tabData.label
-                    ) 
+                    )
                 }
             )
         }
@@ -44,7 +44,7 @@ fun GroupTabsRow(
 private data class TabData(
     val tab: GroupTab,
     val icon: ImageVector,
-    val label: String
+    val label: String,
 )
 
-enum class GroupTab { Expenses, Members, Feed }
+enum class GroupTab { Settlement, Expenses, Members }
