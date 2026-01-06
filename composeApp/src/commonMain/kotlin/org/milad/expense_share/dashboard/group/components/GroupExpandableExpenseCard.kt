@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package org.milad.expense_share.dashboard.expense
+package org.milad.expense_share.dashboard.group.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -45,6 +45,7 @@ import model.TransactionStatus
 import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
+import org.milad.expense_share.dashboard.group.screen.TrxActions
 import org.milad.expense_share.expenses.AnimatedLoadingButton
 import org.milad.expense_share.showSeparate
 

@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package org.milad.expense_share.dashboard.expense
+package org.milad.expense_share.dashboard.group.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +36,7 @@ import model.Group
 import model.Transaction
 import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.milad.expense_share.dashboard.group.components.ExpandableExpenseCard
 import org.milad.expense_share.expenses.AnimatedLoadingButton
 
 @Composable

@@ -1,16 +1,16 @@
 package org.milad.expense_share.dashboard.group.tabs
 
 import androidx.compose.runtime.Composable
-import org.milad.expense_share.dashboard.expense.ExpenseList
 import org.milad.expense_share.dashboard.group.GroupDetailAction
 import org.milad.expense_share.dashboard.group.GroupDetailState
+import org.milad.expense_share.dashboard.group.screen.ExpenseList
 
 @Composable
 fun ExpensesTab(
     state: GroupDetailState,
     onAction: (GroupDetailAction) -> Unit
 ) {
-    val group = state.selectedGroup ?: return
+    val group = state.selectedGroup
     
     ExpenseList(
         expenses = group.transactions,
