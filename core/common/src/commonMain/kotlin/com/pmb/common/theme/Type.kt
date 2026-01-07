@@ -1,39 +1,46 @@
 package com.pmb.common.theme
+
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import expenseshare.core.common.generated.resources.ADLaMDisplay_Regular
 import expenseshare.core.common.generated.resources.Res
+import expenseshare.core.common.generated.resources.adlam_display_regular
 import org.jetbrains.compose.resources.Font
 
 @Composable
 fun appTypography(): Typography {
-    val bodyFont = FontFamily(
-        Font(Res.font.ADLaMDisplay_Regular, weight = FontWeight.Normal)
+    val appFontFamily = FontFamily(
+
+        Font(resource = Res.font.adlam_display_regular, weight = FontWeight.Normal),
+        Font(resource = Res.font.adlam_display_regular, weight = FontWeight.Medium),
+        Font(resource = Res.font.adlam_display_regular, weight = FontWeight.Bold)
     )
 
-    val displayFont = FontFamily(
-        Font(Res.font.ADLaMDisplay_Regular, weight = FontWeight.Bold)
-    )
+    return remember(appFontFamily) {
+        val base = Typography()
 
-    val base = Typography()
+        Typography(
+            displayLarge = base.displayLarge.copy(fontFamily = appFontFamily),
+            displayMedium = base.displayMedium.copy(fontFamily = appFontFamily),
+            displaySmall = base.displaySmall.copy(fontFamily = appFontFamily),
 
-    return Typography(
-        displayLarge = base.displayLarge.copy(fontFamily = displayFont),
-        displayMedium = base.displayMedium.copy(fontFamily = displayFont),
-        displaySmall = base.displaySmall.copy(fontFamily = displayFont),
-        headlineLarge = base.headlineLarge.copy(fontFamily = displayFont),
-        headlineMedium = base.headlineMedium.copy(fontFamily = displayFont),
-        headlineSmall = base.headlineSmall.copy(fontFamily = displayFont),
-        titleLarge = base.titleLarge.copy(fontFamily = displayFont),
-        titleMedium = base.titleMedium.copy(fontFamily = displayFont),
-        titleSmall = base.titleSmall.copy(fontFamily = displayFont),
-        bodyLarge = base.bodyLarge.copy(fontFamily = bodyFont),
-        bodyMedium = base.bodyMedium.copy(fontFamily = bodyFont),
-        bodySmall = base.bodySmall.copy(fontFamily = bodyFont),
-        labelLarge = base.labelLarge.copy(fontFamily = bodyFont),
-        labelMedium = base.labelMedium.copy(fontFamily = bodyFont),
-        labelSmall = base.labelSmall.copy(fontFamily = bodyFont),
-    )
+            headlineLarge = base.headlineLarge.copy(fontFamily = appFontFamily),
+            headlineMedium = base.headlineMedium.copy(fontFamily = appFontFamily),
+            headlineSmall = base.headlineSmall.copy(fontFamily = appFontFamily),
+
+            titleLarge = base.titleLarge.copy(fontFamily = appFontFamily),
+            titleMedium = base.titleMedium.copy(fontFamily = appFontFamily),
+            titleSmall = base.titleSmall.copy(fontFamily = appFontFamily),
+
+            bodyLarge = base.bodyLarge.copy(fontFamily = appFontFamily),
+            bodyMedium = base.bodyMedium.copy(fontFamily = appFontFamily),
+            bodySmall = base.bodySmall.copy(fontFamily = appFontFamily),
+
+            labelLarge = base.labelLarge.copy(fontFamily = appFontFamily),
+            labelMedium = base.labelLarge.copy(fontFamily = appFontFamily),
+            labelSmall = base.labelSmall.copy(fontFamily = appFontFamily),
+        )
+    }
 }

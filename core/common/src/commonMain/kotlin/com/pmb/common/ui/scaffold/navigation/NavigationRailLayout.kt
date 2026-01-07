@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.runtime.Composable
@@ -24,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.scaffold.NavItem
 import com.pmb.common.ui.scaffold.components.CompactAddGroupButton
 import com.pmb.common.ui.scaffold.model.NavigationLayoutType
@@ -42,7 +42,7 @@ fun NavigationRailLayout(
 ) {
     NavigationRail(
         modifier = modifier.fillMaxHeight(),
-        containerColor = MaterialTheme.colorScheme.inverseOnSurface,
+        containerColor = AppTheme.colors.inverseOnSurface,
     ) {
         // Header section with menu button and add group FAB
         Column(

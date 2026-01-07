@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 
 
 @Composable
@@ -34,8 +35,8 @@ fun EmptyListState(
     title: String = "No Items Found",
     subtitle: String = "There are no items to display right now. Try refreshing or create a new one.",
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val typography = MaterialTheme.typography
+    val colorScheme = AppTheme.colors
+    val typography = AppTheme.typography
 
     val transition = rememberInfiniteTransition(label = "empty_list_anim")
     val scale by transition.animateFloat(

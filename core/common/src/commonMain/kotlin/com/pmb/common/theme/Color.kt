@@ -1,4 +1,5 @@
 package com.pmb.common.theme
+
 import androidx.compose.ui.graphics.Color
 
 val primaryLight = Color(0xFF6D5E0F)
@@ -216,3 +217,34 @@ val surfaceContainerLowDarkHighContrast = Color(0xFF222017)
 val surfaceContainerDarkHighContrast = Color(0xFF333027)
 val surfaceContainerHighDarkHighContrast = Color(0xFF3E3B32)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF4A473D)
+
+// Custom colors
+val successLight = Color(0xFF316A42)
+val onSuccessLight = Color(0xFFFFFFFF)
+val successContainerLight = Color(0xFFB3F1BE)
+val onSuccessContainerLight = Color(0xFF16512C)
+
+val successLightMediumContrast = Color(0xFF003F1D)
+val onSuccessLightMediumContrast = Color(0xFFFFFFFF)
+val successContainerLightMediumContrast = Color(0xFF40794F)
+val onSuccessContainerLightMediumContrast = Color(0xFFFFFFFF)
+
+val successLightHighContrast = Color(0xFF003417)
+val onSuccessLightHighContrast = Color(0xFFFFFFFF)
+val successContainerLightHighContrast = Color(0xFF19542E)
+val onSuccessContainerLightHighContrast = Color(0xFFFFFFFF)
+
+val successDark = Color(0xFF98D4A4)
+val onSuccessDark = Color(0xFF003919)
+val successContainerDark = Color(0xFF16512C)
+val onSuccessContainerDark = Color(0xFFB3F1BE)
+
+val successDarkMediumContrast = Color(0xFFADEBB9)
+val onSuccessDarkMediumContrast = Color(0xFF002D13)
+val successContainerDarkMediumContrast = Color(0xFF639D71)
+val onSuccessContainerDarkMediumContrast = Color(0xFF000000)
+
+val successDarkHighContrast = Color(0xFFC0FFCB)
+val onSuccessDarkHighContrast = Color(0xFF000000)
+val successContainerDarkHighContrast = Color(0xFF94D1A0)
+val onSuccessContainerDarkHighContrast = Color(0xFF000F04)

@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 
 @Composable
 fun EmptySelectionPlaceholder(
@@ -37,9 +38,9 @@ fun EmptySelectionPlaceholder(
     title: String = "Nothing Selected",
     subtitle: String = "Choose an item or create a new one to continue"
 ) {
-    val colorScheme = MaterialTheme.colorScheme
+    val colorScheme = AppTheme.colors
     val shapes = MaterialTheme.shapes
-    val typography = MaterialTheme.typography
+    val typography = AppTheme.typography
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
 

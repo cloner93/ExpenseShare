@@ -8,12 +8,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 
 /**
  * Compact FAB for Navigation Rail
@@ -26,8 +26,8 @@ fun CompactAddGroupButton(
     FloatingActionButton(
         onClick = onClick,
         modifier = modifier.padding(top = 8.dp, bottom = 32.dp),
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
+        containerColor = AppTheme.colors.primary,
+        contentColor = AppTheme.colors.onPrimary,
     ) {
         Icon(
             imageVector = Icons.Default.Add,
@@ -50,8 +50,8 @@ fun ExtendedAddGroupButton(
         modifier = modifier
             .fillMaxWidth()
             .padding(top = 8.dp, bottom = 40.dp),
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
+        containerColor = AppTheme.colors.primary,
+        contentColor = AppTheme.colors.onPrimary,
     ) {
         Icon(
             imageVector = Icons.Default.Add,

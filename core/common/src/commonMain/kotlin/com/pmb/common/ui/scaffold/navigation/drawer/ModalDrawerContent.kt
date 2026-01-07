@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.scaffold.NavItem
 import com.pmb.common.ui.scaffold.components.ExtendedAddGroupButton
 import com.pmb.common.ui.scaffold.model.NavigationContentPosition
@@ -53,7 +54,7 @@ fun ModalDrawerContent(
     ModalDrawerSheet(modifier = modifier) {
         Layout(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.inverseOnSurface)
+                .background(AppTheme.colors.inverseOnSurface)
                 .padding(16.dp),
             content = {
                 // Header section
@@ -117,8 +118,8 @@ private fun DrawerHeader(
     ) {
         Text(
             text = "expense share".uppercase(),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+            style = AppTheme.typography.titleMedium,
+            color = AppTheme.colors.primary,
         )
         IconButton(onClick = onCloseClick) {
             Icon(
