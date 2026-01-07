@@ -27,7 +27,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -77,7 +76,7 @@ fun ExpandableExpenseCard(
                 )
             ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            containerColor = AppTheme.colors.surfaceContainerHighest
         )
     ) {
         Column(
@@ -91,13 +90,13 @@ fun ExpandableExpenseCard(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
+                        .background(AppTheme.colors.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Home,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = AppTheme.colors.onPrimaryContainer
                     )
                 }
 
@@ -106,15 +105,15 @@ fun ExpandableExpenseCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = transaction.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = AppTheme.typography.titleMedium,
+                        color = AppTheme.colors.onSurface
                     )
 
                     val payerCount = transaction.payers.count()
                     Text(
                         text = "$payerCount member paid",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = AppTheme.typography.bodyMedium,
+                        color = AppTheme.colors.onSurfaceVariant
                     )
                 }
 
@@ -122,8 +121,8 @@ fun ExpandableExpenseCard(
                     Text(
                         modifier = Modifier.padding(horizontal = 8.dp),
                         text = "$${transaction.amount.showSeparate()}",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = AppTheme.colors.onSurface
                     )
                     currentUser?.let { (currentUserId, _, _) ->
                         val myShare =
@@ -138,26 +137,26 @@ fun ExpandableExpenseCard(
                             Column(
                                 modifier = Modifier
                                     .clip(CardDefaults.shape)
-                                    .background(MaterialTheme.colorScheme.errorContainer)
+                                    .background(AppTheme.colors.errorContainer)
                                     .padding(8.dp),
                             ) {
                                 Text(
                                     text = "You owe $${net.abs().showSeparate()}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                    style = AppTheme.typography.bodySmall,
+                                    color = AppTheme.colors.onErrorContainer
                                 )
                             }
                         } else if (net.isPositive()) {
                             Column(
                                 modifier = Modifier
                                     .clip(CardDefaults.shape)
-                                    .background(MaterialTheme.colorScheme.tertiaryContainer)
+                                    .background(AppTheme.colors.tertiaryContainer)
                                     .padding(8.dp),
                             ) {
                                 Text(
                                     text = "You lent $${net.abs().showSeparate()}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    style = AppTheme.typography.bodySmall,
+                                    color = AppTheme.colors.onTertiaryContainer
                                 )
                             }
                         }
@@ -173,7 +172,7 @@ fun ExpandableExpenseCard(
                     isUserAdminOfGroup && transaction.status == TransactionStatus.PENDING && !isCreator
 
                 Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                HorizontalDivider(color = AppTheme.colors.outlineVariant)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (transaction.description.isNotEmpty()) {
@@ -207,7 +206,7 @@ fun ExpandableExpenseCard(
 
                 if (isCreator || isUserAdminOfGroup) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    HorizontalDivider(color = AppTheme.colors.outlineVariant)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Row(
@@ -225,8 +224,8 @@ fun ExpandableExpenseCard(
                                     loading = currentTrxActionLoading == TrxActions.Approve && isLoading,
                                     onClick = { onApproveTransactionClick(transaction) },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                        containerColor = AppTheme.colors.tertiaryContainer,
+                                        contentColor = AppTheme.colors.onTertiaryContainer
                                     )
                                 )
                                 AnimatedLoadingButton(
@@ -235,8 +234,8 @@ fun ExpandableExpenseCard(
                                     loading = currentTrxActionLoading == TrxActions.Reject && isLoading,
                                     onClick = { onRejectTransactionClick(transaction) },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                        containerColor = AppTheme.colors.errorContainer,
+                                        contentColor = AppTheme.colors.onErrorContainer
                                     )
                                 )
 
@@ -253,8 +252,8 @@ fun ExpandableExpenseCard(
                                     loading = currentTrxActionLoading == TrxActions.Delete && isLoading,
                                     onClick = { onDeleteTransactionClick(transaction) },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                        containerColor = AppTheme.colors.errorContainer,
+                                        contentColor = AppTheme.colors.onErrorContainer
                                     )
                                 )
                             }
@@ -263,7 +262,7 @@ fun ExpandableExpenseCard(
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = "Options",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = AppTheme.colors.onSurfaceVariant,
                             modifier = Modifier.clickable {
                                 onMoreMenuTransactionClick(transaction)
                             }
@@ -285,14 +284,14 @@ fun SectionRow(title: String, value: String) {
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = AppTheme.typography.bodyMedium,
+            color = AppTheme.colors.onSurfaceVariant
         )
         if (value.isNotEmpty()) {
             Text(
                 text = value,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = AppTheme.typography.bodyMedium,
+                color = AppTheme.colors.onSurfaceVariant
             )
         }
     }
@@ -308,17 +307,17 @@ fun DetailRow(label: String, value: String, isBold: Boolean = false) {
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyLarge.copy(
+            style = AppTheme.typography.bodyLarge.copy(
                 fontWeight = if (isBold) FontWeight.SemiBold else FontWeight.Normal
             ),
-            color = MaterialTheme.colorScheme.onSurface
+            color = AppTheme.colors.onSurface
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyLarge.copy(
+            style = AppTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
-            color = MaterialTheme.colorScheme.onSurface
+            color = AppTheme.colors.onSurface
         )
     }
 }
@@ -364,22 +363,22 @@ val t = Transaction(
 @Composable
 fun ExpandableExpenseCardPreview() {
 
-    AppTheme {
-        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)) {
+    AppTheme(content = {
+        Column(modifier = Modifier.background(color = AppTheme.colors.surface)) {
             ExpandableExpenseCard(
                 transaction = t,
                 currentUser = User(0, "milad", "09137511005")
 
             )
         }
-    }
+    })
 }
 
 @Preview
 @Composable
 fun ExpandableExpenseCardPreview2() {
-    AppTheme {
-        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)) {
+    AppTheme(content = {
+        Column(modifier = Modifier.background(color = AppTheme.colors.surface)) {
 
             ExpandableExpenseCard(
                 transaction = t.copy(status = TransactionStatus.PENDING),
@@ -388,14 +387,14 @@ fun ExpandableExpenseCardPreview2() {
                 isExpanded = true
             )
         }
-    }
+    })
 }
 
 @Preview
 @Composable
 fun ExpandableExpenseCardPreview3() {
-    AppTheme {
-        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)) {
+    AppTheme(content = {
+        Column(modifier = Modifier.background(color = AppTheme.colors.surface)) {
 
             ExpandableExpenseCard(
                 transaction = t.copy(status = TransactionStatus.PENDING),
@@ -404,14 +403,14 @@ fun ExpandableExpenseCardPreview3() {
                 isExpanded = true
             )
         }
-    }
+    })
 }
 
 @Preview
 @Composable
 fun ExpandableExpenseCardPreview4() {
-    AppTheme {
-        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)) {
+    AppTheme(content = {
+        Column(modifier = Modifier.background(color = AppTheme.colors.surface)) {
 
             ExpandableExpenseCard(
                 transaction = t.copy(status = TransactionStatus.APPROVED),
@@ -420,5 +419,5 @@ fun ExpandableExpenseCardPreview4() {
                 isExpanded = true
             )
         }
-    }
+    })
 }

@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pmb.common.theme.AppTheme
+import model.Group
 import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
@@ -73,12 +74,12 @@ sealed class SettlementStatus {
 
 @Composable
 fun SettlementListItem(
+    modifier: Modifier = Modifier,
     item: SettlementItem,
     currentUserId: Int,
     onPayClick: (SettlementItem) -> Unit = {},
     onApproveClick: (SettlementItem) -> Unit = {},
     onCorrectClick: (SettlementItem) -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     val userRole = when (currentUserId) {
         item.debtor.id -> UserRole.DEBTOR
@@ -86,13 +87,13 @@ fun SettlementListItem(
         else -> UserRole.OBSERVER
     }
     val amountColor = when (userRole) {
-        UserRole.DEBTOR -> MaterialTheme.colorScheme.error
-        UserRole.CREDITOR -> MaterialTheme.colorScheme.tertiary
-        UserRole.OBSERVER -> MaterialTheme.colorScheme.onBackground
+        UserRole.DEBTOR -> AppTheme.colors.error
+        UserRole.CREDITOR -> AppTheme.colors.success
+        UserRole.OBSERVER -> AppTheme.colors.onBackground
     }
     val backgroundColor = when (item.status) {
-        is SettlementStatus.Settled -> MaterialTheme.colorScheme.surfaceVariant
-        else -> MaterialTheme.colorScheme.surfaceContainerHighest
+        is SettlementStatus.Settled -> AppTheme.colors.surfaceVariant
+        else -> AppTheme.colors.surfaceContainerHighest
     }
     val alpha by animateFloatAsState(
         targetValue = when (item.status) {
@@ -109,7 +110,7 @@ fun SettlementListItem(
                 if (item.status is SettlementStatus.TheyPaid) {
                     Modifier.border(
                         1.dp,
-                        MaterialTheme.colorScheme.primary,
+                        AppTheme.colors.primary,
                         MaterialTheme.shapes.medium
                     )
                 } else Modifier
@@ -184,8 +185,8 @@ private fun UserColumn(
                 .size(56.dp)
                 .clip(CircleShape)
                 .background(
-                    if (isHighlighted) MaterialTheme.colorScheme.primaryContainer
-                    else MaterialTheme.colorScheme.surfaceVariant
+                    if (isHighlighted) AppTheme.colors.primaryContainer
+                    else AppTheme.colors.surfaceVariant
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -193,7 +194,7 @@ private fun UserColumn(
                 text = name.firstOrNull()?.uppercase() ?: "?",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = AppTheme.colors.onSurfaceVariant
             )
         }
 
@@ -226,12 +227,12 @@ private fun StatusSection(
                 StatusLabel(
                     text = "You must pay!",
                     icon = Icons.Default.Payment,
-                    color = MaterialTheme.colorScheme.primary
+                    color = AppTheme.colors.primary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = onPayClick, colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = AppTheme.colors.primary
                     )
                 ) {
                     Icon(Icons.Default.Payment, contentDescription = null)
@@ -244,7 +245,7 @@ private fun StatusSection(
                 StatusLabel(
                     text = "Waiting for ${item.creditor.username}'s confirmation.",
                     icon = Icons.Default.Schedule,
-                    color = MaterialTheme.colorScheme.primary
+                    color = AppTheme.colors.primary
                 )
             }
 
@@ -252,12 +253,12 @@ private fun StatusSection(
                 StatusLabel(
                     text = "${item.status.payerName} paid. Do you approve?",
                     icon = Icons.Default.Notifications,
-                    color = MaterialTheme.colorScheme.primary
+                    color = AppTheme.colors.primary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = onApproveClick, colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = AppTheme.colors.primary
                     )
                 ) {
                     Icon(Icons.Default.Check, contentDescription = null)
@@ -270,7 +271,7 @@ private fun StatusSection(
                 StatusLabel(
                     text = "Waiting for payment",
                     icon = Icons.Default.NotificationsActive,
-                    color = MaterialTheme.colorScheme.primary
+                    color = AppTheme.colors.primary
                 )
             }
 
@@ -278,7 +279,7 @@ private fun StatusSection(
                 StatusLabel(
                     text = "Payed",
                     icon = Icons.Default.CheckCircle,
-                    color = MaterialTheme.colorScheme.primary
+                    color = AppTheme.colors.primary
                 )
             }
 
@@ -286,12 +287,12 @@ private fun StatusSection(
                 StatusLabel(
                     text = "Rejected by ${item.creditor.username}",
                     icon = Icons.Default.Error,
-                    color = MaterialTheme.colorScheme.error
+                    color = AppTheme.colors.error
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = onCorrectClick, colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = AppTheme.colors.primary
                     )
                 ) {
                     Icon(Icons.Default.Edit, contentDescription = null)
@@ -304,7 +305,7 @@ private fun StatusSection(
                 StatusLabel(
                     text = "${item.status.debtor} to ${item.status.creditor}",
                     icon = Icons.Default.SwapHoriz,
-                    color = MaterialTheme.colorScheme.primary
+                    color = AppTheme.colors.primary
                 )
             }
         }
@@ -346,28 +347,21 @@ private enum class UserRole {
 fun PreviewYouOwe() {
     Column {
 
-        AppTheme(darkTheme = true) {
+        AppTheme(darkTheme = true, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[0], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
+        })
 
-        AppTheme(darkTheme = false) {
+        AppTheme(darkTheme = false, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[0], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
-    }
-    AppTheme(darkTheme = true) {
-        Surface {
-            SettlementListItem(
-                item = FakeDate.mockSettlementItems[0], currentUserId = FakeDate.userMilad.id
-            )
-        }
+        })
     }
 }
 
@@ -375,20 +369,20 @@ fun PreviewYouOwe() {
 @Composable
 fun PreviewYouPaid() {
     Column {
-        AppTheme(darkTheme = true) {
+        AppTheme(darkTheme = true, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[1], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
-        AppTheme(darkTheme = false) {
+        })
+        AppTheme(darkTheme = false, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[1], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
+        })
     }
 }
 
@@ -396,20 +390,20 @@ fun PreviewYouPaid() {
 @Composable
 fun PreviewTheyPaid() {
     Column {
-        AppTheme(darkTheme = true) {
+        AppTheme(darkTheme = true, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[2], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
-        AppTheme(darkTheme = false) {
+        })
+        AppTheme(darkTheme = false, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[2], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
+        })
     }
 }
 
@@ -417,20 +411,20 @@ fun PreviewTheyPaid() {
 @Composable
 fun PreviewYouAreOwed() {
     Column {
-        AppTheme(darkTheme = true) {
+        AppTheme(darkTheme = true, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[3], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
-        AppTheme(darkTheme = false) {
+        })
+        AppTheme(darkTheme = false, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[3], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
+        })
     }
 }
 
@@ -438,20 +432,20 @@ fun PreviewYouAreOwed() {
 @Composable
 fun PreviewSettled() {
     Column {
-        AppTheme(darkTheme = true) {
+        AppTheme(darkTheme = true, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[4], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
-        AppTheme(darkTheme = false) {
+        })
+        AppTheme(darkTheme = false, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[4], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
+        })
     }
 }
 
@@ -459,20 +453,20 @@ fun PreviewSettled() {
 @Composable
 fun PreviewRejected() {
     Column {
-        AppTheme(darkTheme = true) {
+        AppTheme(darkTheme = true, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[5], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
-        AppTheme(darkTheme = false) {
+        })
+        AppTheme(darkTheme = false, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[5], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
+        })
     }
 }
 
@@ -480,24 +474,31 @@ fun PreviewRejected() {
 @Composable
 fun PreviewThirdParty() {
     Column {
-        AppTheme(darkTheme = true) {
+        AppTheme(darkTheme = true, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[6], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
-        AppTheme(darkTheme = false) {
+        })
+        AppTheme(darkTheme = false, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[6], currentUserId = FakeDate.userMilad.id
                 )
             }
-        }
+        })
     }
 }
 
 object FakeDate {
+    val selectedGroup = Group(
+        id = 1,
+        name = "Group 1",
+        ownerId = 1,
+        members = listOf(),
+        transactions = listOf()
+    )
     val userMilad = User(id = 1, username = "Milad (Me)", phone = "09121111111")
     val userSara = User(id = 2, username = "Sara", phone = "09122222222")
     val userReza = User(id = 3, username = "Reza", phone = "09123333333")

@@ -28,7 +28,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -51,6 +50,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
 import kotlinx.coroutines.launch
@@ -80,9 +80,9 @@ fun AddGroupScreen(
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    containerColor = AppTheme.colors.inverseOnSurface,
                 ),
-                title = { Text("Add Group", style = MaterialTheme.typography.titleLarge) },
+                title = { Text("Add Group", style = AppTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -103,7 +103,7 @@ fun AddGroupScreen(
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.inverseOnSurface)
+                .background(AppTheme.colors.inverseOnSurface)
                 .padding(16.dp)
                 .padding(paddingValues)
                 .fillMaxSize(),
@@ -124,8 +124,8 @@ fun AddGroupScreen(
             if (groupNameError != null) {
                 Text(
                     text = groupNameError ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
+                    color = AppTheme.colors.error,
+                    style = AppTheme.typography.bodySmall,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -134,7 +134,7 @@ fun AddGroupScreen(
 
             Text(
                 text = "Members",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
@@ -142,8 +142,8 @@ fun AddGroupScreen(
             if (membersError != null) {
                 Text(
                     text = membersError ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
+                    color = AppTheme.colors.error,
+                    style = AppTheme.typography.bodySmall,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -180,7 +180,7 @@ fun AddGroupScreen(
                 ) {
                     Text(
                         text = "Select Friends",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
@@ -264,12 +264,12 @@ private fun MemberRow(user: User, onDeleteClick: () -> Unit) {
             ) {
                 Text(
                     text = user.username,
-                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+                    style = AppTheme.typography.bodyLarge.copy(color = AppTheme.colors.onSurface)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = user.phone,
-                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
+                    style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.onSurface)
                 )
             }
 
@@ -277,7 +277,7 @@ private fun MemberRow(user: User, onDeleteClick: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.DeleteOutline,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = AppTheme.colors.onSurfaceVariant
                 )
             }
         }
@@ -313,12 +313,12 @@ fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> Unit) {
             ) {
                 Text(
                     text = user.username,
-                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+                    style = AppTheme.typography.bodyLarge.copy(color = AppTheme.colors.onSurface)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = user.phone,
-                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
+                    style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.onSurface)
                 )
             }
 

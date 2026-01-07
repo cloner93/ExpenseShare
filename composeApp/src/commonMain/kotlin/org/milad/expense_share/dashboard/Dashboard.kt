@@ -39,7 +39,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -126,9 +125,9 @@ fun Dashboard(
                         label = "rotation animation"
                     )
                     val color by infiniteTransition.animateColor(
-                        initialValue = MaterialTheme.colorScheme.primary,
-                        targetValue = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                            .compositeOver(MaterialTheme.colorScheme.onSurface),
+                        initialValue = AppTheme.colors.primary,
+                        targetValue = AppTheme.colors.primary.copy(alpha = 0.5f)
+                            .compositeOver(AppTheme.colors.onSurface),
                         animationSpec = infiniteRepeatable(
                             animation = tween(1000, easing = LinearEasing),
                             repeatMode = RepeatMode.Reverse
@@ -208,16 +207,16 @@ fun BalanceSummaryRow(
             modifier = Modifier.weight(1f),
             title = "You owe",
             amount = totalOwe,
-            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
-            textColor = MaterialTheme.colorScheme.onTertiaryContainer
+            backgroundColor = AppTheme.colors.successContainer,
+            textColor = AppTheme.colors.onSuccessContainer
         )
 
         BalanceCard(
             modifier = Modifier.weight(1f),
             title = "You are owed",
             amount = totalOwed,
-            backgroundColor = MaterialTheme.colorScheme.errorContainer,
-            textColor = MaterialTheme.colorScheme.onErrorContainer
+            backgroundColor = AppTheme.colors.errorContainer,
+            textColor = AppTheme.colors.onErrorContainer
         )
     }
 }
@@ -239,7 +238,7 @@ private fun BalanceCard(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyMedium.copy(
+            style = AppTheme.typography.bodyMedium.copy(
                 color = textColor,
                 fontWeight = FontWeight.Medium
             )
@@ -247,7 +246,7 @@ private fun BalanceCard(
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "$ ${amount.showSeparate()}",
-            style = MaterialTheme.typography.headlineSmall.copy(
+            style = AppTheme.typography.headlineSmall.copy(
                 color = textColor,
                 fontWeight = FontWeight.Bold
             )
@@ -270,7 +269,7 @@ fun GroupSection(
         if (groups.isNotEmpty()) {
             Text(
                 text = "Groups",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
@@ -318,9 +317,9 @@ private fun GroupItem(
                 onLongClick = onLongClick,
             ),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
-            else if (isOpened) MaterialTheme.colorScheme.secondaryContainer
-            else MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = if (isSelected) AppTheme.colors.primaryContainer
+            else if (isOpened) AppTheme.colors.secondaryContainer
+            else AppTheme.colors.surfaceVariant,
         ),
     ) {
         Row(
@@ -345,7 +344,7 @@ private fun GroupItem(
             ) {
                 Text(
                     text = group.name,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -358,14 +357,14 @@ private fun GroupItem(
                         )
                     Text(
                         text = "${group.members.size} members",
-                        style = MaterialTheme.typography.bodySmall
+                        style = AppTheme.typography.bodySmall
                     )
                 }
                 Spacer(modifier = Modifier.padding(8.dp))
                 Text(
                     text = "$${balance.showSeparate()}",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge.copy(
+                    color = AppTheme.colors.primary,
+                    style = AppTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Bold
                     )
                 )
@@ -374,7 +373,7 @@ private fun GroupItem(
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.outline
+                tint = AppTheme.colors.outline
             )
         }
     }
@@ -383,11 +382,11 @@ private fun GroupItem(
 @Preview
 @Composable
 private fun GroupItemPreview() {
-    AppTheme {
+    AppTheme(content = {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
+                .background(AppTheme.colors.background)
         ) {
             GroupItem(
                 group = Group(
@@ -414,7 +413,7 @@ private fun GroupItemPreview() {
                 onLongClick = {},
             )
         }
-    }
+    })
 }
 
 @Composable

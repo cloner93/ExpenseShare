@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SheetState
@@ -69,7 +68,7 @@ fun ExpenseList(
                 item {
                     Text(
                         text = label.name,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
@@ -199,8 +198,8 @@ fun ConfirmBottomSheet(
             Text(
                 text = title,
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface,
+                style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = AppTheme.colors.onSurface,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -211,8 +210,8 @@ fun ConfirmBottomSheet(
             Text(
                 text = content,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodyLarge,
+                color = AppTheme.colors.onSurface,
+                style = AppTheme.typography.bodyLarge,
                 modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth()
             )
 
@@ -242,12 +241,12 @@ fun ConfirmBottomSheet(
 @Preview
 @Composable
 fun ConfirmBottomSheetPreview() {
-    AppTheme() {
+    AppTheme(content = {
 
         val sheetState = rememberModalBottomSheetState()
 
         Column(
-            modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)
+            modifier = Modifier.background(color = AppTheme.colors.surface)
         ) {
             ConfirmBottomSheet(
                 "Approve the TRX?",
@@ -256,5 +255,5 @@ fun ConfirmBottomSheetPreview() {
                 onConfirmClick = {},
             ) {}
         }
-    }
+    })
 }

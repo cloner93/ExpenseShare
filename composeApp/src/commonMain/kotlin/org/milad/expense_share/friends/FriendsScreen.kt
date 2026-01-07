@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -29,7 +30,7 @@ fun FriendsScreen(
 
 
     ListDetailPaneScaffold(
-        modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
+        modifier = Modifier.background(color = AppTheme.colors.background),
         directive = navigator.scaffoldDirective,
         value = navigator.scaffoldValue,
         listPane = {
@@ -42,9 +43,9 @@ fun FriendsScreen(
                 Text(
                     modifier = Modifier.padding(8.dp),
                     text = "Screen under construction",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = AppTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = AppTheme.colors.primary,
                 )
             }
         },

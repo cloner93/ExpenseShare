@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
@@ -93,12 +94,12 @@ private fun MemberRow(
             ) {
                 Text(
                     text = user.username,
-                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+                    style = AppTheme.typography.bodyLarge.copy(color = AppTheme.colors.onSurface)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = user.phone,
-                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.onSurfaceVariant)
                 )
             }
             if (canDeleteUser) {

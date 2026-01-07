@@ -24,7 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -113,7 +112,7 @@ fun ChatInputBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-//            .background(MaterialTheme.colorScheme.surface)
+//            .background(AppTheme.colors.surface)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -132,7 +131,7 @@ fun ChatInputBar(
                 colors = TextFieldDefaults.colors(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = AppTheme.colors.primary,
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -145,13 +144,13 @@ fun ChatInputBar(
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(AppTheme.colors.primaryContainer)
                 .clickable { onSend() },
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 Icons.Default.Send,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                tint = AppTheme.colors.onPrimaryContainer,
                 contentDescription = null
             )
         }
@@ -217,14 +216,14 @@ fun Message(
 ) {
 
     val borderColor = if (isUserMe) {
-        MaterialTheme.colorScheme.primary
+        AppTheme.colors.primary
     } else {
-        MaterialTheme.colorScheme.tertiary
+        AppTheme.colors.tertiary
     }
     val messageColor = if (isUserMe) {
-        MaterialTheme.colorScheme.primary
+        AppTheme.colors.primary
     } else {
-        MaterialTheme.colorScheme.surfaceVariant
+        AppTheme.colors.surfaceVariant
     }
     val spaceBetweenAuthors = if (isLastMessageByAuthor) Modifier.padding(top = 8.dp) else Modifier
 
@@ -322,25 +321,25 @@ private val ChatBubbleShapeMe = RoundedCornerShape(20.dp, 4.dp, 20.dp, 20.dp)
 @Preview
 @Composable
 fun MessagesPreview() {
-    AppTheme {
-        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.background)) {
+    AppTheme(content = {
+        Column(modifier = Modifier.background(color = AppTheme.colors.background)) {
             ChatScreen(
                 messages = initialMessages,
                 navigateToProfile = {},
             )
         }
-    }
+    })
 }
 
 @Preview
 @Composable
 fun MessagesPreview2() {
-    AppTheme(true) {
-        Column(modifier = Modifier.background(color = MaterialTheme.colorScheme.background)) {
+    AppTheme(true, content = {
+        Column(modifier = Modifier.background(color = AppTheme.colors.background)) {
             ChatScreen(
                 messages = initialMessages,
                 navigateToProfile = {},
             )
         }
-    }
+    })
 }

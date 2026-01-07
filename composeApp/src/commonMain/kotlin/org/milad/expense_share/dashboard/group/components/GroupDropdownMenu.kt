@@ -11,7 +11,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.pmb.common.theme.AppTheme
 import org.milad.expense_share.dashboard.group.GroupDetailAction
 
 @Composable
@@ -39,8 +39,8 @@ fun GroupDropdownMenu(
         if (isGroupOwner) {
             DropdownMenuItem(
                 colors = MenuDefaults.itemColors(
-                    textColor = MaterialTheme.colorScheme.error,
-                    leadingIconColor = MaterialTheme.colorScheme.error,
+                    textColor = AppTheme.colors.error,
+                    leadingIconColor = AppTheme.colors.error,
                 ),
                 text = { Text("Delete") },
                 leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },

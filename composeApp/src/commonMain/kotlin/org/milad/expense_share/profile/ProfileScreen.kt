@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pmb.common.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -33,9 +34,9 @@ fun ProfileScreen(
             Text(
                 modifier = Modifier.padding(8.dp),
                 text = "Screen under construction",
-                style = MaterialTheme.typography.titleLarge,
+                style = AppTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.primary,
+                color = AppTheme.colors.primary,
             )
             Spacer(Modifier.height(16.dp))
 

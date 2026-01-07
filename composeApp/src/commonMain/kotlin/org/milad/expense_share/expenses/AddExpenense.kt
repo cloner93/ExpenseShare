@@ -52,7 +52,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -155,9 +154,9 @@ fun AddExpense(
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Add Expense", style = MaterialTheme.typography.titleLarge) },
+            title = { Text("Add Expense", style = AppTheme.typography.titleLarge) },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.inverseOnSurface,
+                containerColor = AppTheme.colors.inverseOnSurface,
             ),
             navigationIcon = {
                 IconButton(onClick = onBackClick) {
@@ -211,7 +210,7 @@ fun AddExpense(
     }) { paddingValues ->
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.inverseOnSurface)
+                .background(AppTheme.colors.inverseOnSurface)
                 .padding(16.dp)
                 .padding(paddingValues)
                 .fillMaxSize()
@@ -258,8 +257,8 @@ fun AddExpense(
             if (memberError != null) {
                 Text(
                     memberError!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
+                    color = AppTheme.colors.error,
+                    style = AppTheme.typography.bodySmall
                 )
             }
 
@@ -305,7 +304,7 @@ fun AddExpense(
                 HorizontalDivider(
                     Modifier.padding(vertical = 6.dp).fillMaxWidth(),
                     DividerDefaults.Thickness,
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    AppTheme.colors.outline.copy(alpha = 0.2f)
                 )
             }
         }
@@ -360,7 +359,7 @@ fun ConfirmButton(
             if (hasError != null) {
                 Text(
                     text = hasError.message ?: "ERROR !",
-                    style = TextStyle(color = MaterialTheme.colorScheme.error),
+                    style = TextStyle(color = AppTheme.colors.error),
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -407,7 +406,7 @@ fun AnimatedLoadingButton(
 @Preview
 @Composable
 fun ConfirmButtonP() {
-    AppTheme {
+    AppTheme(content = {
 
         Column(modifier = Modifier.background(color = Color.White)) {
             ConfirmButton(false, null) {}
@@ -415,7 +414,7 @@ fun ConfirmButtonP() {
             ConfirmButton(false, Throwable("Has error")) {}
         }
 
-    }
+    })
 }
 
 @Composable
@@ -440,7 +439,7 @@ fun PayerOfExpense(
 
         Text(
             text = "Payers",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(vertical = 8.dp)
         )
 
@@ -459,7 +458,7 @@ fun PayerOfExpense(
                                 .height(50.dp)
                                 .border(
                                     width = 1.dp,
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                                    color = AppTheme.colors.outline.copy(alpha = 0.4f),
                                     shape = RoundedCornerShape(8.dp)
                                 )
                                 .padding(horizontal = 4.dp),
@@ -470,13 +469,13 @@ fun PayerOfExpense(
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             shape = RoundedCornerShape(8.dp),
-                            textStyle = MaterialTheme.typography.titleMedium.copy(
+                            textStyle = AppTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.SemiBold
                             ),
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
-                                cursorColor = MaterialTheme.colorScheme.primary,
+                                cursorColor = AppTheme.colors.primary,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
                             ),
@@ -488,7 +487,7 @@ fun PayerOfExpense(
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "remove payer",
-                                tint = MaterialTheme.colorScheme.outline
+                                tint = AppTheme.colors.outline
                             )
                         }
                     }
@@ -499,8 +498,8 @@ fun PayerOfExpense(
         if (payerError != null) {
             Text(
                 payerError,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
+                color = AppTheme.colors.error,
+                style = AppTheme.typography.bodySmall
             )
         }
 
@@ -516,7 +515,7 @@ fun PayerOfExpense(
         HorizontalDivider(
             modifier = Modifier.padding(vertical = 12.dp),
             thickness = DividerDefaults.Thickness,
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+            color = AppTheme.colors.outline.copy(alpha = 0.2f)
         )
     }
 }
@@ -546,8 +545,8 @@ private fun ExpenseInputFields(
     if (nameError != null) {
         Text(
             nameError,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall,
+            color = AppTheme.colors.error,
+            style = AppTheme.typography.bodySmall,
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -569,8 +568,8 @@ private fun ExpenseInputFields(
     if (priceError != null) {
         Text(
             priceError,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall,
+            color = AppTheme.colors.error,
+            style = AppTheme.typography.bodySmall,
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -588,7 +587,7 @@ private fun ExpenseInputFields(
     HorizontalDivider(
         Modifier.padding(vertical = 6.dp).fillMaxWidth(),
         DividerDefaults.Thickness,
-        MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        AppTheme.colors.outline.copy(alpha = 0.2f)
     )
 }
 
@@ -610,7 +609,7 @@ fun SelectionBottomSheet(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
 
-            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(title, style = AppTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
 
             LazyColumn(Modifier.weight(1f, fill = false)) {
@@ -661,12 +660,12 @@ private fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> 
             ) {
                 Text(
                     text = user.username,
-                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+                    style = AppTheme.typography.bodyLarge.copy(color = AppTheme.colors.onSurface)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = user.phone,
-                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
+                    style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.onSurface)
                 )
             }
 
@@ -685,7 +684,7 @@ fun ExpenseShareType(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Share type",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
         )
 
@@ -694,8 +693,8 @@ fun ExpenseShareType(
         if (shareTypeError != null) {
             Text(
                 shareTypeError,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
+                color = AppTheme.colors.error,
+                style = AppTheme.typography.bodySmall,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -751,7 +750,7 @@ fun EqualSplitSection(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "$${eachUser.showSeparate()}",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         )
 
                         Spacer(Modifier.width(4.dp))
@@ -805,14 +804,14 @@ fun PercentSplitSection(
                         Row {
                             Text(
                                 text = userAmount.showSeparate(),
-                                style = MaterialTheme.typography.titleMedium.copy(
+                                style = AppTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 text = "${percent.toInt()}%",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                         }
 
@@ -880,11 +879,11 @@ fun WeightSplitSection(
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
                                 text = userAmount.showSeparate(),
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Text(
                                 "w:${weight.toInt()}",
-                                style = MaterialTheme.typography.bodySmall
+                                style = AppTheme.typography.bodySmall
                             )
                         }
 
@@ -953,7 +952,7 @@ fun ManualSplitSection(
                                 .height(50.dp)
                                 .border(
                                     width = 1.dp,
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                                    color = AppTheme.colors.outline.copy(alpha = 0.4f),
                                     shape = RoundedCornerShape(8.dp)
                                 )
                                 .padding(horizontal = 4.dp),
@@ -964,13 +963,13 @@ fun ManualSplitSection(
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             shape = RoundedCornerShape(8.dp),
-                            textStyle = MaterialTheme.typography.titleMedium.copy(
+                            textStyle = AppTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.SemiBold
                             ),
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
-                                cursorColor = MaterialTheme.colorScheme.primary,
+                                cursorColor = AppTheme.colors.primary,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
                             ),
@@ -1006,13 +1005,13 @@ fun UserInfoRow(
             Box(
                 modifier = Modifier.size(40.dp)
                     .clip(CardDefaults.shape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                    .background(AppTheme.colors.primary.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = user.username.first().uppercase(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    style = AppTheme.typography.titleMedium,
+                    color = AppTheme.colors.primary
                 )
             }
 
@@ -1021,12 +1020,12 @@ fun UserInfoRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = user.username,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    style = AppTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
                 Text(
                     text = user.phone,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = AppTheme.typography.bodySmall,
+                    color = AppTheme.colors.onSurfaceVariant
                 )
             }
 
@@ -1039,7 +1038,7 @@ fun UserInfoRow(
             HorizontalDivider(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                 thickness = DividerDefaults.Thickness,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                color = AppTheme.colors.outline.copy(alpha = 0.2f)
             )
         }
     }
