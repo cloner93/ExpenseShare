@@ -15,14 +15,12 @@ fun SettlementTab(
     state: GroupDetailState,
     onAction: (GroupDetailAction) -> Unit,
 ) {
-    val group = state.selectedGroup
-
     Column(
         modifier = Modifier
             .fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        SettlementScreen()
+        SettlementScreen(state, onAction)
     }
 }
