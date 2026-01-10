@@ -70,7 +70,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -602,7 +601,6 @@ fun SelectionBottomSheet(
 ) {
     val sheetState = rememberModalBottomSheetState()
     var tempSelected by remember { mutableStateOf(initiallySelected.toMutableList()) }
-    val scope = rememberCoroutineScope()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss, sheetState = sheetState
@@ -777,8 +775,11 @@ fun PercentSplitSection(
     LaunchedEffect(percents.values.toList(), amount) {
         val result = users.associateWith { user ->
             val percent = percents[user] ?: 0f
-            val userAmount = if (amount.isPositive()) Amount((amount.value * (percent / 100f)).toLong()) else
-                Amount(0)
+            val userAmount =
+                if (amount.isPositive())
+                    Amount((amount.value * (percent / 100f)).toLong())
+                else
+                    Amount(0)
             userAmount
         }
         onAmountsUpdated(result)

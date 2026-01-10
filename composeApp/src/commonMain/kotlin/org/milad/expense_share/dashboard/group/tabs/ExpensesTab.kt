@@ -8,10 +8,10 @@ import org.milad.expense_share.dashboard.group.screen.ExpenseList
 @Composable
 fun ExpensesTab(
     state: GroupDetailState,
-    onAction: (GroupDetailAction) -> Unit
+    onAction: (GroupDetailAction) -> Unit,
 ) {
     val group = state.selectedGroup
-    
+
     ExpenseList(
         expenses = group.transactions,
         currentUser = state.currentUser,

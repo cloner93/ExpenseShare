@@ -8,11 +8,12 @@ import org.milad.expense_share.dashboard.group.GroupDetailState
 @Composable
 fun GroupDialogs(
     state: GroupDetailState,
-    onAction: (GroupDetailAction) -> Unit
+    onAction: (GroupDetailAction) -> Unit,
 ) {
     when (val dialogState = state.dialogState) {
-        is DialogState.None -> { /* No dialog */ }
-        
+        is DialogState.None -> { /* No dialog */
+        }
+
         is DialogState.DeleteGroup -> {
             DeleteConfirmationSheet(
                 title = "Delete the Group",
@@ -24,7 +25,7 @@ fun GroupDialogs(
                 onDismiss = { onAction(GroupDetailAction.DismissDialog) }
             )
         }
-        
+
         is DialogState.DeleteMember -> {
             DeleteConfirmationSheet(
                 title = "Remove Member",
@@ -34,13 +35,13 @@ fun GroupDialogs(
                     val remainingMemberIds = state.selectedGroup.members
                         .filter { it.id != dialogState.user.id }
                         .map { it.id }
-                    
+
                     onAction(GroupDetailAction.UpdateMembers(remainingMemberIds))
                 },
                 onDismiss = { onAction(GroupDetailAction.DismissDialog) }
             )
         }
-        
+
         is DialogState.MemberSelection -> {
             MemberSelectionSheet(
                 visible = true,

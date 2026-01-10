@@ -28,13 +28,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +51,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun ChatScreen(
     messages: List<Message> = initialMessages,
     navigateToProfile: (String) -> Unit = {},
-    onAddMessage: (Message)-> Unit ={},
+    onAddMessage: (Message) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
 
@@ -61,7 +59,6 @@ fun ChatScreen(
     val timeNow = "8:30 PM"
 
     val scrollState = rememberLazyListState()
-    val topBarState = rememberTopAppBarState()
     var text by remember { mutableStateOf("") }
 
 
@@ -165,7 +162,6 @@ fun Messages(
     modifier: Modifier,
     scrollState: LazyListState,
 ) {
-    val scope = rememberCoroutineScope()
     Box(modifier = modifier) {
         val authorMe = "me"
         LazyColumn(
@@ -242,7 +238,7 @@ fun Message(
                 .padding(horizontal = 8.dp)
                 .weight(1f, fill = false)
         ) {
-            AuthorHeader(isUserMe,msg, isLastMessageByAuthor)
+            AuthorHeader(isUserMe, msg, isLastMessageByAuthor)
             MessageBubble(isUserMe, msg, messageColor)
         }
 
@@ -277,11 +273,11 @@ private fun AuthorHeader(isUserMe: Boolean, msg: Message, isLastMessageByAuthor:
         return
     }
 
-    Row (){
-       if (!isUserMe) {
-           Text(msg.author)
-           Spacer(modifier = Modifier.width(8.dp))
-       }
+    Row {
+        if (!isUserMe) {
+            Text(msg.author)
+            Spacer(modifier = Modifier.width(8.dp))
+        }
         Text(msg.timestamp)
     }
 }

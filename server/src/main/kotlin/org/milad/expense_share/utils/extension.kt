@@ -11,6 +11,7 @@ internal fun JWTPrincipal?.getUserId(): Int? {
 internal fun io.ktor.server.application.ApplicationCall.getIntParameter(name: String): Int? {
     return parameters[name]?.toIntOrNull()
 }
+
 internal fun io.ktor.server.application.ApplicationCall.getStringParameter(name: String): String? {
     return parameters[name]?.takeIf { it.isNotBlank() }
 }

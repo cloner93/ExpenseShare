@@ -17,7 +17,7 @@ fun GroupTopBar(
     group: Group,
     isOwner: Boolean,
     showBackButton: Boolean,
-    onAction: (GroupDetailAction) -> Unit
+    onAction: (GroupDetailAction) -> Unit,
 ) {
     TopAppBar(
         title = { Text(group.name) },

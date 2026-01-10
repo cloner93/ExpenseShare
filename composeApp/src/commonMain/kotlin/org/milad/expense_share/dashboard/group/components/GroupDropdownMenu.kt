@@ -24,7 +24,7 @@ import org.milad.expense_share.dashboard.group.GroupDetailAction
 @Composable
 fun GroupDropdownMenu(
     isGroupOwner: Boolean,
-    onAction: (GroupDetailAction) -> Unit
+    onAction: (GroupDetailAction) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -49,7 +49,7 @@ fun GroupDropdownMenu(
                     onAction(GroupDetailAction.ShowDeleteGroupDialog)
                 }
             )
-            
+
             DropdownMenuItem(
                 text = { Text("Rename") },
                 enabled = false,

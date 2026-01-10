@@ -10,6 +10,6 @@ data class UserGroupResponse(
     val name: String,
     val ownerId: Int,
     val members: List<User> = emptyList(),
-    val transactions: List<Transaction> = emptyList()
+    val transactions: List<Transaction> = emptyList(),
 )
 

@@ -12,7 +12,7 @@ class InMemoryGroupRepository : GroupRepository {
     override fun createGroup(
         ownerId: Int,
         name: String,
-        memberIds: List<Int>
+        memberIds: List<Int>,
     ): UserGroupResponse {
         val group = Group(
             id = groups.size + 1,
@@ -40,7 +40,7 @@ class InMemoryGroupRepository : GroupRepository {
     override fun updateGroupUsers(
         ownerId: Int,
         groupId: Int,
-        memberIds: List<Int>
+        memberIds: List<Int>,
     ): Boolean {
         groups.find { it.id == groupId && it.ownerId == ownerId }
             ?: throw IllegalArgumentException("Group not found or you are not the owner")
@@ -67,7 +67,8 @@ class InMemoryGroupRepository : GroupRepository {
             UserGroupResponse(
                 id = group.id,
                 name = group.name,
-                ownerId = group.ownerId)
+                ownerId = group.ownerId
+            )
         }
 
         return list

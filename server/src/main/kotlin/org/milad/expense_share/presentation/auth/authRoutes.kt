@@ -7,10 +7,10 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import org.milad.expense_share.domain.service.AuthService
-import org.milad.expense_share.presentation.auth.model.LoginRequest
-import org.milad.expense_share.presentation.auth.model.RegisterRequest
 import org.milad.expense_share.presentation.api_model.ErrorResponse
 import org.milad.expense_share.presentation.api_model.SuccessResponse
+import org.milad.expense_share.presentation.auth.model.LoginRequest
+import org.milad.expense_share.presentation.auth.model.RegisterRequest
 
 internal fun Routing.authRoutes(authService: AuthService) {
 

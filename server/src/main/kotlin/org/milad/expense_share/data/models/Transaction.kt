@@ -18,6 +18,6 @@ data class Transaction(
     val transactionDate: Long = System.currentTimeMillis(),
     var approvedBy: Int? = null,
     val payers: List<PayerRequest>? = null,
-    val shareDetails: ShareDetailsRequest? = null
+    val shareDetails: ShareDetailsRequest? = null,
 )
 //io.ktor.serialization.JsonConvertException: Illegal input: Field 'splitDetails' is required for type with serial name 'model.Transaction', but it was missing at path: $.data[13].transactions[0]

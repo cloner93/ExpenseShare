@@ -13,7 +13,7 @@ interface TransactionRepository {
         amount: Amount,
         description: String,
         payers: List<PayerRequest>,
-        shareDetails: ShareDetailsRequest
+        shareDetails: ShareDetailsRequest,
     ): Transaction?
 
     fun getTransactions(userId: Int, groupId: Int): List<Transaction>

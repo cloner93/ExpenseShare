@@ -197,7 +197,7 @@ fun ExpandableExpenseCard(
                     val name =
                         if (member.user.id == currentUserId) "me" else member.user.username
                     val share = member.share.showSeparate()
-                    DetailRow(label = name, value = "$$share",isBold = true)
+                    DetailRow(label = name, value = "$$share", isBold = true)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -336,11 +336,11 @@ val t = Transaction(
     transactionDate = 0,
     payers = listOf(
         PayerDto(
-            user= User(0, "milad", "09137511005"),
+            user = User(0, "milad", "09137511005"),
             amountPaid = Amount(300),
         ),
         PayerDto(
-            user= User(1, "mahdi", "09137511001"),
+            user = User(1, "mahdi", "09137511001"),
             amountPaid = Amount(200),
         )
     ),
@@ -348,7 +348,7 @@ val t = Transaction(
         type = "Equal",
         members = listOf(
             MemberShareDto(
-                user= User(0, "milad", "09137511005"),
+                user = User(0, "milad", "09137511005"),
                 share = Amount(250),
             ),
             MemberShareDto(

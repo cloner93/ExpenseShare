@@ -14,13 +14,12 @@ import io.ktor.server.routing.route
 import org.milad.expense_share.domain.service.GroupService
 import org.milad.expense_share.presentation.api_model.ErrorResponse
 import org.milad.expense_share.presentation.api_model.SuccessResponse
-import org.milad.expense_share.presentation.groups.model.AddUserRequest
 import org.milad.expense_share.presentation.groups.model.CreateGroupRequest
 import org.milad.expense_share.utils.getIntParameter
 import org.milad.expense_share.utils.getUserId
 
 internal fun Routing.groupsRoutes(
-    groupService: GroupService
+    groupService: GroupService,
 ) {
     authenticate("auth-jwt") {
         route("/groups") {

@@ -36,15 +36,15 @@ fun MemberSelectionSheet(
     friends: List<User>,
     currentMembers: List<User>,
     onConfirm: (List<Int>) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     if (!visible) return
-    
+
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-    
+
     var selectedMembers by remember { mutableStateOf(currentMembers) }
-    
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState
@@ -63,7 +63,7 @@ fun MemberSelectionSheet(
             onConfirm = {
                 val memberIds = selectedMembers.map { it.id }
                 onConfirm(memberIds)
-                
+
                 scope.launch { sheetState.hide() }.invokeOnCompletion {
                     if (!sheetState.isVisible) onDismiss()
                 }
@@ -78,7 +78,7 @@ private fun MemberSelectionContent(
     selectedMembers: List<User>,
     onToggleMember: (User) -> Unit,
     onCancel: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -94,7 +94,7 @@ private fun MemberSelectionContent(
         LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
             items(friends) { user ->
                 val isSelected = selectedMembers.any { it.id == user.id }
-                
+
                 FriendSelectionRow(
                     user = user,
                     isSelected = isSelected,

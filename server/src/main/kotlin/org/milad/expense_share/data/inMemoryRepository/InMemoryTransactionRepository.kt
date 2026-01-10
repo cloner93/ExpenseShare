@@ -17,7 +17,7 @@ class InMemoryTransactionRepository : TransactionRepository {
         amount: Amount,
         description: String,
         payers: List<PayerRequest>,
-        shareDetails: ShareDetailsRequest
+        shareDetails: ShareDetailsRequest,
     ): Transaction? {
         val group = groups.find { it.id == groupId } ?: return null
 

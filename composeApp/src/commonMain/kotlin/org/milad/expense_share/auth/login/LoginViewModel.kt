@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import usecase.auth.LoginUserUseCase
 
 class LoginViewModel(
-    private val loginUserUseCase: LoginUserUseCase
+    private val loginUserUseCase: LoginUserUseCase,
 ) : BaseViewModel<LoginAction, LoginState, LoginEvent>(
     initialState = LoginState()
 ) {

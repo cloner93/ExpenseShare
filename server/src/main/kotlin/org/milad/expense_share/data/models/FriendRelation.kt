@@ -3,7 +3,7 @@ package org.milad.expense_share.data.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class FriendRelationStatus{
+enum class FriendRelationStatus {
     PENDING, ACCEPTED, REJECTED
 }
 
@@ -11,5 +11,5 @@ enum class FriendRelationStatus{
 data class FriendRelation(
     val userId: Int,
     val friendId: Int,
-    var status: FriendRelationStatus
+    var status: FriendRelationStatus,
 )

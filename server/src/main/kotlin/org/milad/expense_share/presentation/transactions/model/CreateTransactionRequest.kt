@@ -10,25 +10,25 @@ data class CreateTransactionRequest(
     val amount: Amount,
     val description: String,
     val payers: List<PayerRequest>,
-    val shareDetails: ShareDetailsRequest
+    val shareDetails: ShareDetailsRequest,
 )
 
 @Serializable
 data class PayerRequest(
     val user: User,
-    val amountPaid: Amount
+    val amountPaid: Amount,
 )
 
 @Serializable
 data class ShareDetailsRequest(
     val type: ShareType,
-    val members: List<ShareMemberRequest> = emptyList()
+    val members: List<ShareMemberRequest> = emptyList(),
 )
 
 @Serializable
 data class ShareMemberRequest(
     val user: User,
-    val share: Amount
+    val share: Amount,
 )
 
 enum class ShareType { Equal, Percent, Weight, Manual }

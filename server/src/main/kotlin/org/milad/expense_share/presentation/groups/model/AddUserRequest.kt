@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AddUserRequest(
-    val memberIds: List<Int> = emptyList()
+    val memberIds: List<Int> = emptyList(),
 )

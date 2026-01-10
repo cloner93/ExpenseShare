@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import usecase.auth.RegisterUserUseCase
 
 class RegisterViewModel(
-    private val registerUserUseCase: RegisterUserUseCase
+    private val registerUserUseCase: RegisterUserUseCase,
 ) : BaseViewModel<RegisterAction, RegisterState, RegisterEvent>(
     initialState = RegisterState()
 ) {

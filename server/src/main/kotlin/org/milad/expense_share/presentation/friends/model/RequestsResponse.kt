@@ -6,5 +6,5 @@ import org.milad.expense_share.data.models.User
 @Serializable
 data class RequestsResponse(
     val incoming: List<User>,
-    val outgoing: List<User>
+    val outgoing: List<User>,
 )

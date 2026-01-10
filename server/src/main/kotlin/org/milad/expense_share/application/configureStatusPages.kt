@@ -1,9 +1,10 @@
 package org.milad.expense_share.application
 
-import io.ktor.server.application.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.response.*
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.response.respond
 import org.milad.expense_share.presentation.api_model.ErrorResponse
 
 fun Application.configureStatusPages() {

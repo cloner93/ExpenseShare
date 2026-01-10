@@ -212,8 +212,9 @@ class GroupDetailViewModel(
                 result.onSuccess {
                     var updatedMembers: List<User> = emptyList()
                     setState { state ->
-                        val allPotentialUsers = (state.friends + state.selectedGroup.members + state.currentUser).distinct()
-                         updatedMembers = userId.mapNotNull { id ->
+                        val allPotentialUsers =
+                            (state.friends + state.selectedGroup.members + state.currentUser).distinct()
+                        updatedMembers = userId.mapNotNull { id ->
                             allPotentialUsers.find { user -> user.id == id }
                         }
                         state.copy(

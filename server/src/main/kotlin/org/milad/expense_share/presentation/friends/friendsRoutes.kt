@@ -13,10 +13,10 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import org.milad.expense_share.domain.service.FriendsService
-import org.milad.expense_share.presentation.friends.model.FriendRequest
-import org.milad.expense_share.presentation.friends.model.RequestsResponse
 import org.milad.expense_share.presentation.api_model.ErrorResponse
 import org.milad.expense_share.presentation.api_model.SuccessResponse
+import org.milad.expense_share.presentation.friends.model.FriendRequest
+import org.milad.expense_share.presentation.friends.model.RequestsResponse
 import org.milad.expense_share.utils.getStringParameter
 import org.milad.expense_share.utils.getUserId
 
@@ -120,7 +120,7 @@ internal fun Routing.friendRoutes(friendsService: FriendsService) {
 
 private suspend fun ApplicationCall.handleFriendAction(
     actionName: String,
-    block: (Int, String) -> Result<String>
+    block: (Int, String) -> Result<String>,
 ) {
     val userId = principal<JWTPrincipal>().getUserId()
         ?: return respond(

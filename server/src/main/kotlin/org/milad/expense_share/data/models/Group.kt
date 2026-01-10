@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class Group(
     val id: Int,
     val name: String,
-    val ownerId: Int
+    val ownerId: Int,
 )

@@ -34,6 +34,7 @@ object JwtConfig {
             .withExpiresAt(Date(System.currentTimeMillis() + validityInMs))
             .sign(algorithm)
     }
+
     fun getRealm() = realm
     fun getAlgorithm() = algorithm
     fun getIssuer() = issuer

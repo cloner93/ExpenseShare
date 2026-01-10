@@ -6,6 +6,7 @@ import org.milad.expense_share.data.models.FriendRelation
 import org.milad.expense_share.data.models.FriendRelationStatus
 import org.milad.expense_share.data.models.User
 import org.milad.expense_share.domain.repository.FriendRepository
+
 class InMemoryFriendRepository : FriendRepository {
 
     fun getUserByPhone(phone: String): User? {
@@ -36,7 +37,7 @@ class InMemoryFriendRepository : FriendRepository {
 
     override fun rejectFriendRequest(
         userId: Int,
-        friendPhone: String
+        friendPhone: String,
     ): Boolean {
         val friendUser = getUserByPhone(friendPhone) ?: return false
         val relation =
@@ -49,7 +50,7 @@ class InMemoryFriendRepository : FriendRepository {
 
     override fun acceptFriendRequest(
         userId: Int,
-        friendPhone: String
+        friendPhone: String,
     ): Boolean {
         val friendUser = getUserByPhone(friendPhone) ?: return false
         val relation =

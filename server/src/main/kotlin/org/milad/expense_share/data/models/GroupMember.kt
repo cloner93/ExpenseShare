@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GroupMember(
     val groupId: Int,
-    val userId: Int
+    val userId: Int,
 )

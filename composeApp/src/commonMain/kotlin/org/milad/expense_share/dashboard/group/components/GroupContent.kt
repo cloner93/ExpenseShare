@@ -14,14 +14,14 @@ import org.milad.expense_share.dashboard.group.tabs.SettlementTab
 fun GroupContent(
     modifier: Modifier = Modifier,
     state: GroupDetailState,
-    onAction: (GroupDetailAction) -> Unit
+    onAction: (GroupDetailAction) -> Unit,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         GroupTabsRow(
             selectedTab = state.selectedTab,
             onTabSelected = { onAction(GroupDetailAction.SelectTab(it)) }
         )
-        
+
         when (state.selectedTab) {
             GroupTab.Settlement -> SettlementTab(state, onAction)
             GroupTab.Expenses -> ExpensesTab(state, onAction)

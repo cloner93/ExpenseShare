@@ -24,7 +24,8 @@ object Transactions : Table("transactions") {
 
 object TransactionPayers : Table("transaction_payers") {
     val id = integer("id").autoIncrement()
-    val transactionId = integer("transaction_id").references(Transactions.id, onDelete = ReferenceOption.CASCADE)
+    val transactionId =
+        integer("transaction_id").references(Transactions.id, onDelete = ReferenceOption.CASCADE)
     val userId = integer("user_id") references Users.id
     val amountPaid = amount("amount_paid")
 
@@ -33,7 +34,8 @@ object TransactionPayers : Table("transaction_payers") {
 
 object TransactionShares : Table("transaction_shares") {
     val id = integer("id").autoIncrement()
-    val transactionId = integer("transaction_id").references(Transactions.id, onDelete = ReferenceOption.CASCADE)
+    val transactionId =
+        integer("transaction_id").references(Transactions.id, onDelete = ReferenceOption.CASCADE)
     val type = varchar("type", 20)
 
     override val primaryKey = PrimaryKey(id)
@@ -41,7 +43,8 @@ object TransactionShares : Table("transaction_shares") {
 
 object TransactionShareMembers : Table("transaction_share_members") {
     val id = integer("id").autoIncrement()
-    val shareId = integer("share_id").references(TransactionShares.id, onDelete = ReferenceOption.CASCADE)
+    val shareId =
+        integer("share_id").references(TransactionShares.id, onDelete = ReferenceOption.CASCADE)
     val userId = integer("user_id") references Users.id
     val share = amount("share")
 
@@ -59,7 +62,7 @@ class AmountColumnType : ColumnType<Amount>() {
 
     override fun notNullValueToDB(value: Amount): Any = value.value
 
-    override fun readObject(rs: ResultSet, index: Int): Any? = rs.getLong(index)
+    override fun readObject(rs: ResultSet, index: Int): Any = rs.getLong(index)
 }
 
 fun Table.amount(name: String): Column<Amount> = registerColumn(name, AmountColumnType())

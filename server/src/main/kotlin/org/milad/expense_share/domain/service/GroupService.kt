@@ -9,7 +9,7 @@ import org.milad.expense_share.presentation.groups.model.UserGroupResponse
 class GroupService(
     private val groupRepository: GroupRepository,
     private val userRepository: UserRepository,
-    private val transactionRepository: TransactionRepository
+    private val transactionRepository: TransactionRepository,
 ) {
 
     fun createGroup(ownerId: Int, name: String, members: List<Int>): Result<UserGroupResponse> {

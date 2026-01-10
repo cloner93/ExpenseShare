@@ -63,7 +63,7 @@ class GroupRepositoryImpl : GroupRepository {
     override fun updateGroupUsers(
         ownerId: Int,
         groupId: Int,
-        memberIds: List<Int>
+        memberIds: List<Int>,
     ): Boolean = transaction {
 
         val groupExists = Groups

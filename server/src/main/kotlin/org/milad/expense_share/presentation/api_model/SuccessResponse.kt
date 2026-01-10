@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SuccessResponse<T>(
     val success: Boolean = true,
-    val data: T
+    val data: T,
 )
