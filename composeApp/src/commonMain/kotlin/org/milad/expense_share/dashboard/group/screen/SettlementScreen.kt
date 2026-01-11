@@ -43,16 +43,17 @@ fun SettlementScreen(
     onAction: (GroupDetailAction) -> Unit,
 ) {
     Column {
-        BalanceSummaryRow(
-            totalGroupSpend = Amount(state.selectedGroup.transactions.sumOf { it.amount.value }),
-            totalBalance = Amount(mockSettlementItems.sumOf { it.amount.value })
-        )
-
         if (mockSettlementItems.isNotEmpty()) {
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                item {
+                    BalanceSummaryRow(
+                        totalGroupSpend = Amount(state.selectedGroup.transactions.sumOf { it.amount.value }),
+                        totalBalance = Amount(mockSettlementItems.sumOf { it.amount.value })
+                    )
+                }
                 items(mockSettlementItems) { item ->
                     SettlementListItem(item = item, currentUserId = state.currentUser.id)
                 }
@@ -98,8 +99,7 @@ fun BalanceSummaryRow(
     Surface {
         Row(
             modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             BalanceCard(
