@@ -139,7 +139,7 @@ fun SettlementListItem(
                         text = "$ ${item.amount.showSeparate()}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = amountColor,
+                            color = amountColor,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -207,7 +207,7 @@ private fun UserColumn(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
-            fontWeight = if (isHighlighted) FontWeight.Bold else FontWeight.Normal
+                fontWeight = if (isHighlighted) FontWeight.Bold else FontWeight.Normal
         )
     }
 }
