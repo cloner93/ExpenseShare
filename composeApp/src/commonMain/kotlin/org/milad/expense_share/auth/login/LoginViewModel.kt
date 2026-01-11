@@ -37,7 +37,11 @@ class LoginViewModel(
                     postEvent(LoginEvent.LoginSuccess)
                 }.onFailure { e ->
                     setState { it.copy(isLoading = false, error = e) }
-                    postEvent(LoginEvent.ShowToast("Error: ${e.message}"))
+                    postEvent(
+                        LoginEvent.ShowToast(
+                            e.message?: "login fail"
+                        )
+                    )
                 }
             }
         }

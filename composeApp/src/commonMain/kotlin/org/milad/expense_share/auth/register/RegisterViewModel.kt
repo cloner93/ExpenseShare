@@ -37,12 +37,11 @@ class RegisterViewModel(
                 result.onSuccess {
                     setState { it.copy() }
                     postEvent(RegisterEvent.RegisterSuccess)
-                }.onFailure {
-                    setState { it.copy(error = result.exceptionOrNull()) }
-                    print(result.exceptionOrNull()?.message)
+                }.onFailure {e->
+                    setState { it.copy(isLoading = false, error = e) }
                     postEvent(
                         RegisterEvent.ShowToast(
-                            "Error: ${result.exceptionOrNull()?.message}"
+                            e.message?: "register fail"
                         )
                     )
                 }
