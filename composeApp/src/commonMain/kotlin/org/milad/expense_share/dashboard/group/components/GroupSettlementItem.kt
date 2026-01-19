@@ -52,6 +52,8 @@ import model.Group
 import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
+import org.milad.expense_share.friends.Friend
+import org.milad.expense_share.friends.FriendRelationStatus
 import org.milad.expense_share.showSeparate
 
 data class SettlementItem(
@@ -565,5 +567,13 @@ object FakeDate {
             amount = Amount(1000000),
             status = SettlementStatus.ThirdParty(userSaeid.username, userNarges.username)
         ),
+    )
+
+    val mockFriends = listOf(
+        Friend(userSara, FriendRelationStatus.ACCEPTED),
+        Friend(userReza, FriendRelationStatus.ACCEPTED),
+        Friend(userMaryam, FriendRelationStatus.PENDING),
+        Friend(userHamid, FriendRelationStatus.REJECTED),
+        Friend(userNiloufar, FriendRelationStatus.BLOCKED),
     )
 }
