@@ -38,6 +38,7 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,7 +61,7 @@ import kotlinx.serialization.Serializable
 import model.User
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.milad.expense_share.dashboard.group.components.FakeDate.mockFriends
+import org.koin.compose.viewmodel.koinViewModel
 import org.milad.expense_share.dashboard.group.components.FakeDate.userNiloufar
 import org.milad.expense_share.dashboard.group.components.FakeDate.userReza
 import org.milad.expense_share.dashboard.group.components.GroupDropdownMenu
@@ -68,17 +69,18 @@ import org.milad.expense_share.dashboard.group.components.GroupDropdownMenu
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun FriendsScreen(
-//            viewModel: FriendsViewModel = koinViewModel(),
+    viewModel: FriendsViewModel = koinViewModel(),
 ) {
+    val state by viewModel.viewState.collectAsState()
+
     val navigator = rememberListDetailPaneScaffoldNavigator<Nothing>()
     val scope = rememberCoroutineScope()
-//    val state by dashboardViewModel.viewState.collectAsState()
     val loading by mutableStateOf(false)
 
     val isListAndDetailVisible =
         navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded && navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
-//    val isDetailVisible =
-//        state.isDetailVisible || navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded
+    val isDetailVisible =
+        state.isDetailVisible || navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded
 
     ListDetailPaneScaffold(
         modifier = Modifier.background(color = AppTheme.colors.background),
@@ -88,7 +90,8 @@ fun FriendsScreen(
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
-                Friends()
+                Friends(
+                    friends = state.friends.map { Friend(it, FriendRelationStatus.ACCEPTED) })
                 if (loading) FullScreenLoading()
             }
         },
@@ -100,7 +103,7 @@ fun FriendsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Friends() {
+fun Friends(friends: List<Friend>) {
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(topBar = {
             TopAppBar(title = { Text("Friends name") }, navigationIcon = {
@@ -113,7 +116,7 @@ fun Friends() {
             })
         }, floatingActionButton = {}) {
             FriendsContent(
-                modifier = Modifier.padding(it), friends = mockFriends
+                modifier = Modifier.padding(it), friends = friends
             )
         }
     }

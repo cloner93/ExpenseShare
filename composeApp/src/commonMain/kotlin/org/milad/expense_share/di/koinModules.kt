@@ -7,6 +7,7 @@ import org.milad.expense_share.auth.login.LoginViewModel
 import org.milad.expense_share.auth.register.RegisterViewModel
 import org.milad.expense_share.dashboard.DashboardViewModel
 import org.milad.expense_share.dashboard.group.GroupDetailViewModel
+import org.milad.expense_share.friends.FriendsViewModel
 import usecase.auth.LoginUserUseCase
 import usecase.auth.RegisterUserUseCase
 import usecase.friends.GetFriendsUseCase
@@ -59,6 +60,13 @@ val dashboardModule = module {
             get(),
             get(),
             get(),
+            get(),
+            get()
+        )
+    }
+
+    viewModel {
+        FriendsViewModel(
             get(),
             get()
         )
