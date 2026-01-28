@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package org.milad.expense_share.friends
 
+import EmptySelectionPlaceholder
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -57,13 +60,12 @@ import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import model.User
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
-import org.milad.expense_share.dashboard.group.components.FakeDate.userNiloufar
-import org.milad.expense_share.dashboard.group.components.FakeDate.userReza
 import org.milad.expense_share.dashboard.group.components.GroupDropdownMenu
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -91,39 +93,88 @@ fun FriendsScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 Friends(
-                    friends = state.friends.map { Friend(it, FriendRelationStatus.ACCEPTED) })
+                    friends = state.friends,
+                    onFriendClick = {
+                        viewModel.handle(FriendsAction.SelectFriend(it))
+                        scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) }
+                    },
+                    selectedFriend = state.selectedFriend,
+                )
                 if (loading) FullScreenLoading()
             }
         },
         detailPane = {
+            state.selectedFriend?.let { selectedFriend ->
+                FriendDetailScreen(
+                    selectedFriend
+                )
+            } ?: run {
+                EmptySelectionPlaceholder()
+            }
+        },
+    )
+}
+
+/*state = viewModel.viewState.collectAsState().value,
+onAction = viewModel::handle,
+onExtraAction = { }
+
+
+    state: FriendsState,
+    onAction: (FriendsAction) -> Unit,
+    onExtraAction: (ExtraPaneContentState) -> Unit,
+*/
+@Composable
+fun FriendDetailScreen(friend: Friend) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Scaffold(topBar = {
+            TopAppBar(title = { Text(friend.user.username) }, navigationIcon = {}, actions = {
+                GroupDropdownMenu(
+                    isGroupOwner = true, onAction = {})
+            })
+        }, floatingActionButton = {
+
+        }) { _ ->
 
         }
-    )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Friends(friends: List<Friend>) {
+fun Friends(
+    friends: List<Friend>,
+    onFriendClick: (Friend) -> Unit,
+    selectedFriend: Friend?,
+) {
     Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(topBar = {
+        Scaffold(
+            topBar = {
             TopAppBar(title = { Text("Friends name") }, navigationIcon = {
                 IconButton(onClick = {}) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                 }
-            }, actions = {
-                GroupDropdownMenu(
-                    isGroupOwner = true, onAction = {})
             })
-        }, floatingActionButton = {}) {
+            }) {
             FriendsContent(
-                modifier = Modifier.padding(it), friends = friends
+                modifier = Modifier.padding(it),
+                friends = friends,
+                selectedFriend = selectedFriend,
+                onFriendClick = onFriendClick
             )
         }
     }
 }
 
 @Composable
-fun FriendsContent(modifier: Modifier, friends: List<Friend>) {
+fun FriendsContent(
+    modifier: Modifier,
+    friends: List<Friend>,
+    onFriendClick: (Friend) -> Unit,
+    selectedFriend: Friend?,
+) {
 
     if (friends.isNotEmpty()) {
         LazyColumn(
@@ -134,8 +185,8 @@ fun FriendsContent(modifier: Modifier, friends: List<Friend>) {
             items(friends) { item ->
                 FriendRow(
                     user = item,
-                    isSelected = item.user == userReza,
-                    isOpened = item.user == userNiloufar
+                    isOpened = selectedFriend == item,
+                    onClick = { onFriendClick(item) },
                 )
             }
         }
@@ -145,7 +196,12 @@ fun FriendsContent(modifier: Modifier, friends: List<Friend>) {
 }
 
 @Composable
-fun FriendRow(user: Friend, isSelected: Boolean = false, isOpened: Boolean = false) {
+fun FriendRow(
+    user: Friend,
+    isSelected: Boolean = false,
+    isOpened: Boolean = false,
+    onClick: () -> Unit,
+) {
 
     Card(
         modifier = Modifier
@@ -153,8 +209,8 @@ fun FriendRow(user: Friend, isSelected: Boolean = false, isOpened: Boolean = fal
             .semantics { selected = isSelected }
             .clip(CardDefaults.shape)
             .combinedClickable(
-                onClick = {},
-                onLongClick = {},
+                onClick = onClick,
+                onLongClick = onClick,
             ),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) AppTheme.colors.primaryContainer
@@ -195,13 +251,12 @@ fun FriendRow(user: Friend, isSelected: Boolean = false, isOpened: Boolean = fal
                     style = AppTheme.typography.labelLarge
                 )
             }
-            IconButton(onClick = { }, enabled = true) {
                 Icon(
                     imageVector = Icons.Default.ArrowRight,
                     tint = AppTheme.colors.onSurfaceVariant,
                     contentDescription = null,
                 )
-            }
+
         }
     }
 }
