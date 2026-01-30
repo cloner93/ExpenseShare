@@ -54,17 +54,14 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
 import org.milad.expense_share.friends.Friend
 import org.milad.expense_share.friends.FriendRelationStatus
+import org.milad.expense_share.friends.model.SettlementItem
 import org.milad.expense_share.showSeparate
 
-data class SettlementItem(
-    val id: String,
-    val debtor: User,
-    val creditor: User,
-    val amount: Amount,
-    val status: SettlementStatus,
-)
-
 sealed class SettlementStatus {
+
+    object Pending : SettlementStatus()
+    object Approved : SettlementStatus()
+
     object YouOwe : SettlementStatus()
     object YouPaid : SettlementStatus()
     data class TheyPaid(val payerName: String) : SettlementStatus()
@@ -310,6 +307,9 @@ private fun StatusSection(
                     color = AppTheme.colors.primary
                 )
             }
+
+            SettlementStatus.Approved -> TODO()
+            SettlementStatus.Pending -> TODO()
         }
     }
 }
@@ -517,7 +517,8 @@ object FakeDate {
             debtor = userMilad,
             creditor = userSara,
             amount = Amount(250000),
-            status = SettlementStatus.YouOwe
+            status = SettlementStatus.YouOwe,
+            groupName = "NAN"
         ),
 
         SettlementItem(
@@ -525,7 +526,8 @@ object FakeDate {
             debtor = userMilad,
             creditor = userReza,
             amount = Amount(120000),
-            status = SettlementStatus.YouPaid
+            status = SettlementStatus.YouPaid,
+            groupName = "NAN"
         ),
 
         SettlementItem(
@@ -533,7 +535,8 @@ object FakeDate {
             debtor = userMaryam,
             creditor = userMilad,
             amount = Amount(450000),
-            status = SettlementStatus.TheyPaid(userMaryam.username)
+            status = SettlementStatus.TheyPaid(userMaryam.username),
+            groupName = "NAN"
         ),
 
         SettlementItem(
@@ -541,7 +544,8 @@ object FakeDate {
             debtor = userHamid,
             creditor = userMilad,
             amount = Amount(85000),
-            status = SettlementStatus.YouAreOwed
+            status = SettlementStatus.YouAreOwed,
+            groupName = "NAN"
         ),
 
         SettlementItem(
@@ -549,7 +553,8 @@ object FakeDate {
             debtor = userMilad,
             creditor = userNiloufar,
             amount = Amount(320000),
-            status = SettlementStatus.Settled
+            status = SettlementStatus.Settled,
+            groupName = "NAN"
         ),
 
         SettlementItem(
@@ -557,7 +562,8 @@ object FakeDate {
             debtor = userMilad,
             creditor = userParham,
             amount = Amount(50000),
-            status = SettlementStatus.Rejected
+            status = SettlementStatus.Rejected,
+            groupName = "NAN"
         ),
 
         SettlementItem(
@@ -565,7 +571,8 @@ object FakeDate {
             debtor = userSaeid,
             creditor = userNarges,
             amount = Amount(1000000),
-            status = SettlementStatus.ThirdParty(userSaeid.username, userNarges.username)
+            status = SettlementStatus.ThirdParty(userSaeid.username, userNarges.username),
+            groupName = "NAN"
         ),
     )
 

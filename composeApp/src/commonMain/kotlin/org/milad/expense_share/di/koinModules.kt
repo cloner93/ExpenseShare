@@ -8,6 +8,7 @@ import org.milad.expense_share.auth.register.RegisterViewModel
 import org.milad.expense_share.dashboard.DashboardViewModel
 import org.milad.expense_share.dashboard.group.GroupDetailViewModel
 import org.milad.expense_share.friends.FriendsViewModel
+import org.milad.expense_share.friends.detail.FriendDetailViewModel
 import usecase.auth.LoginUserUseCase
 import usecase.auth.RegisterUserUseCase
 import usecase.friends.GetFriendsUseCase
@@ -72,6 +73,21 @@ val dashboardModule = module {
         )
     }
 }
+val friendsModule = module {
+    viewModel {
+        FriendsViewModel(
+            get(),
+            get()
+        )
+    }
+    viewModel {
+        FriendDetailViewModel(
+            get(),
+            get(),
+            get()
+        )
+    }
+}
 val registerModule = module {
     viewModel {
         RegisterViewModel(
@@ -90,5 +106,6 @@ val loginModule = module {
 val appModules = module {
     includes(domainModule)
     includes(dataAggregator)
-    includes(dashboardModule, registerModule, loginModule)
+    // feature modules
+    includes(dashboardModule, registerModule, loginModule, friendsModule)
 }

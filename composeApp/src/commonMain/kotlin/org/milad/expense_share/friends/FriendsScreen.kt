@@ -23,7 +23,12 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import model.User
 import org.koin.compose.viewmodel.koinViewModel
-import org.milad.expense_share.dashboard.group.components.GroupDropdownMenu
+import org.koin.core.parameter.parametersOf
+import org.milad.expense_share.friends.detail.FriendDetailAction
+import org.milad.expense_share.friends.detail.FriendDetailEvent
+import org.milad.expense_share.friends.detail.FriendDetailScreen
+import org.milad.expense_share.friends.detail.FriendDetailViewModel
+import org.milad.expense_share.friends.friendsList.FriendsList
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -59,8 +64,41 @@ fun FriendsScreen(
         },
         detailPane = {
             state.selectedFriend?.let { selectedFriend ->
+                val viewModel: FriendDetailViewModel = koinViewModel(
+                    key = "friend_${selectedFriend.user.id}", parameters = {
+                        parametersOf(
+                            selectedFriend,
+                            state.currentUser,
+                        )
+                    })
+
+                LaunchedEffect(selectedFriend) {
+                    viewModel.handle(FriendDetailAction.UpdateFriend(selectedFriend.user))
+                }
+
+                LaunchedEffect(Unit) {
+                    viewModel.viewEvent.collect { event ->
+                        when (event) {
+                            is FriendDetailEvent.NavigateBack -> {
+                                scope.launch { navigator.navigateBack() }
+                            }
+
+                            is FriendDetailEvent.OpenGroup -> {
+                            }
+
+                            is FriendDetailEvent.ShowToast -> {
+                            }
+
+                            is FriendDetailEvent.ShowSettleUpDialog -> {
+                            }
+                        }
+                    }
+                }
+
                 FriendDetailScreen(
-                    selectedFriend
+                    state = viewModel.viewState.collectAsState().value,
+                    showBackButton = isDetailVisible && !isListAndDetailVisible,
+                    onAction = viewModel::handle
                 )
             } ?: run {
                 EmptySelectionPlaceholder()
