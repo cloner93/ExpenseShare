@@ -30,6 +30,8 @@ class FriendsViewModel(
                     )
                 }
             }
+
+            FriendsAction.NavigateBack -> setState { it .copy(selectedFriend = null, isDetailVisible = false)}
         }
     }
 
@@ -64,6 +66,7 @@ class FriendsViewModel(
 
 sealed interface FriendsAction : BaseViewAction {
     data class SelectFriend(val friend: Friend) : FriendsAction
+    data object NavigateBack : FriendsAction
 }
 
 data class FriendsState(

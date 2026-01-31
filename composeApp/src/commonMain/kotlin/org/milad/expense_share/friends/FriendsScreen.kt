@@ -80,6 +80,7 @@ fun FriendsScreen(
                     viewModel.viewEvent.collect { event ->
                         when (event) {
                             is FriendDetailEvent.NavigateBack -> {
+                                friendsViewModel.handle(FriendsAction.NavigateBack)
                                 scope.launch { navigator.navigateBack() }
                             }
 
