@@ -1,8 +1,9 @@
-package org.milad.expense_share.friends.detail.tabs
+package org.milad.expense_share.friends.detail.tab
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -134,7 +135,7 @@ private fun SharedGroupCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            androidx.compose.foundation.layout.Box(
+            Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
@@ -193,7 +194,7 @@ private fun RecentTransactionCard(transactionWithGroup: TransactionWithGroup) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    androidx.compose.foundation.layout.Box(
+                    Box(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)

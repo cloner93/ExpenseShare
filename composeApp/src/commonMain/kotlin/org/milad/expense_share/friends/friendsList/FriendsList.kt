@@ -57,7 +57,7 @@ fun FriendsList(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("FriendsList name") })
+            TopAppBar(title = { Text("Friends") })
         }) { padding ->
         Column(
             modifier = Modifier

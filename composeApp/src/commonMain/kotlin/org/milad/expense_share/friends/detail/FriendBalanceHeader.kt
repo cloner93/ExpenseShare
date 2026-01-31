@@ -33,6 +33,7 @@ import com.pmb.common.theme.AppTheme
 import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
+import org.milad.expense_share.friends.friendsList.phoneMapToView
 import org.milad.expense_share.friends.model.FriendBalance
 import org.milad.expense_share.showSeparate
 
@@ -57,35 +58,44 @@ fun FriendBalanceHeader(
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = null,
-                    modifier = Modifier.size(60.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+
+                Spacer(Modifier.width(12.dp))
+                Column(
+                    modifier = Modifier.padding(horizontal = 8.dp).weight(1f)
+                ) {
+                    Text(
+                        text = friend.username.run {
+                            this.take(1).uppercase() + this.lowercase().drop(1)
+                        },
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = friend.phone.phoneMapToView(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-
-            Spacer(Modifier.height(12.dp))
-
-            Text(
-                text = friend.username,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = friend.phone,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
 
 
             when {
@@ -169,10 +179,10 @@ fun FriendBalanceHeader(
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
-
-
             if (!balance.isSettled) {
+
+                Spacer(Modifier.height(16.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly

@@ -16,9 +16,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pmb.common.loading.FullScreenLoading
-import org.milad.expense_share.friends.detail.tab.FriendTransactionsTab
-import org.milad.expense_share.friends.detail.tabs.FriendOverviewTab
+import org.milad.expense_share.friends.detail.tab.FriendOverviewTab
 import org.milad.expense_share.friends.detail.tab.FriendSettlementsTab
+import org.milad.expense_share.friends.detail.tab.FriendTransactionsTab
 import org.milad.expense_share.friends.model.FriendTab
 
 @OptIn(ExperimentalMaterial3Api::class)
