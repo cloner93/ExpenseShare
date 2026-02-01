@@ -6,7 +6,6 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.milad.expense_share.data.db.table.FriendRelations
-import org.milad.expense_share.data.db.table.Friends
 import org.milad.expense_share.data.db.table.GroupMembers
 import org.milad.expense_share.data.db.table.Groups
 import org.milad.expense_share.data.db.table.Passwords
@@ -25,7 +24,6 @@ object DatabaseFactory {
             SchemaUtils.create(
                 Users,
                 Passwords,
-                Friends,
                 FriendRelations,
                 Groups,
                 GroupMembers,

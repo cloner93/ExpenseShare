@@ -1,7 +1,6 @@
 package org.milad.expense_share.data
 
 import org.jetbrains.exposed.sql.ResultRow
-import org.milad.expense_share.data.db.table.Friends
 import org.milad.expense_share.data.db.table.GroupMembers
 import org.milad.expense_share.data.db.table.Groups
 import org.milad.expense_share.data.db.table.Transactions
