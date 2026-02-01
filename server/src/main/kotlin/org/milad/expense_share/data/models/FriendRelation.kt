@@ -7,6 +7,13 @@ enum class FriendRelationStatus {
     PENDING, ACCEPTED, REJECTED
 }
 
+enum class FriendStatus {
+    PENDING,
+    ACCEPTED,
+    REJECTED,
+    BLOCKED
+}
+
 @Serializable
 data class FriendRelation(
     val userId: Int,
