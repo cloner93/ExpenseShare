@@ -13,8 +13,7 @@ plugins {
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.jacoco)
     alias(libs.plugins.kotzilla)
-//    alias(libs.plugins.storytale)
-
+    alias(libs.plugins.storytale)
 }
 
 jacoco {
