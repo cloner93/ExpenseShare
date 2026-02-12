@@ -1,35 +1,101 @@
 package org.milad.expense_share.data.repository
 
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.innerJoin
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.or
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import org.milad.expense_share.data.db.table.FriendRelations
 import org.milad.expense_share.data.db.table.Users
 import org.milad.expense_share.data.models.FriendInfo
 import org.milad.expense_share.data.models.FriendRelationStatus
 import org.milad.expense_share.data.models.User
-import org.milad.expense_share.data.toUser
+import org.milad.expense_share.domain.repository.FriendDirection
 import org.milad.expense_share.domain.repository.FriendRepository
 
 class FriendRepositoryImpl : FriendRepository {
+    override fun getAllFriends(
+        userId: Int,
+        status: FriendRelationStatus?,
+        direction: FriendDirection?
+    ): List<FriendInfo> = transaction {
 
-    override fun sendFriendRequest(fromId: Int, toPhone: String): Boolean = transaction {
-        val toUser = Users.selectAll().where { Users.phone eq toPhone }.singleOrNull()
+
+        var query1 = FriendRelations
+            .innerJoin(Users, { FriendRelations.friendId }, { Users.id })
+            .selectAll()
+            .where { FriendRelations.userId eq userId }
+
+
+        var query2 = FriendRelations
+            .innerJoin(Users, { FriendRelations.userId }, { Users.id })
+            .selectAll()
+            .where { FriendRelations.friendId eq userId }
+
+
+        if (status != null) {
+            query1 = query1.andWhere { FriendRelations.status eq status.name }
+            query2 = query2.andWhere { FriendRelations.status eq status.name }
+        }
+
+
+        val results = when {
+            direction == FriendDirection.INCOMING && status == FriendRelationStatus.PENDING -> {
+
+                query2.map { mapRowToFriendInfo(it, userId, isUserSender = false) }
+            }
+
+            direction == FriendDirection.OUTGOING && status == FriendRelationStatus.PENDING -> {
+
+                query1.map { mapRowToFriendInfo(it, userId, isUserSender = true) }
+            }
+
+            else -> {
+
+                val results1 = query1.map { mapRowToFriendInfo(it, userId, isUserSender = true) }
+                val results2 = query2.map { mapRowToFriendInfo(it, userId, isUserSender = false) }
+                results1 + results2
+            }
+        }
+
+        results
+    }
+
+    override fun sendFriendRequest(fromUserId: Int, toUserPhone: String): Boolean = transaction {
+
+        val toUser = Users
+            .selectAll()
+            .where { Users.phone eq toUserPhone }
+            .singleOrNull()
             ?: return@transaction false
 
-        val alreadyExists = FriendRelations.selectAll().where {
-            (FriendRelations.userId eq fromId) and (FriendRelations.friendId eq toUser[Users.id])
-        }.any()
+        val toUserId = toUser[Users.id]
 
-        if (alreadyExists) return@transaction false
+
+        val exists = FriendRelations
+            .selectAll()
+            .where {
+                ((FriendRelations.userId eq fromUserId) and (FriendRelations.friendId eq toUserId)) or
+                        ((FriendRelations.userId eq toUserId) and (FriendRelations.friendId eq fromUserId))
+            }
+            .any()
+
+        if (exists) return@transaction false
+
 
         val now = System.currentTimeMillis()
 
         FriendRelations.insert {
-            it[userId] = fromId
-            it[friendId] = toUser[Users.id]
+            it[userId] = fromUserId
+            it[friendId] = toUserId
             it[status] = FriendRelationStatus.PENDING.name
-            it[requestedBy] = fromId
+            it[requestedBy] = fromUserId
             it[createdAt] = now
             it[updatedAt] = now
         }
@@ -37,220 +103,119 @@ class FriendRepositoryImpl : FriendRepository {
         true
     }
 
-    override fun removeFriend(userId: Int, friendPhone: String): Boolean = transaction {
-        val friendUser = Users.selectAll().where { Users.phone eq friendPhone }.singleOrNull()
+    override fun updateFriendshipStatus(
+        userId: Int,
+        targetPhone: String,
+        newStatus: FriendRelationStatus
+    ): Boolean = transaction {
+
+        val targetUser = Users
+            .selectAll()
+            .where { Users.phone eq targetPhone }
+            .singleOrNull()
             ?: return@transaction false
 
-        val deleted = FriendRelations.deleteWhere {
-            ((FriendRelations.userId eq userId) and (FriendRelations.friendId eq friendUser[Users.id])) or
-                    ((FriendRelations.friendId eq userId) and (FriendRelations.userId eq friendUser[Users.id]))
+        val targetUserId = targetUser[Users.id]
+        val now = System.currentTimeMillis()
+
+
+        val updated = FriendRelations.update({
+            ((FriendRelations.userId eq userId) and (FriendRelations.friendId eq targetUserId)) or
+                    ((FriendRelations.userId eq targetUserId) and (FriendRelations.friendId eq userId))
+        }) {
+            it[status] = newStatus.name
+            it[updatedAt] = now
         }
+
+        updated > 0
+    }
+
+    override fun unblockFriend(userId: Int, targetPhone: String): Boolean = transaction {
+
+        val targetUser = Users
+            .selectAll()
+            .where { Users.phone eq targetPhone }
+            .singleOrNull()
+            ?: return@transaction false
+
+        val targetUserId = targetUser[Users.id]
+        val now = System.currentTimeMillis()
+
+        val updated = FriendRelations.update({
+            (((FriendRelations.userId eq userId) and (FriendRelations.friendId eq targetUserId)) or
+                    ((FriendRelations.userId eq targetUserId) and (FriendRelations.friendId eq userId))) and
+                    (FriendRelations.status eq FriendRelationStatus.BLOCKED.name)
+        }) {
+            it[status] = FriendRelationStatus.ACCEPTED.name
+            it[updatedAt] = now
+        }
+
+        updated > 0
+    }
+
+    override fun removeFriend(userId: Int, targetPhone: String): Boolean = transaction {
+
+        val targetUser = Users
+            .selectAll()
+            .where { Users.phone eq targetPhone }
+            .singleOrNull()
+            ?: return@transaction false
+
+        val targetUserId = targetUser[Users.id]
+
+
+        val deleted = FriendRelations.deleteWhere {
+            ((FriendRelations.userId eq userId) and (FriendRelations.friendId eq targetUserId)) or
+                    ((FriendRelations.userId eq targetUserId) and (FriendRelations.friendId eq userId))
+        }
+
         deleted > 0
     }
 
-    override fun getFriends(userId: Int): List<User> = transaction {
-        val friendIds = FriendRelations
-            .selectAll().where {
-                ((FriendRelations.userId eq userId) or (FriendRelations.friendId eq userId)) and
-                        (FriendRelations.status eq FriendRelationStatus.ACCEPTED.name)
-            }
-            .map {
-                if (it[FriendRelations.userId] == userId) it[FriendRelations.friendId]
-                else it[FriendRelations.userId]
-            }
+    override fun getFriendshipStatus(userId: Int, targetPhone: String): FriendInfo? = transaction {
 
-        Users.selectAll().where { Users.id inList friendIds }.map { it.toUser() }
-    }
-
-    override fun rejectFriendRequest(userId: Int, friendPhone: String): Boolean = transaction {
-        val friendUser = Users.selectAll().where { Users.phone eq friendPhone }.singleOrNull()
-            ?: return@transaction false
-
-        val now = System.currentTimeMillis()
-
-        val updated = FriendRelations.update({
-            (FriendRelations.userId eq friendUser[Users.id]) and
-                    (FriendRelations.friendId eq userId) and
-                    (FriendRelations.status eq FriendRelationStatus.PENDING.name)
-        }) {
-            it[status] = FriendRelationStatus.REJECTED.name
-            it[updatedAt] = now
-        }
-
-        updated > 0
-    }
-
-    override fun acceptFriendRequest(userId: Int, friendPhone: String): Boolean = transaction {
-        val friendUser = Users.selectAll().where { Users.phone eq friendPhone }.singleOrNull()
-            ?: return@transaction false
-
-        val now = System.currentTimeMillis()
-
-        val updated = FriendRelations.update({
-            (FriendRelations.userId eq friendUser[Users.id]) and
-                    (FriendRelations.friendId eq userId) and
-                    (FriendRelations.status eq FriendRelationStatus.PENDING.name)
-        }) {
-            it[status] = FriendRelationStatus.ACCEPTED.name
-            it[updatedAt] = now
-        }
-
-        updated > 0
-    }
-
-    override fun getIncomingRequests(userId: Int): List<User> = transaction {
-        val ids = FriendRelations
-            .selectAll().where {
-                (FriendRelations.friendId eq userId) and
-                        (FriendRelations.status eq FriendRelationStatus.PENDING.name)
-            }.map { it[FriendRelations.userId] }
-
-        Users.selectAll().where { Users.id inList ids }.map { it.toUser() }
-    }
-
-    override fun getOutgoingRequests(userId: Int): List<User> = transaction {
-        val ids = FriendRelations
-            .selectAll().where {
-                (FriendRelations.userId eq userId) and
-                        (FriendRelations.status eq FriendRelationStatus.PENDING.name)
-            }.map { it[FriendRelations.friendId] }
-
-        Users.selectAll().where { Users.id inList ids }.map { it.toUser() }
-    }
-
-    override fun getFriendsWithStatus(
-        userId: Int,
-        status: FriendRelationStatus?,
-    ): List<FriendInfo> = transaction {
-
-        val baseQuery = FriendRelations
-            .innerJoin(Users, { friendId }, { Users.id })
-            .selectAll()
-            .where {
-                ((FriendRelations.userId eq userId) or (FriendRelations.friendId eq userId))
-            }
-
-
-        val filteredQuery = if (status != null) {
-            baseQuery.andWhere { FriendRelations.status eq status.name }
-        } else {
-            baseQuery
-        }
-
-
-        filteredQuery.map { row ->
-            val isUserInitiator = row[FriendRelations.userId] == userId
-            val friendUserId = if (isUserInitiator) {
-                row[FriendRelations.friendId]
-            } else {
-                row[FriendRelations.userId]
-            }
-
-
-            val friendUser = Users.selectAll()
-                .where { Users.id eq friendUserId }
-                .single()
-                .toUser()
-
-            FriendInfo(
-                user = friendUser,
-                status = FriendRelationStatus.valueOf(row[FriendRelations.status]),
-                requestedBy = row[FriendRelations.requestedBy],
-                createdAt = row[FriendRelations.createdAt],
-                updatedAt = row[FriendRelations.updatedAt]
-            )
-        }
-    }
-
-    override fun getIncomingRequestsWithStatus(userId: Int): List<FriendInfo> = transaction {
-        FriendRelations
-            .innerJoin(Users, { FriendRelations.userId }, { Users.id })
-            .selectAll()
-            .where {
-                (FriendRelations.friendId eq userId) and
-                        (FriendRelations.status eq FriendRelationStatus.PENDING.name)
-            }
-            .map { row ->
-                FriendInfo(
-                    user = row.toUser(),
-                    status = FriendRelationStatus.PENDING,
-                    requestedBy = row[FriendRelations.requestedBy],
-                    createdAt = row[FriendRelations.createdAt],
-                    updatedAt = row[FriendRelations.updatedAt]
-                )
-            }
-    }
-
-    override fun getOutgoingRequestsWithStatus(userId: Int): List<FriendInfo> = transaction {
-        FriendRelations
+        val result = FriendRelations
             .innerJoin(Users, { FriendRelations.friendId }, { Users.id })
             .selectAll()
             .where {
-                (FriendRelations.userId eq userId) and
-                        (FriendRelations.status eq FriendRelationStatus.PENDING.name)
+                (FriendRelations.userId eq userId) and (Users.phone eq targetPhone)
             }
-            .map { row ->
-                FriendInfo(
-                    user = row.toUser(),
-                    status = FriendRelationStatus.PENDING,
-                    requestedBy = row[FriendRelations.requestedBy],
-                    createdAt = row[FriendRelations.createdAt],
-                    updatedAt = row[FriendRelations.updatedAt]
-                )
+            .singleOrNull()
+
+        if (result != null) {
+            return@transaction mapRowToFriendInfo(result, userId, isUserSender = true)
+        }
+
+
+        val reverseResult = FriendRelations
+            .innerJoin(Users, { FriendRelations.userId }, { Users.id })
+            .selectAll()
+            .where {
+                (FriendRelations.friendId eq userId) and (Users.phone eq targetPhone)
             }
-    }
+            .singleOrNull()
 
-    override fun blockFriend(userId: Int, friendPhone: String): Boolean = transaction {
-        val friendUser = Users.selectAll().where { Users.phone eq friendPhone }.singleOrNull()
-            ?: return@transaction false
-
-        val now = System.currentTimeMillis()
-
-        val updated = FriendRelations.update({
-            ((FriendRelations.userId eq userId) and (FriendRelations.friendId eq friendUser[Users.id])) or
-                    ((FriendRelations.friendId eq userId) and (FriendRelations.userId eq friendUser[Users.id]))
-        }) {
-            it[status] = FriendRelationStatus.BLOCKED.name
-            it[updatedAt] = now
+        reverseResult?.let {
+            mapRowToFriendInfo(it, userId, isUserSender = false)
         }
-
-        updated > 0
     }
 
-    override fun unblockFriend(userId: Int, friendPhone: String): Boolean = transaction {
-        val friendUser = Users.selectAll().where { Users.phone eq friendPhone }.singleOrNull()
-            ?: return@transaction false
+    private fun mapRowToFriendInfo(
+        row: ResultRow,
+        currentUserId: Int,
+        isUserSender: Boolean
+    ): FriendInfo {
 
-        val now = System.currentTimeMillis()
-
-        val updated = FriendRelations.update({
-            ((FriendRelations.userId eq userId) and (FriendRelations.friendId eq friendUser[Users.id])) or
-                    ((FriendRelations.friendId eq userId) and (FriendRelations.userId eq friendUser[Users.id]))
-        }) {
-            it[status] = FriendRelationStatus.ACCEPTED.name
-            it[updatedAt] = now
-        }
-
-        updated > 0
+        return FriendInfo(
+            user = User(
+                id = row[Users.id],
+                username = row[Users.username],
+                phone = row[Users.phone]
+            ),
+            status = FriendRelationStatus.valueOf(row[FriendRelations.status]),
+            requestedBy = row[FriendRelations.requestedBy],
+            createdAt = row[FriendRelations.createdAt],
+            updatedAt = row[FriendRelations.updatedAt]
+        )
     }
-
-    override fun getBlockedFriends(userId: Int): List<FriendInfo> = transaction {
-        getFriendsWithStatus(userId, FriendRelationStatus.BLOCKED)
-    }
-
-    override fun getFriendsByStatus(userId: Int, status: FriendRelationStatus): List<User> =
-        transaction {
-            val friendIds = FriendRelations
-                .selectAll()
-                .where {
-                    ((FriendRelations.userId eq userId) or (FriendRelations.friendId eq userId)) and
-                            (FriendRelations.status eq status.name)
-                }
-                .map {
-                    if (it[FriendRelations.userId] == userId) it[FriendRelations.friendId]
-                    else it[FriendRelations.userId]
-                }
-
-            Users.selectAll().where { Users.id inList friendIds }.map { it.toUser() }
-        }
 }
