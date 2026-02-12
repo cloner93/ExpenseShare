@@ -11,17 +11,19 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import org.milad.expense_share.data.models.FriendRelationStatus
 import org.milad.expense_share.domain.service.FriendsService
 import org.milad.expense_share.presentation.api_model.ErrorResponse
 import org.milad.expense_share.presentation.api_model.SuccessResponse
 import org.milad.expense_share.presentation.friends.model.FriendRequest
-import org.milad.expense_share.presentation.friends.model.RequestsResponse
-import org.milad.expense_share.utils.getStringParameter
+import org.milad.expense_share.presentation.friends.model.FriendsListResponse
 import org.milad.expense_share.utils.getUserId
 
-
-internal fun Routing.friendRoutes(friendsService: FriendsService) {
+internal fun Routing.friendRoutes(
+    friendsService: FriendsService
+) {
     authenticate("auth-jwt") {
         route("/friends") {
 
@@ -32,87 +34,208 @@ internal fun Routing.friendRoutes(friendsService: FriendsService) {
                         ErrorResponse("Invalid token", "INVALID_TOKEN")
                     )
 
-                call.respond(
-                    HttpStatusCode.OK,
-                    SuccessResponse(data = friendsService.listFriends(userId))
-                )
+                val statusParam = call.request.queryParameters["status"]
+                val status = statusParam?.let {
+                    try {
+                        FriendRelationStatus.valueOf(it.uppercase())
+                    } catch (e: IllegalArgumentException) {
+                        return@get call.respond(
+                            HttpStatusCode.BadRequest,
+                            ErrorResponse(
+                                "Invalid status. Valid values: PENDING, ACCEPTED, BLOCKED, REJECTED",
+                                "INVALID_STATUS"
+                            )
+                        )
+                    }
+                }
+
+                friendsService.getAllFriends(userId, status)
+                    .onSuccess { friends ->
+                        call.respond(
+                            HttpStatusCode.OK,
+                            FriendsListResponse(
+                                friends = friends,
+                                total = friends.size
+                            )
+                        )
+                    }
+                    .onFailure { error ->
+                        call.respond(
+                            HttpStatusCode.InternalServerError,
+                            ErrorResponse(
+                                error.message ?: "Failed to fetch friends",
+                                "FETCH_FAILED"
+                            )
+                        )
+                    }
             }
 
-            get("/requests") {
+            get("/accepted") {
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@get call.respond(
                         HttpStatusCode.Unauthorized,
                         ErrorResponse("Invalid token", "INVALID_TOKEN")
                     )
 
-                val (incoming, outgoing) = friendsService.listRequests(userId)
-                call.respond(
-                    HttpStatusCode.OK,
-                    SuccessResponse(data = RequestsResponse(incoming, outgoing))
-                )
-            }
-
-            post("/request") {
-                val userId = call.principal<JWTPrincipal>().getUserId()
-                    ?: return@post call.respond(
-                        HttpStatusCode.Unauthorized,
-                        ErrorResponse("Invalid token", "INVALID_TOKEN")
-                    )
-
-                val request = call.receive<FriendRequest>()
-                if (request.phone.isBlank()) {
-                    return@post call.respond(
-                        HttpStatusCode.BadRequest,
-                        ErrorResponse("Phone number is required", "PHONE_REQUIRED")
-                    )
-                }
-
-                friendsService.sendRequest(userId, request.phone)
-                    .onSuccess { call.respond(HttpStatusCode.OK, SuccessResponse(data = it)) }
-                    .onFailure {
+                friendsService.getAcceptedFriends(userId)
+                    .onSuccess { friends ->
+                        call.respond(HttpStatusCode.OK, FriendsListResponse(friends, friends.size))
+                    }
+                    .onFailure { error ->
                         call.respond(
-                            HttpStatusCode.BadRequest,
+                            HttpStatusCode.InternalServerError,
                             ErrorResponse(
-                                it.message ?: "Failed to send request",
-                                "SEND_REQUEST_FAILED"
+                                error.message ?: "Failed to fetch friends",
+                                "FETCH_FAILED"
                             )
                         )
                     }
             }
 
-            post("/accept") {
-                call.handleFriendAction("accept") { uid, phone ->
-                    friendsService.acceptRequest(uid, phone)
-                }
-            }
-
-            post("/reject") {
-                call.handleFriendAction("reject") { uid, phone ->
-                    friendsService.rejectRequest(uid, phone)
-                }
-            }
-
-            delete("/{phone}") {
+            get("/requests/incoming") {
                 val userId = call.principal<JWTPrincipal>().getUserId()
-                    ?: return@delete call.respond(
+                    ?: return@get call.respond(
                         HttpStatusCode.Unauthorized,
                         ErrorResponse("Invalid token", "INVALID_TOKEN")
                     )
 
-                val phone = call.getStringParameter("phone")
-                    ?: return@delete call.respond(
+                friendsService.getIncomingRequests(userId)
+                    .onSuccess { requests ->
+                        call.respond(
+                            HttpStatusCode.OK,
+                            FriendsListResponse(requests, requests.size)
+                        )
+                    }
+                    .onFailure { error ->
+                        call.respond(
+                            HttpStatusCode.InternalServerError,
+                            ErrorResponse(
+                                error.message ?: "Failed to fetch requests",
+                                "FETCH_FAILED"
+                            )
+                        )
+                    }
+            }
+
+            get("/requests/outgoing") {
+                val userId = call.principal<JWTPrincipal>().getUserId()
+                    ?: return@get call.respond(
+                        HttpStatusCode.Unauthorized,
+                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                    )
+
+                friendsService.getOutgoingRequests(userId)
+                    .onSuccess { requests ->
+                        call.respond(
+                            HttpStatusCode.OK,
+                            FriendsListResponse(requests, requests.size)
+                        )
+                    }
+                    .onFailure { error ->
+                        call.respond(
+                            HttpStatusCode.InternalServerError,
+                            ErrorResponse(
+                                error.message ?: "Failed to fetch requests",
+                                "FETCH_FAILED"
+                            )
+                        )
+                    }
+            }
+
+            get("/blocked") {
+                val userId = call.principal<JWTPrincipal>().getUserId()
+                    ?: return@get call.respond(
+                        HttpStatusCode.Unauthorized,
+                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                    )
+
+                friendsService.getBlockedFriends(userId)
+                    .onSuccess { blocked ->
+                        call.respond(HttpStatusCode.OK, FriendsListResponse(blocked, blocked.size))
+                    }
+                    .onFailure { error ->
+                        call.respond(
+                            HttpStatusCode.InternalServerError,
+                            ErrorResponse(
+                                error.message ?: "Failed to fetch blocked users",
+                                "FETCH_FAILED"
+                            )
+                        )
+                    }
+            }
+
+            get("/status/{phone}") {
+                val userId = call.principal<JWTPrincipal>().getUserId()
+                    ?: return@get call.respond(
+                        HttpStatusCode.Unauthorized,
+                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                    )
+
+                val phone = call.parameters["phone"]
+                    ?: return@get call.respond(
                         HttpStatusCode.BadRequest,
                         ErrorResponse("Phone number is required", "PHONE_REQUIRED")
                     )
 
-                friendsService.removeFriend(userId, phone)
-                    .onSuccess { call.respond(HttpStatusCode.OK, SuccessResponse(data = it)) }
-                    .onFailure {
+                friendsService.getFriendshipStatus(userId, phone)
+                    .onSuccess { status ->
+                        if (status != null) {
+                            call.respond(HttpStatusCode.OK, status)
+                        } else {
+                            call.respond(
+                                HttpStatusCode.NotFound,
+                                ErrorResponse("No friendship found", "NOT_FOUND")
+                            )
+                        }
+                    }
+                    .onFailure { error ->
                         call.respond(
-                            HttpStatusCode.NotFound,
-                            ErrorResponse(it.message ?: "Friend not found", "FRIEND_NOT_FOUND")
+                            HttpStatusCode.InternalServerError,
+                            ErrorResponse(error.message ?: "Failed to get status", "STATUS_FAILED")
                         )
                     }
+            }
+
+            post("/request") {
+                call.handleFriendAction("send_request") { userId, phone ->
+                    friendsService.sendFriendRequest(userId, phone)
+                }
+            }
+
+            put("/accept") {
+                call.handleFriendAction("accept") { userId, phone ->
+                    friendsService.acceptFriendRequest(userId, phone)
+                }
+            }
+
+            put("/reject") {
+                call.handleFriendAction("reject") { userId, phone ->
+                    friendsService.rejectFriendRequest(userId, phone)
+                }
+            }
+
+            put("/block") {
+                call.handleFriendAction("block") { userId, phone ->
+                    friendsService.blockFriend(userId, phone)
+                }
+            }
+
+            put("/unblock") {
+                call.handleFriendAction("unblock") { userId, phone ->
+                    friendsService.unblockFriend(userId, phone)
+                }
+            }
+
+            put("/cancel") {
+                call.handleFriendAction("cancel") { userId, phone ->
+                    friendsService.cancelFriendRequest(userId, phone)
+                }
+            }
+
+            delete("/remove") {
+                call.handleFriendAction("remove") { userId, phone ->
+                    friendsService.removeFriend(userId, phone)
+                }
             }
         }
     }
@@ -120,7 +243,7 @@ internal fun Routing.friendRoutes(friendsService: FriendsService) {
 
 private suspend fun ApplicationCall.handleFriendAction(
     actionName: String,
-    block: (Int, String) -> Result<String>,
+    block: suspend (Int, String) -> Result<String>,
 ) {
     val userId = principal<JWTPrincipal>().getUserId()
         ?: return respond(
@@ -129,6 +252,7 @@ private suspend fun ApplicationCall.handleFriendAction(
         )
 
     val request = receive<FriendRequest>()
+
     if (request.phone.isBlank()) {
         return respond(
             HttpStatusCode.BadRequest,
@@ -137,14 +261,27 @@ private suspend fun ApplicationCall.handleFriendAction(
     }
 
     block(userId, request.phone)
-        .onSuccess { respond(HttpStatusCode.OK, SuccessResponse(data = it)) }
-        .onFailure {
+        .onSuccess { message ->
+            respond(HttpStatusCode.OK, SuccessResponse(data = message))
+        }
+        .onFailure { error ->
+            val (statusCode, errorCode) = when {
+                error.message?.contains("not found", ignoreCase = true) == true ->
+                    HttpStatusCode.NotFound to "NOT_FOUND"
+
+                error.message?.contains("already", ignoreCase = true) == true ->
+                    HttpStatusCode.Conflict to "ALREADY_EXISTS"
+
+                error.message?.contains("Cannot", ignoreCase = true) == true ->
+                    HttpStatusCode.BadRequest to "INVALID_ACTION"
+
+                else ->
+                    HttpStatusCode.InternalServerError to "${actionName.uppercase()}_FAILED"
+            }
+
             respond(
-                HttpStatusCode.NotFound,
-                ErrorResponse(
-                    it.message ?: "No pending friend request found",
-                    "${actionName.uppercase()}_FAILED"
-                )
+                statusCode,
+                ErrorResponse(error.message ?: "Action failed", errorCode)
             )
         }
 }
