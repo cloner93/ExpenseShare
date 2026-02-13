@@ -22,6 +22,8 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.outlined.Cancel
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,16 +46,24 @@ import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
+import model.FriendInfo
+import model.FriendRelationStatus
+import model.User
 import org.jetbrains.compose.resources.painterResource
-import org.milad.expense_share.friends.Friend
-import org.milad.expense_share.friends.FriendRelationStatus
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.milad.expense_share.dashboard.group.components.FakeDate
+import org.milad.expense_share.expenses.AnimatedLoadingButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsList(
-    friends: List<Friend>,
-    onFriendClick: (Friend) -> Unit,
-    selectedFriend: Friend?,
+    currentUser: User,
+    friends: List<FriendInfo>,
+    selectedFriend: FriendInfo?,
+    onCancelRequest: (FriendInfo) -> Unit,
+    onRejectRequest: (FriendInfo) -> Unit,
+    onAcceptRequest: (FriendInfo) -> Unit,
+    onFriendClick: (FriendInfo) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -72,7 +82,11 @@ fun FriendsList(
                     items(friends) { item ->
                         FriendRow(
                             user = item,
+                            currentUserRequested = item.requestedBy == currentUser.id,
                             isOpened = selectedFriend == item,
+                            onCancelRequest = { onCancelRequest(item) },
+                            onRejectRequest = { onRejectRequest(item) },
+                            onAcceptRequest = { onAcceptRequest(item) },
                             onClick = { onFriendClick(item) },
                         )
                     }
@@ -86,10 +100,14 @@ fun FriendsList(
 
 @Composable
 fun FriendRow(
-    user: Friend,
+    user: FriendInfo,
+    currentUserRequested: Boolean = false,
     isSelected: Boolean = false,
     isOpened: Boolean = false,
-    onClick: () -> Unit,
+    onCancelRequest: () -> Unit = {},
+    onRejectRequest: () -> Unit = {},
+    onAcceptRequest: () -> Unit = {},
+    onClick: () -> Unit = {},
 ) {
 
     Card(
@@ -97,9 +115,12 @@ fun FriendRow(
             .fillMaxWidth()
             .semantics { selected = isSelected }
             .clip(CardDefaults.shape)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onClick,
+            .then(
+                if (user.status == FriendRelationStatus.ACCEPTED)
+                    Modifier.combinedClickable(
+                        onClick = onClick,
+                        onLongClick = onClick,
+                    ) else Modifier
             ),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) AppTheme.colors.primaryContainer
@@ -125,13 +146,13 @@ fun FriendRow(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = user.user.username,
+                        text = user.user.username.upperFirstChar(),
                         color = AppTheme.colors.onSurface,
                         style = AppTheme.typography.titleMedium
                     )
                     Spacer(Modifier.width(8.dp))
 
-                    FriendState(user.state)
+                    FriendState(user.status)
                 }
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
@@ -140,12 +161,95 @@ fun FriendRow(
                     style = AppTheme.typography.labelLarge
                 )
             }
-            Icon(
-                imageVector = Icons.Default.ArrowRight,
-                tint = AppTheme.colors.onSurfaceVariant,
-                contentDescription = null,
-            )
+            if (user.status == FriendRelationStatus.PENDING)
+            // if me requested
+                if (currentUserRequested) {
+                    AnimatedLoadingButton(
+                        enabled = true,
+                        loading = false,
+                        icon = Icons.Outlined.Cancel,
+                        onClick = onCancelRequest,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppTheme.colors.errorContainer,
+                            contentColor = AppTheme.colors.onErrorContainer
+                        )
+                    )
+                } else {
+                    Row {
+                        AnimatedLoadingButton(
+                            enabled = true,
+                            loading = false,
+                            icon = Icons.Outlined.Cancel,
+                            onClick = onRejectRequest,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = AppTheme.colors.errorContainer,
+                                contentColor = AppTheme.colors.onErrorContainer
+                            )
+                        )
+                        Spacer(Modifier.width(4.dp))
 
+                        AnimatedLoadingButton(
+                            enabled = true,
+                            loading = false,
+                            icon = Icons.Default.Check,
+                            onClick = onAcceptRequest,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = AppTheme.colors.successContainer,
+                                contentColor = AppTheme.colors.onSuccessContainer
+                            )
+                        )
+                    }
+                }
+
+
+            if (user.status == FriendRelationStatus.ACCEPTED) {
+                Icon(
+                    imageVector = Icons.Default.ArrowRight,
+                    tint = AppTheme.colors.onSurfaceVariant,
+                    contentDescription = null,
+                )
+            }
+
+        }
+    }
+}
+
+@Composable
+@Preview
+fun FriendRowPreview() {
+    val user = FriendInfo(
+        user = FakeDate.userSaeid,
+        status = FriendRelationStatus.ACCEPTED,
+        requestedBy = FakeDate.userMilad.id,
+        createdAt = 1,
+        updatedAt = 1,
+    )
+    AppTheme {
+        Column(
+            modifier = Modifier
+                .background(color = AppTheme.colors.background),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            FriendRow(
+                user = user
+            ) {}
+            FriendRow(
+                user = user.copy(status = FriendRelationStatus.PENDING)
+            ) {}
+            FriendRow(
+                user = user.copy(
+                    status = FriendRelationStatus.PENDING,
+                    user = FakeDate.userHamid,
+                    requestedBy = FakeDate.userHamid.id
+                ),
+                currentUserRequested = true
+            ) {}
+            FriendRow(
+                user = user.copy(status = FriendRelationStatus.REJECTED)
+            ) {}
+            FriendRow(
+                user = user.copy(status = FriendRelationStatus.BLOCKED)
+            ) {}
         }
     }
 }
@@ -160,6 +264,11 @@ fun String.phoneMapToView(): String {
 
     return "$a $b $c"
 }
+
+fun String.upperFirstChar() =
+    this.run {
+        this.take(1).uppercase() + this.lowercase().drop(1)
+    }
 
 @Composable
 fun FriendState(state: FriendRelationStatus) {
@@ -198,9 +307,7 @@ fun FriendState(state: FriendRelationStatus) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = state.name.run {
-                    this.take(1).uppercase() + this.lowercase().drop(1)
-                },
+                text = state.name.upperFirstChar(),
                 style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                 color = contentColor
             )

@@ -34,6 +34,7 @@ import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
 import org.milad.expense_share.friends.friendsList.phoneMapToView
+import org.milad.expense_share.friends.friendsList.upperFirstChar
 import org.milad.expense_share.friends.model.FriendBalance
 import org.milad.expense_share.showSeparate
 
@@ -82,9 +83,7 @@ fun FriendBalanceHeader(
                     modifier = Modifier.padding(horizontal = 8.dp).weight(1f)
                 ) {
                     Text(
-                        text = friend.username.run {
-                            this.take(1).uppercase() + this.lowercase().drop(1)
-                        },
+                        text = friend.username.upperFirstChar(),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )

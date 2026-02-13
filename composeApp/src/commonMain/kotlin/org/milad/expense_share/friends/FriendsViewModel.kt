@@ -6,13 +6,14 @@ import com.pmb.common.viewmodel.BaseViewEvent
 import com.pmb.common.viewmodel.BaseViewModel
 import com.pmb.common.viewmodel.BaseViewState
 import kotlinx.coroutines.launch
+import model.FriendInfo
 import model.User
-import usecase.friends.GetFriendsUseCase
+import usecase.friends.GetAllFriendsUseCase
 import usecase.user.GetUserInfoUseCase
 
 class FriendsViewModel(
     private val getUserInfoUseCase: GetUserInfoUseCase,
-    private val getFriendsUseCase: GetFriendsUseCase,
+    private val getAllFriendsUseCase: GetAllFriendsUseCase,
 ) : BaseViewModel<FriendsAction, FriendsState, FriendsEvent>(
     initialState = FriendsState()
 ) {
@@ -43,7 +44,7 @@ class FriendsViewModel(
     }
 
     private suspend fun getFriends() {
-        getFriendsUseCase().collect { result ->
+        getAllFriendsUseCase().collect { result ->
             result.onSuccess { newFriends ->
                 setState {
                     it.copy(
@@ -65,7 +66,7 @@ class FriendsViewModel(
 }
 
 sealed interface FriendsAction : BaseViewAction {
-    data class SelectFriend(val friend: Friend) : FriendsAction
+    data class SelectFriend(val friend: FriendInfo) : FriendsAction
     data object NavigateBack : FriendsAction
 }
 
@@ -73,8 +74,8 @@ data class FriendsState(
     val currentUser: User? = null,
     val listPaneLoading: Boolean = true,
     val isDetailVisible: Boolean = false,
-    val friends: List<User> = emptyList(),
-    val selectedFriend: Friend? = null,
+    val friends: List<FriendInfo> = emptyList(),
+    val selectedFriend: FriendInfo? = null,
 ) : BaseViewState
 
 sealed interface FriendsEvent : BaseViewEvent {

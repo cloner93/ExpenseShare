@@ -20,8 +20,6 @@ import androidx.compose.ui.Modifier
 import com.pmb.common.loading.FullScreenLoading
 import com.pmb.common.theme.AppTheme
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
-import model.User
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.milad.expense_share.friends.detail.FriendDetailAction
@@ -51,9 +49,13 @@ fun FriendsScreen(
         directive = navigator.scaffoldDirective,
         value = navigator.scaffoldValue,
         listPane = {
-            FriendsList(
-                // TODO: this mapping is temp.
-                friends = state.friends.map { Friend(it, FriendRelationStatus.ACCEPTED) },
+            state.currentUser?.let { currentUser ->
+                FriendsList(
+                    currentUser = currentUser,
+                    friends = state.friends,
+                    onCancelRequest = {},
+                    onRejectRequest = {},
+                    onAcceptRequest = {},
                     onFriendClick = {
                         friendsViewModel.handle(FriendsAction.SelectFriend(it))
                         scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) }
@@ -61,6 +63,7 @@ fun FriendsScreen(
                     selectedFriend = state.selectedFriend,
                 )
                 if (loading) FullScreenLoading()
+            }
         },
         detailPane = {
             state.selectedFriend?.let { selectedFriend ->
@@ -106,14 +109,4 @@ fun FriendsScreen(
             }
         },
     )
-}
-
-data class Friend(
-    val user: User,
-    val state: FriendRelationStatus,
-)
-
-@Serializable
-enum class FriendRelationStatus {
-    ACCEPTED, PENDING, REJECTED, BLOCKED,
 }
