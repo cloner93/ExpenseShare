@@ -18,7 +18,6 @@ import org.milad.expense_share.domain.service.FriendsService
 import org.milad.expense_share.presentation.api_model.ErrorResponse
 import org.milad.expense_share.presentation.api_model.SuccessResponse
 import org.milad.expense_share.presentation.friends.model.FriendRequest
-import org.milad.expense_share.presentation.friends.model.FriendsListResponse
 import org.milad.expense_share.utils.getUserId
 
 internal fun Routing.friendRoutes(
@@ -53,10 +52,8 @@ internal fun Routing.friendRoutes(
                     .onSuccess { friends ->
                         call.respond(
                             HttpStatusCode.OK,
-                            FriendsListResponse(
-                                friends = friends,
-                                total = friends.size
-                            )
+                            SuccessResponse(data = friends)
+
                         )
                     }
                     .onFailure { error ->
@@ -79,7 +76,10 @@ internal fun Routing.friendRoutes(
 
                 friendsService.getAcceptedFriends(userId)
                     .onSuccess { friends ->
-                        call.respond(HttpStatusCode.OK, FriendsListResponse(friends, friends.size))
+                        call.respond(
+                            HttpStatusCode.OK,
+                            SuccessResponse(data = friends)
+                        )
                     }
                     .onFailure { error ->
                         call.respond(
@@ -103,7 +103,7 @@ internal fun Routing.friendRoutes(
                     .onSuccess { requests ->
                         call.respond(
                             HttpStatusCode.OK,
-                            FriendsListResponse(requests, requests.size)
+                            SuccessResponse(data = requests)
                         )
                     }
                     .onFailure { error ->
@@ -128,7 +128,7 @@ internal fun Routing.friendRoutes(
                     .onSuccess { requests ->
                         call.respond(
                             HttpStatusCode.OK,
-                            FriendsListResponse(requests, requests.size)
+                            SuccessResponse(data = requests)
                         )
                     }
                     .onFailure { error ->
@@ -151,7 +151,10 @@ internal fun Routing.friendRoutes(
 
                 friendsService.getBlockedFriends(userId)
                     .onSuccess { blocked ->
-                        call.respond(HttpStatusCode.OK, FriendsListResponse(blocked, blocked.size))
+                        call.respond(
+                            HttpStatusCode.OK,
+                            SuccessResponse(data = blocked)
+                        )
                     }
                     .onFailure { error ->
                         call.respond(
@@ -180,7 +183,10 @@ internal fun Routing.friendRoutes(
                 friendsService.getFriendshipStatus(userId, phone)
                     .onSuccess { status ->
                         if (status != null) {
-                            call.respond(HttpStatusCode.OK, status)
+                            call.respond(
+                                HttpStatusCode.OK,
+                                SuccessResponse(data = status)
+                            )
                         } else {
                             call.respond(
                                 HttpStatusCode.NotFound,
