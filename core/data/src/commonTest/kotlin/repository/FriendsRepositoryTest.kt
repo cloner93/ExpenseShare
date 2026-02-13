@@ -17,7 +17,7 @@ class FriendsRepositoryTest : DescribeSpec({
     val network = mock(of<NetworkManager>())
     val repo = FriendsRepositoryImpl(network)
 
-    describe("getFriends") {
+    describe("getAllFriends") {
         context("when API call succeeds") {
             it("should return success with friends list") {
                 // Arrange
@@ -28,7 +28,7 @@ class FriendsRepositoryTest : DescribeSpec({
                 } returns flowOf(Result.success(expectedUsers))
 
                 // Act
-                val result = repo.getFriends().first()
+                val result = repo.getAllFriends().first()
 
                 // Assert
                 result shouldBeSuccess { user ->
@@ -52,7 +52,7 @@ class FriendsRepositoryTest : DescribeSpec({
                 } returns flowOf(Result.failure(exception))
 
                 // Act
-                val result = repo.getFriends().first()
+                val result = repo.getAllFriends().first()
 
                 // Assert
                 result shouldBeFailure { error ->
