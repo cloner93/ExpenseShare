@@ -52,8 +52,6 @@ import model.Group
 import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
-import org.milad.expense_share.friends.Friend
-import org.milad.expense_share.friends.FriendRelationStatus
 import org.milad.expense_share.friends.model.SettlementItem
 import org.milad.expense_share.showSeparate
 
@@ -576,11 +574,11 @@ object FakeDate {
         ),
     )
 
-    val mockFriends = listOf(
+   /* val mockFriends = listOf(
         Friend(userSara, FriendRelationStatus.ACCEPTED),
         Friend(userReza, FriendRelationStatus.ACCEPTED),
         Friend(userMaryam, FriendRelationStatus.PENDING),
         Friend(userHamid, FriendRelationStatus.REJECTED),
         Friend(userNiloufar, FriendRelationStatus.BLOCKED),
-    )
+    )*/
 }

@@ -7,6 +7,7 @@ import com.pmb.common.viewmodel.BaseViewModel
 import com.pmb.common.viewmodel.BaseViewState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import model.FriendRelationStatus
 import model.Group
 import model.PayerDto
 import model.ShareDetailsRequest
@@ -14,7 +15,7 @@ import model.Transaction
 import model.User
 import org.milad.expense_share.Amount
 import org.milad.expense_share.logger.AppLogger
-import usecase.friends.GetFriendsUseCase
+import usecase.friends.GetAllFriendsUseCase
 import usecase.groups.CreateGroupUseCase
 import usecase.groups.GetGroupsUseCase
 import usecase.transactions.CreateTransactionUseCase
@@ -24,7 +25,7 @@ class DashboardViewModel(
     private val getUserInfoUseCase: GetUserInfoUseCase,
     private val getGroupsUseCase: GetGroupsUseCase,
     private val createGroupUseCase: CreateGroupUseCase,
-    private val getFriendsUseCase: GetFriendsUseCase,
+    private val getAllFriendsUseCase: GetAllFriendsUseCase,
     private val createTransactionUseCase: CreateTransactionUseCase,
 ) : BaseViewModel<DashboardAction, DashboardState, DashboardEvent>(
     initialState = DashboardState()
@@ -173,11 +174,14 @@ class DashboardViewModel(
     }
 
     private suspend fun getFriends() {
-        getFriendsUseCase().collect { result ->
+        getAllFriendsUseCase().collect { result ->
             result.onSuccess { newFriends ->
+                val allAcceptedFriend =
+                    newFriends.filter { it.status == FriendRelationStatus.ACCEPTED }.map { it.user }
+
                 setState {
                     it.copy(
-                        friends = it.friends + newFriends,
+                        friends = it.friends + allAcceptedFriend,
                         listPaneLoading = false
                     )
                 }

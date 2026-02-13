@@ -6,12 +6,13 @@ import com.pmb.common.viewmodel.BaseViewEvent
 import com.pmb.common.viewmodel.BaseViewModel
 import com.pmb.common.viewmodel.BaseViewState
 import kotlinx.coroutines.launch
+import model.FriendRelationStatus
 import model.Group
 import model.Transaction
 import model.TransactionStatus
 import model.User
 import org.milad.expense_share.dashboard.group.components.GroupTab
-import usecase.friends.GetFriendsUseCase
+import usecase.friends.GetAllFriendsUseCase
 import usecase.groups.DeleteGroupUseCase
 import usecase.groups.UpdateGroupMembersUseCase
 import usecase.transactions.ApproveTransactionUseCase
@@ -29,7 +30,7 @@ class GroupDetailViewModel(
     private val rejectTransactionUseCase: RejectTransactionUseCase,
     private val deleteGroupUseCase: DeleteGroupUseCase,
     private val updateGroupUseCase: UpdateGroupMembersUseCase,
-    private val getFriendsUseCase: GetFriendsUseCase,
+    private val getAllFriendsUseCase: GetAllFriendsUseCase,
 ) : BaseViewModel<GroupDetailAction, GroupDetailState, GroupDetailEvent>(
     initialState = GroupDetailState(
         selectedGroup = initialGroup,
@@ -245,12 +246,14 @@ class GroupDetailViewModel(
                     error = null
                 )
             }
-            getFriendsUseCase().collect { result ->
+            getAllFriendsUseCase().collect { result ->
                 result.onSuccess { newFriends ->
+                    val allAcceptedFriend = newFriends.filter { it.status == FriendRelationStatus.ACCEPTED }.map { it.user }
+
                     setState {
                         it.copy(
                             isLoading = false,
-                            friends = it.friends + newFriends,
+                            friends = it.friends + allAcceptedFriend,
                         )
                     }
                 }.onFailure { e ->
