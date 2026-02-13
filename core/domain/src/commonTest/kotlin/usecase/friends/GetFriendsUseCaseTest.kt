@@ -15,7 +15,7 @@ class GetFriendsUseCaseTest : StringSpec({
 
     val repo = mock(of<FriendsRepository>())
 
-    val useCase = GetFriendsUseCase(repo)
+    val useCase = GetAllFriendsUseCase(repo)
 
     "should return list of friend when successful" {
         // Arrange

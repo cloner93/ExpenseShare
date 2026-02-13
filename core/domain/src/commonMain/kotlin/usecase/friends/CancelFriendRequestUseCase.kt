@@ -3,10 +3,10 @@ package usecase.friends
 import kotlinx.coroutines.flow.Flow
 import repository.FriendsRepository
 
-class RemoveFriendUseCase(
+class CancelFriendRequestUseCase(
     private val friendsRepository: FriendsRepository
 ) {
     suspend operator fun invoke(targetPhone: String): Flow<Result<String>> {
-        return friendsRepository.removeFriend(targetPhone)
+        return friendsRepository.cancelFriendRequest(targetPhone)
     }
 }
