@@ -34,6 +34,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Numbers
@@ -93,6 +94,7 @@ import model.User
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
+import org.milad.expense_share.group.FriendSelectionRow
 import org.milad.expense_share.showSeparate
 
 @Composable
@@ -349,8 +351,8 @@ fun ConfirmButton(
     ) {
         AnimatedLoadingButton(
             Modifier.fillMaxWidth(),
-            "Save",
-            loading,
+            text = "Save",
+            loading = loading,
             onClick = onClick
         )
 
@@ -369,7 +371,8 @@ fun ConfirmButton(
 @Composable
 fun AnimatedLoadingButton(
     modifier: Modifier = Modifier,
-    text: String,
+    text: String? = null,
+    icon: ImageVector? = null,
     loading: Boolean,
     enabled: Boolean = false,
     colors: ButtonColors = ButtonDefaults.buttonColors(),
@@ -396,7 +399,22 @@ fun AnimatedLoadingButton(
                     strokeWidth = 2.5.dp
                 )
             } else {
-                Text(text)
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    text?.let { Text(it) }
+
+                    if (text != null && icon != null)
+                        Spacer(Modifier.width(8.dp))
+
+                    icon?.let {
+                        Icon(
+                            imageVector = it,
+                            contentDescription = null,
+                        )
+                    }
+                }
             }
         }
     }
@@ -413,6 +431,36 @@ fun ConfirmButtonP() {
             ConfirmButton(false, Throwable("Has error")) {}
         }
 
+    })
+}
+
+@Preview
+@Composable
+fun LoadingButtonPreview() {
+    AppTheme(content = {
+        Column(modifier = Modifier.background(color = Color.White)) {
+            AnimatedLoadingButton(
+                text = "Title",
+                loading = false,
+                onClick = { }
+            )
+            AnimatedLoadingButton(
+                text = "Title",
+                loading = true,
+                onClick = { }
+            )
+            AnimatedLoadingButton(
+                text = "Title",
+                loading = false,
+                icon = Icons.Default.Check,
+                onClick = { }
+            )
+            AnimatedLoadingButton(
+                loading = false,
+                icon = Icons.Default.Check,
+                onClick = { }
+            )
+        }
     })
 }
 
