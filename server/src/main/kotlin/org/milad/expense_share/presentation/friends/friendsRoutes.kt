@@ -17,7 +17,6 @@ import org.milad.expense_share.data.models.FriendRelationStatus
 import org.milad.expense_share.domain.service.FriendsService
 import org.milad.expense_share.presentation.api_model.ErrorResponse
 import org.milad.expense_share.presentation.api_model.SuccessResponse
-import org.milad.expense_share.presentation.friends.model.FriendRequest
 import org.milad.expense_share.utils.getUserId
 
 internal fun Routing.friendRoutes(
@@ -257,16 +256,16 @@ private suspend fun ApplicationCall.handleFriendAction(
             ErrorResponse("Invalid token", "INVALID_TOKEN")
         )
 
-    val request = receive<FriendRequest>()
+    val phone = receive<String>()
 
-    if (request.phone.isBlank()) {
+    if (phone.isBlank()) {
         return respond(
             HttpStatusCode.BadRequest,
             ErrorResponse("Phone number is required", "PHONE_REQUIRED")
         )
     }
 
-    block(userId, request.phone)
+    block(userId, phone)
         .onSuccess { message ->
             respond(HttpStatusCode.OK, SuccessResponse(data = message))
         }
