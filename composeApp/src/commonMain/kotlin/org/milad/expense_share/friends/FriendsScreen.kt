@@ -44,6 +44,18 @@ fun FriendsScreen(
     val isDetailVisible =
         state.isDetailVisible || navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded
 
+    LaunchedEffect(Unit) {
+        friendsViewModel.viewEvent.collect { event ->
+            when (event) {
+                FriendsEvent.ShowFriendDetail -> {
+                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) }
+                }
+
+                is FriendsEvent.ShowToast -> {}
+            }
+        }
+    }
+
     ListDetailPaneScaffold(
         modifier = Modifier.background(color = AppTheme.colors.background),
         directive = navigator.scaffoldDirective,
@@ -51,59 +63,53 @@ fun FriendsScreen(
         listPane = {
             state.currentUser?.let { currentUser ->
                 FriendsList(
-                    currentUser = currentUser,
-                    friends = state.friends,
-                    onCancelRequest = {},
-                    onRejectRequest = {},
-                    onAcceptRequest = {},
-                    onFriendClick = {
-                        friendsViewModel.handle(FriendsAction.SelectFriend(it))
-                        scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) }
-                    },
-                    selectedFriend = state.selectedFriend,
+                    state = friendsViewModel.viewState.collectAsState().value,
+                    onAction = friendsViewModel::handle,
                 )
                 if (loading) FullScreenLoading()
             }
         },
         detailPane = {
             state.selectedFriend?.let { selectedFriend ->
-                val viewModel: FriendDetailViewModel = koinViewModel(
-                    key = "friend_${selectedFriend.user.id}", parameters = {
-                        parametersOf(
-                            selectedFriend,
-                            state.currentUser,
-                        )
-                    })
+                if (state.isDetailVisible) {
+                    val viewModel: FriendDetailViewModel = koinViewModel(
+                        key = "friend_${selectedFriend.user.id}", parameters = {
+                            parametersOf(
+                                selectedFriend,
+                                state.currentUser,
+                            )
+                        })
 
-                LaunchedEffect(selectedFriend) {
-                    viewModel.handle(FriendDetailAction.UpdateFriend(selectedFriend.user))
-                }
+                    LaunchedEffect(selectedFriend) {
+                        viewModel.handle(FriendDetailAction.UpdateFriend(selectedFriend.user))
+                    }
 
-                LaunchedEffect(Unit) {
-                    viewModel.viewEvent.collect { event ->
-                        when (event) {
-                            is FriendDetailEvent.NavigateBack -> {
-                                friendsViewModel.handle(FriendsAction.NavigateBack)
-                                scope.launch { navigator.navigateBack() }
-                            }
+                    LaunchedEffect(Unit) {
+                        viewModel.viewEvent.collect { event ->
+                            when (event) {
+                                is FriendDetailEvent.NavigateBack -> {
+                                    friendsViewModel.handle(FriendsAction.NavigateBack)
+                                    scope.launch { navigator.navigateBack() }
+                                }
 
-                            is FriendDetailEvent.OpenGroup -> {
-                            }
+                                is FriendDetailEvent.OpenGroup -> {
+                                }
 
-                            is FriendDetailEvent.ShowToast -> {
-                            }
+                                is FriendDetailEvent.ShowToast -> {
+                                }
 
-                            is FriendDetailEvent.ShowSettleUpDialog -> {
+                                is FriendDetailEvent.ShowSettleUpDialog -> {
+                                }
                             }
                         }
                     }
-                }
 
-                FriendDetailScreen(
-                    state = viewModel.viewState.collectAsState().value,
-                    showBackButton = isDetailVisible && !isListAndDetailVisible,
-                    onAction = viewModel::handle
-                )
+                    FriendDetailScreen(
+                        state = viewModel.viewState.collectAsState().value,
+                        showBackButton = isDetailVisible && !isListAndDetailVisible,
+                        onAction = viewModel::handle
+                    )
+                }
             } ?: run {
                 EmptySelectionPlaceholder()
             }

@@ -48,22 +48,19 @@ import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.paris
 import model.FriendInfo
 import model.FriendRelationStatus
-import model.User
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.dashboard.group.components.FakeDate
 import org.milad.expense_share.expenses.AnimatedLoadingButton
+import org.milad.expense_share.friends.FriendsAction
+import org.milad.expense_share.friends.FriendsState
+import org.milad.expense_share.friends.dialogs.FriendsDialogs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsList(
-    currentUser: User,
-    friends: List<FriendInfo>,
-    selectedFriend: FriendInfo?,
-    onCancelRequest: (FriendInfo) -> Unit,
-    onRejectRequest: (FriendInfo) -> Unit,
-    onAcceptRequest: (FriendInfo) -> Unit,
-    onFriendClick: (FriendInfo) -> Unit,
+    state: FriendsState,
+    onAction: (FriendsAction) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -74,20 +71,20 @@ fun FriendsList(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (friends.isNotEmpty()) {
+            if (state.friends.isNotEmpty()) {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    items(friends) { item ->
+                    items(state.friends) { item ->
                         FriendRow(
                             user = item,
-                            currentUserRequested = item.requestedBy == currentUser.id,
-                            isOpened = selectedFriend == item,
-                            onCancelRequest = { onCancelRequest(item) },
-                            onRejectRequest = { onRejectRequest(item) },
-                            onAcceptRequest = { onAcceptRequest(item) },
-                            onClick = { onFriendClick(item) },
+                            currentUserRequested = item.requestedBy == state.currentUser!!.id,
+                            isOpened = state.selectedFriend == item,
+                            onCancelRequest = { onAction(FriendsAction.ShowCancelFriendRequest(item)) },
+                            onRejectRequest = { onAction(FriendsAction.ShowRejectFriendRequest(item)) },
+                            onAcceptRequest = { onAction(FriendsAction.ShowAcceptFriendRequest(item)) },
+                            onClick = { onAction(FriendsAction.SelectFriend(item)) },
                         )
                     }
                 }
@@ -96,6 +93,7 @@ fun FriendsList(
             }
         }
     }
+    FriendsDialogs(state, onAction)
 }
 
 @Composable
