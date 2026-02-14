@@ -100,6 +100,9 @@ val friendsModule = module {
     viewModel {
         FriendsViewModel(
             get(),
+            get(),
+            get(),
+            get(),
             get()
         )
     }
