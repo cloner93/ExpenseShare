@@ -3,6 +3,7 @@ package repository
 import NetworkManager
 import kotlinx.coroutines.flow.Flow
 import model.FriendInfo
+import model.FriendRequest
 
 class FriendsRepositoryImpl(private val networkManager: NetworkManager) : FriendsRepository {
     override suspend fun getAllFriends(): Flow<Result<List<FriendInfo>>> {
@@ -30,30 +31,38 @@ class FriendsRepositoryImpl(private val networkManager: NetworkManager) : Friend
     }
 
     override suspend fun sendFriendRequest(targetPhone: String): Flow<Result<String>> {
-        return networkManager.post<String, String>("/friends/request", body = targetPhone)
+        val request = FriendRequest(targetPhone)
+        return networkManager.post<FriendRequest, String>("/friends/request", body = request)
     }
 
     override suspend fun acceptFriendRequest(targetPhone: String): Flow<Result<String>> {
-        return networkManager.put<String, String>("/friends/accept", body = targetPhone)
+        val request = FriendRequest(targetPhone)
+        return networkManager.put<FriendRequest, String>("/friends/accept", body = request)
     }
 
     override suspend fun rejectFriendRequest(targetPhone: String): Flow<Result<String>> {
-        return networkManager.put<String, String>("/friends/reject", body = targetPhone)
+        val request = FriendRequest(targetPhone)
+        return networkManager.put<FriendRequest, String>("/friends/reject", body = request)
     }
 
     override suspend fun blockFriend(targetPhone: String): Flow<Result<String>> {
-        return networkManager.put<String, String>("/friends/block", body = targetPhone)
+        val request = FriendRequest(targetPhone)
+        return networkManager.put<FriendRequest, String>("/friends/block", body = request)
     }
 
     override suspend fun unblockFriend(targetPhone: String): Flow<Result<String>> {
-        return networkManager.put<String, String>("/friends/unblock", body = targetPhone)
+        val request = FriendRequest(targetPhone)
+        return networkManager.put<FriendRequest, String>("/friends/unblock", body = request)
     }
 
     override suspend fun removeFriend(targetPhone: String): Flow<Result<String>> {
-        return networkManager.put<String, String>("/friends/remove", body = targetPhone)
+        val request = FriendRequest(targetPhone)
+        return networkManager.put<FriendRequest, String>("/friends/remove", body = request)
     }
 
     override suspend fun cancelFriendRequest(targetPhone: String): Flow<Result<String>> {
-        return networkManager.put<String, String>("/friends/cancel", body = targetPhone)
+        val request = FriendRequest(targetPhone)
+
+        return networkManager.put<FriendRequest, String>("/friends/cancel", body = request)
     }
 }
