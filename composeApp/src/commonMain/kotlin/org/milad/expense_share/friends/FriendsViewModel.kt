@@ -77,6 +77,18 @@ class FriendsViewModel(
                     friendsListDialogState = FriendsListDialogState.RejectRequest
                 )
             }
+
+            FriendsAction.ShowSentRequest ->
+                setState {
+                    it.copy(
+                        friendsListDialogState = FriendsListDialogState.NewRequest,
+                    )
+                }
+
+            is FriendsAction.SentRequest -> {
+                setState { it.copy(friendsListDialogState = FriendsListDialogState.NewRequest) }
+                sendFriendRequest(action.targetPhone)
+            }
         }
     }
 
@@ -201,6 +213,8 @@ sealed interface FriendsAction : BaseViewAction {
     data class AcceptFriendRequest(val targetPhone: String) : FriendsAction
 
     data object DismissDialog : FriendsAction
+    data object ShowSentRequest : FriendsAction
+    data class SentRequest(val targetPhone: String) : FriendsAction
 
     data object NavigateBack : FriendsAction
 }
@@ -225,6 +239,7 @@ sealed interface FriendsEvent : BaseViewEvent {
 
 sealed interface FriendsListDialogState {
     data object None : FriendsListDialogState
+    data object NewRequest : FriendsListDialogState
     data object CancelRequest : FriendsListDialogState
     data object AcceptRequest : FriendsListDialogState
     data object RejectRequest : FriendsListDialogState

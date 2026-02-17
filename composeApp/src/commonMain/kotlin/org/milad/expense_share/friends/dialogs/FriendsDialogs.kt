@@ -2,6 +2,9 @@ package org.milad.expense_share.friends.dialogs
 
 import androidx.compose.runtime.Composable
 import org.milad.expense_share.friends.FriendsAction
+import org.milad.expense_share.friends.FriendsAction.AcceptFriendRequest
+import org.milad.expense_share.friends.FriendsAction.CancelFriendRequest
+import org.milad.expense_share.friends.FriendsAction.RejectFriendRequest
 import org.milad.expense_share.friends.FriendsListDialogState
 import org.milad.expense_share.friends.FriendsState
 
@@ -14,13 +17,21 @@ fun FriendsDialogs(
         is FriendsListDialogState.None -> { /* No dialog */
         }
 
+        FriendsListDialogState.NewRequest -> {
+            SendNewRequestSheet(
+                visible = true,
+                onConfirm = { onAction(FriendsAction.SentRequest(it)) },
+                onDismiss = { onAction(FriendsAction.DismissDialog) }
+            )
+        }
+
         is FriendsListDialogState.CancelRequest -> {
             ConfirmationSheet(
                 title = "Cancel the request",
                 content = "Are you sure you want to cancel the request to {${state.selectedFriend!!.user.username}}? This action cannot be undone.",
                 isVisible = true,
                 onConfirm = {
-                    onAction(FriendsAction.CancelFriendRequest(state.selectedFriend.user.phone))
+                    onAction(CancelFriendRequest(state.selectedFriend.user.phone))
                 },
                 onDismiss = { onAction(FriendsAction.DismissDialog) }
             )
@@ -33,7 +44,7 @@ fun FriendsDialogs(
                 content = "Are you sure you want to reject the request of {${state.selectedFriend!!.user.username}}? This action cannot be undone.",
                 isVisible = true,
                 onConfirm = {
-                    onAction(FriendsAction.RejectFriendRequest(state.selectedFriend.user.phone))
+                    onAction(RejectFriendRequest(state.selectedFriend.user.phone))
                 },
                 onDismiss = { onAction(FriendsAction.DismissDialog) }
             )
@@ -46,10 +57,11 @@ fun FriendsDialogs(
                 content = "Are you sure you want to Accept the request of {${state.selectedFriend!!.user.username}}? This action cannot be undone.",
                 isVisible = true,
                 onConfirm = {
-                    onAction(FriendsAction.AcceptFriendRequest(state.selectedFriend.user.phone))
+                    onAction(AcceptFriendRequest(state.selectedFriend.user.phone))
                 },
                 onDismiss = { onAction(FriendsAction.DismissDialog) }
             )
         }
+
     }
 }
