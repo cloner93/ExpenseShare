@@ -13,12 +13,14 @@ import usecase.friends.AcceptFriendRequestUseCase
 import usecase.friends.CancelFriendRequestUseCase
 import usecase.friends.GetAllFriendsUseCase
 import usecase.friends.RejectFriendRequestUseCase
+import usecase.friends.SendFriendRequestUseCase
 import usecase.user.GetUserInfoUseCase
 
 class FriendsViewModel(
     private val getUserInfoUseCase: GetUserInfoUseCase,
     private val getAllFriendsUseCase: GetAllFriendsUseCase,
 
+    private val sendFriendRequestUseCase: SendFriendRequestUseCase,
     private val cancelFriendRequestUseCase: CancelFriendRequestUseCase,
     private val acceptFriendRequestUseCase: AcceptFriendRequestUseCase,
     private val rejectFriendRequestUseCase: RejectFriendRequestUseCase,
@@ -120,6 +122,21 @@ class FriendsViewModel(
         val currentUser = getUserInfoUseCase()
         setState { it.copy(currentUser = currentUser) }
     }
+
+    private fun sendFriendRequest(targetPhone: String) {
+        viewModelScope.launch {
+//        setState { it.copy(friendActionLoading = true, friendActionError = null) }
+
+            sendFriendRequestUseCase(targetPhone).collect { result ->
+                result.onSuccess {
+                    print(it) // FIXME:
+                }.onFailure {
+                    print(it.message)
+                }
+            }
+        }
+    }
+
 
     private fun cancelFriendRequest(targetPhone: String) {
         viewModelScope.launch {

@@ -103,6 +103,7 @@ val friendsModule = module {
             get(),
             get(),
             get(),
+            get(),
             get()
         )
     }

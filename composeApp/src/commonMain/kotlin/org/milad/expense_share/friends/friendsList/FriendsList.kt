@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +51,7 @@ import model.FriendInfo
 import model.FriendRelationStatus
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.milad.expense_share.dashboard.AppExtendedButton
 import org.milad.expense_share.dashboard.group.components.FakeDate
 import org.milad.expense_share.expenses.AnimatedLoadingButton
 import org.milad.expense_share.friends.FriendsAction
@@ -59,12 +61,20 @@ import org.milad.expense_share.friends.dialogs.FriendsDialogs
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsList(
+    navLayoutType: NavigationSuiteType,
     state: FriendsState,
     onAction: (FriendsAction) -> Unit,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Friends") })
+        },
+        floatingActionButton = {
+            if (navLayoutType == NavigationSuiteType.NavigationBar)
+                AppExtendedButton(
+                    title = "Add Friend",
+                    onClick = { onAction(FriendsAction.ShowSentRequest) }
+                )
         }) { padding ->
         Column(
             modifier = Modifier

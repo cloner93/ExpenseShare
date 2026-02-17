@@ -10,6 +10,7 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,6 +32,7 @@ import org.milad.expense_share.friends.friendsList.FriendsList
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun FriendsScreen(
+    navLayoutType: NavigationSuiteType,
     friendsViewModel: FriendsViewModel = koinViewModel(),
 ) {
     val state by friendsViewModel.viewState.collectAsState()
@@ -63,6 +65,7 @@ fun FriendsScreen(
         listPane = {
             state.currentUser?.let { currentUser ->
                 FriendsList(
+                    navLayoutType = navLayoutType,
                     state = friendsViewModel.viewState.collectAsState().value,
                     onAction = friendsViewModel::handle,
                 )

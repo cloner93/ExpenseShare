@@ -66,7 +66,7 @@ fun ResponsiveApp(
             }
             triggerAddGroup = true
         },
-        showAddGroupButton = selectedItem == NavItem.Dashboard
+        showAddGroupButton = selectedItem == NavItem.Dashboard || selectedItem == NavItem.Friends
     ) { navLayoutType ->
         NavHost(
             navController = navController,
@@ -85,7 +85,9 @@ fun ResponsiveApp(
             }
 
             composable<MainRoute.Friends> {
-                FriendsScreen()
+                FriendsScreen(
+                    navLayoutType = navLayoutType,
+                )
             }
 
             composable<MainRoute.Profile> {
