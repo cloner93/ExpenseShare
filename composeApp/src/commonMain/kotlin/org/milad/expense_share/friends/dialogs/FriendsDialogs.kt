@@ -20,8 +20,10 @@ fun FriendsDialogs(
         FriendsListDialogState.NewRequest -> {
             SendNewRequestSheet(
                 visible = true,
+                loading = state.friendActionLoading,
+                error = state.friendActionError,
                 onConfirm = { onAction(FriendsAction.SentRequest(it)) },
-                onDismiss = { onAction(FriendsAction.DismissDialog) }
+                onDismiss = { onAction(FriendsAction.DismissDialog) },
             )
         }
 

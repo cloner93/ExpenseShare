@@ -83,12 +83,12 @@ class FriendsViewModel(
             FriendsAction.ShowSentRequest ->
                 setState {
                     it.copy(
+                        friendActionError = null,
                         friendsListDialogState = FriendsListDialogState.NewRequest,
                     )
                 }
 
             is FriendsAction.SentRequest -> {
-                setState { it.copy(friendsListDialogState = FriendsListDialogState.NewRequest) }
                 sendFriendRequest(action.targetPhone)
             }
         }
@@ -125,13 +125,27 @@ class FriendsViewModel(
 
     private fun sendFriendRequest(targetPhone: String) {
         viewModelScope.launch {
-//        setState { it.copy(friendActionLoading = true, friendActionError = null) }
+            setState { it.copy(friendActionLoading = true, friendActionError = null) }
 
             sendFriendRequestUseCase(targetPhone).collect { result ->
                 result.onSuccess {
-                    print(it) // FIXME:
-                }.onFailure {
-                    print(it.message)
+                    setState {
+                        it.copy(
+                            friendsListDialogState = FriendsListDialogState.None,
+                            friendActionLoading = false,
+                            friendActionError = null,
+                            // server must return a success user .
+//                            friends = it.friends
+                        )
+                    }
+
+                }.onFailure { e ->
+                    setState {
+                        it.copy(
+                            friendActionLoading = false,
+                            friendActionError = e
+                        )
+                    }
                 }
             }
         }
@@ -240,7 +254,7 @@ data class FriendsState(
     val currentUser: User? = null,
     val listPaneLoading: Boolean = true,
     val listPaneError: Throwable? = null,
-    val friendActionLoading: Boolean = true,
+    val friendActionLoading: Boolean = false,
     val friendActionError: Throwable? = null,
     val isDetailVisible: Boolean = false,
     val friends: List<FriendInfo> = emptyList(),
