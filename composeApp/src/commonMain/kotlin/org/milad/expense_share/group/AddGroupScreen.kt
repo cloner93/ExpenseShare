@@ -91,7 +91,7 @@ fun AddGroupScreen(
             )
         },
         bottomBar = {
-            ConfirmButton(isLoading, hasError) {
+            ConfirmButton(loading = isLoading, hasError = hasError) {
                 groupNameError = if (groupName.isBlank()) "Group name cannot be empty" else null
                 membersError = if (selectedFriends.isEmpty()) "Select at least one member" else null
 

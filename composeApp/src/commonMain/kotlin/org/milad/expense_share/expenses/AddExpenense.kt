@@ -166,7 +166,7 @@ fun AddExpense(
             },
         )
     }, bottomBar = {
-        ConfirmButton(isLoading, hasError) {
+        ConfirmButton(loading = isLoading, hasError =  hasError) {
             nameError = null
             priceError = null
             payerError = null
@@ -338,7 +338,9 @@ fun AddExpense(
 
 @Composable
 fun ConfirmButton(
+    title: String = "Confirm",
     loading: Boolean,
+    enabled: Boolean =false,
     hasError: Throwable?,
     onClick: () -> Unit,
 ) {
@@ -351,8 +353,9 @@ fun ConfirmButton(
     ) {
         AnimatedLoadingButton(
             Modifier.fillMaxWidth(),
-            text = "Save",
+            text = title,
             loading = loading,
+            enabled = enabled,
             onClick = onClick
         )
 
@@ -426,9 +429,9 @@ fun ConfirmButtonP() {
     AppTheme(content = {
 
         Column(modifier = Modifier.background(color = Color.White)) {
-            ConfirmButton(false, null) {}
-            ConfirmButton(true, null) {}
-            ConfirmButton(false, Throwable("Has error")) {}
+            ConfirmButton(title = "Save", loading = false, hasError =  null){}
+            ConfirmButton(title = "Save", loading = true, hasError = null){}
+            ConfirmButton(title = "Save", loading = false, hasError =  Throwable("Has error")){}
         }
 
     })
