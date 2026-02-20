@@ -22,7 +22,7 @@ val appModule = module {
     single { TransactionRepositoryImpl() as TransactionRepository }
 
     single { AuthService(get()) }
-    single { FriendsService(get()) }
+    single { FriendsService(get(),get ()) }
     single { GroupService(get(), get(), get()) }
     single { TransactionService(get()) }
 }

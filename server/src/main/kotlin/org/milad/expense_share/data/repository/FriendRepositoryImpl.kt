@@ -16,7 +16,7 @@ import org.milad.expense_share.data.db.table.Users
 import org.milad.expense_share.data.models.FriendInfo
 import org.milad.expense_share.data.models.FriendRelationStatus
 import org.milad.expense_share.data.models.User
-import org.milad.expense_share.domain.repository.FriendDirection
+import org.milad.expense_share.domain.model.FriendDirection
 import org.milad.expense_share.domain.repository.FriendRepository
 
 class FriendRepositoryImpl : FriendRepository {

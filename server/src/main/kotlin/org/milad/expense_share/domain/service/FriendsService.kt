@@ -3,13 +3,15 @@ package org.milad.expense_share.domain.service
 import org.milad.expense_share.data.models.FriendInfo
 import org.milad.expense_share.data.models.FriendRelationStatus
 import org.milad.expense_share.domain.repository.FriendRepository
+import org.milad.expense_share.domain.repository.UserRepository
 
 class FriendsService(
-    private val repository: FriendRepository
+    private val friendRepository: FriendRepository,
+    private val userRepository: UserRepository
 ) {
     fun getAllFriends(userId: Int, status: FriendRelationStatus? = null): Result<List<FriendInfo>> {
         return try {
-            val friends = repository.getAllFriends(userId, status)
+            val friends = friendRepository.getAllFriends(userId, status)
             Result.success(friends)
         } catch (e: Exception) {
             Result.failure(Exception("Failed to fetch friends: ${e.message}", e))
@@ -18,7 +20,7 @@ class FriendsService(
 
     fun getAcceptedFriends(userId: Int): Result<List<FriendInfo>> {
         return try {
-            val friends = repository.getAcceptedFriends(userId)
+            val friends = friendRepository.getAcceptedFriends(userId)
             Result.success(friends)
         } catch (e: Exception) {
             Result.failure(Exception("Failed to fetch accepted friends: ${e.message}", e))
@@ -27,7 +29,7 @@ class FriendsService(
 
     fun getIncomingRequests(userId: Int): Result<List<FriendInfo>> {
         return try {
-            val requests = repository.getIncomingRequests(userId)
+            val requests = friendRepository.getIncomingRequests(userId)
             Result.success(requests)
         } catch (e: Exception) {
             Result.failure(Exception("Failed to fetch incoming requests: ${e.message}", e))
@@ -36,7 +38,7 @@ class FriendsService(
 
     fun getOutgoingRequests(userId: Int): Result<List<FriendInfo>> {
         return try {
-            val requests = repository.getOutgoingRequests(userId)
+            val requests = friendRepository.getOutgoingRequests(userId)
             Result.success(requests)
         } catch (e: Exception) {
             Result.failure(Exception("Failed to fetch outgoing requests: ${e.message}", e))
@@ -45,7 +47,7 @@ class FriendsService(
 
     fun getBlockedFriends(userId: Int): Result<List<FriendInfo>> {
         return try {
-            val blocked = repository.getBlockedFriends(userId)
+            val blocked = friendRepository.getBlockedFriends(userId)
             Result.success(blocked)
         } catch (e: Exception) {
             Result.failure(Exception("Failed to fetch blocked friends: ${e.message}", e))
@@ -54,7 +56,7 @@ class FriendsService(
 
     fun getFriendshipStatus(userId: Int, targetPhone: String): Result<FriendInfo?> {
         return try {
-            val status = repository.getFriendshipStatus(userId, targetPhone)
+            val status = friendRepository.getFriendshipStatus(userId, targetPhone)
             Result.success(status)
         } catch (e: Exception) {
             Result.failure(Exception("Failed to get friendship status: ${e.message}", e))
@@ -63,9 +65,14 @@ class FriendsService(
 
     fun sendFriendRequest(fromUserId: Int, toUserPhone: String): Result<String> {
         return try {
+            val user = userRepository.findById(fromUserId)
+            user?.let {
+                if (it.id == fromUserId)
+                    return Result.failure(Exception("You are always your own friend."))
+            }
 
+            val existingStatus = friendRepository.getFriendshipStatus(fromUserId, toUserPhone)
 
-            val existingStatus = repository.getFriendshipStatus(fromUserId, toUserPhone)
             if (existingStatus != null) {
                 return Result.failure(
                     when (existingStatus.status) {
@@ -84,8 +91,7 @@ class FriendsService(
                 )
             }
 
-
-            val success = repository.sendFriendRequest(fromUserId, toUserPhone)
+            val success = friendRepository.sendFriendRequest(fromUserId, toUserPhone)
             if (success) {
                 Result.success("Friend request sent successfully")
             } else {
@@ -99,7 +105,7 @@ class FriendsService(
     fun acceptFriendRequest(userId: Int, requesterPhone: String): Result<String> {
         return try {
 
-            val friendship = repository.getFriendshipStatus(userId, requesterPhone)
+            val friendship = friendRepository.getFriendshipStatus(userId, requesterPhone)
 
             if (friendship == null) {
                 return Result.failure(Exception("No friend request found from this user"))
@@ -119,7 +125,7 @@ class FriendsService(
             }
 
 
-            val success = repository.acceptFriendRequest(userId, requesterPhone)
+            val success = friendRepository.acceptFriendRequest(userId, requesterPhone)
             if (success) {
                 Result.success("Friend request accepted successfully")
             } else {
@@ -133,7 +139,7 @@ class FriendsService(
     fun rejectFriendRequest(userId: Int, requesterPhone: String): Result<String> {
         return try {
 
-            val friendship = repository.getFriendshipStatus(userId, requesterPhone)
+            val friendship = friendRepository.getFriendshipStatus(userId, requesterPhone)
 
             if (friendship == null) {
                 return Result.failure(Exception("No friend request found from this user"))
@@ -153,7 +159,7 @@ class FriendsService(
             }
 
 
-            val success = repository.rejectFriendRequest(userId, requesterPhone)
+            val success = friendRepository.rejectFriendRequest(userId, requesterPhone)
             if (success) {
                 Result.success("Friend request rejected successfully")
             } else {
@@ -166,7 +172,7 @@ class FriendsService(
 
     fun blockFriend(userId: Int, targetPhone: String): Result<String> {
         return try {
-            val success = repository.blockFriend(userId, targetPhone)
+            val success = friendRepository.blockFriend(userId, targetPhone)
             if (success) {
                 Result.success("User blocked successfully")
             } else {
@@ -180,7 +186,7 @@ class FriendsService(
     fun unblockFriend(userId: Int, targetPhone: String): Result<String> {
         return try {
 
-            val friendship = repository.getFriendshipStatus(userId, targetPhone)
+            val friendship = friendRepository.getFriendshipStatus(userId, targetPhone)
 
             if (friendship == null) {
                 return Result.failure(Exception("No relationship found with this user"))
@@ -190,7 +196,7 @@ class FriendsService(
                 return Result.failure(Exception("User is not blocked"))
             }
 
-            val success = repository.blockFriend(userId, targetPhone)
+            val success = friendRepository.blockFriend(userId, targetPhone)
             if (success) {
                 Result.success("User unblocked successfully")
             } else {
@@ -204,13 +210,13 @@ class FriendsService(
     fun removeFriend(userId: Int, targetPhone: String): Result<String> {
         return try {
 
-            val friendship = repository.getFriendshipStatus(userId, targetPhone)
+            val friendship = friendRepository.getFriendshipStatus(userId, targetPhone)
 
             if (friendship == null) {
                 return Result.failure(Exception("No friendship found with this user"))
             }
 
-            val success = repository.removeFriend(userId, targetPhone)
+            val success = friendRepository.removeFriend(userId, targetPhone)
             if (success) {
                 Result.success("Friend removed successfully")
             } else {
@@ -224,7 +230,7 @@ class FriendsService(
     fun cancelFriendRequest(userId: Int, targetPhone: String): Result<String> {
         return try {
 
-            val friendship = repository.getFriendshipStatus(userId, targetPhone)
+            val friendship = friendRepository.getFriendshipStatus(userId, targetPhone)
 
             if (friendship == null) {
                 return Result.failure(Exception("No friend request found"))
@@ -243,7 +249,7 @@ class FriendsService(
             }
 
 
-            val success = repository.removeFriend(userId, targetPhone)
+            val success = friendRepository.removeFriend(userId, targetPhone)
             if (success) {
                 Result.success("Friend request cancelled successfully")
             } else {

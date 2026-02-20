@@ -2,6 +2,7 @@ package org.milad.expense_share.domain.repository
 
 import org.milad.expense_share.data.models.FriendInfo
 import org.milad.expense_share.data.models.FriendRelationStatus
+import org.milad.expense_share.domain.model.FriendDirection
 
 interface FriendRepository {
     fun getAllFriends(
@@ -43,9 +44,4 @@ interface FriendRepository {
     fun areFriends(userId: Int, targetPhone: String): Boolean {
         return getFriendshipStatus(userId, targetPhone)?.status == FriendRelationStatus.ACCEPTED
     }
-}
-
-enum class FriendDirection {
-    INCOMING,
-    OUTGOING
 }
