@@ -134,8 +134,13 @@ class FriendsViewModel(
                             friendsListDialogState = FriendsListDialogState.None,
                             friendActionLoading = false,
                             friendActionError = null,
-                            // server must return a success user .
-//                            friends = it.friends
+                            friends = viewState.value.friends + FriendInfo(
+                                user = User(-1, "", targetPhone),
+                                FriendRelationStatus.PENDING,
+                                viewState.value.currentUser?.id ?: 0,
+                                0,
+                                0
+                            )
                         )
                     }
 
@@ -150,7 +155,6 @@ class FriendsViewModel(
             }
         }
     }
-
 
     private fun cancelFriendRequest(targetPhone: String) {
         viewModelScope.launch {
