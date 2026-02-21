@@ -6,6 +6,7 @@ import com.pmb.common.viewmodel.BaseViewEvent
 import com.pmb.common.viewmodel.BaseViewModel
 import com.pmb.common.viewmodel.BaseViewState
 import kotlinx.coroutines.launch
+import model.FriendInfo
 import model.Group
 import model.User
 import org.milad.expense_share.Amount
@@ -16,7 +17,7 @@ import org.milad.expense_share.friends.model.TransactionWithGroup
 import usecase.groups.GetGroupsUseCase
 
 class FriendDetailViewModel(
-    private val friend: User,
+    private val friend: FriendInfo,
     private val currentUser: User,
     private val getGroupsUseCase: GetGroupsUseCase,
 ) : BaseViewModel<FriendDetailAction, FriendDetailState, FriendDetailEvent>(
@@ -50,13 +51,13 @@ class FriendDetailViewModel(
                 getGroupsUseCase().collect { result ->
                     result.onSuccess { allGroups ->
                         val sharedGroups = allGroups.filter { group ->
-                            group.members.any { it.id == friend.id } &&
+                            group.members.any { it.id == friend.user.id } &&
                             group.members.any { it.id == currentUser.id }
                         }
                         
-                        val balance = calculateBalance(sharedGroups, currentUser.id, friend.id)
+                        val balance = calculateBalance(sharedGroups, currentUser.id, friend.user.id)
                         
-                        val transactions = extractTransactions(sharedGroups, currentUser.id, friend.id)
+                        val transactions = extractTransactions(sharedGroups, currentUser.id, friend.user.id)
                         
                         setState {
                             it.copy(
@@ -162,12 +163,12 @@ class FriendDetailViewModel(
     }
 
     private fun handleSendReminder() {
-        postEvent(FriendDetailEvent.ShowToast("Reminder sent to ${friend.username}"))
+        postEvent(FriendDetailEvent.ShowToast("Reminder sent to ${friend.user.username}"))
     }
 }
 
 data class FriendDetailState(
-    val friend: User,
+    val friend: FriendInfo,
     val currentUser: User?,
     val balance: FriendBalance = FriendBalance(),
     val sharedGroups: List<Group> = emptyList(),
@@ -183,7 +184,7 @@ sealed interface FriendDetailAction : BaseViewAction {
     data object NavigateBack : FriendDetailAction
     data class SelectTab(val tab: FriendTab) : FriendDetailAction
     data class OpenGroup(val group: Group) : FriendDetailAction
-    data class UpdateFriend(val friend: User) : FriendDetailAction
+    data class UpdateFriend(val friend: FriendInfo) : FriendDetailAction
     data object SettleUp : FriendDetailAction
     data object SendReminder : FriendDetailAction
 }

@@ -84,7 +84,7 @@ fun FriendsScreen(
                         })
 
                     LaunchedEffect(selectedFriend) {
-                        viewModel.handle(FriendDetailAction.UpdateFriend(selectedFriend.user))
+                        viewModel.handle(FriendDetailAction.UpdateFriend(selectedFriend))
                     }
 
                     LaunchedEffect(Unit) {

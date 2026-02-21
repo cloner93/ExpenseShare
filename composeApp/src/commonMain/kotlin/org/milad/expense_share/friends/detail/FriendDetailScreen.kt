@@ -32,7 +32,7 @@ fun FriendDetailScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(state.friend.username) },
+                    title = { Text(state.friend.user.username) },
                     navigationIcon = {
                         if (showBackButton) {
                             IconButton(onClick = { onAction(FriendDetailAction.NavigateBack) }) {
@@ -54,7 +54,7 @@ fun FriendDetailScreen(
                     .padding(padding)
             ) {
                 FriendBalanceHeader(
-                    friend = state.friend,
+                    friend = state.friend.user,
                     balance = state.balance,
                     onSettleUp = { onAction(FriendDetailAction.SettleUp) },
                     onSendReminder = { onAction(FriendDetailAction.SendReminder) }
