@@ -51,7 +51,7 @@ fun FriendDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(top = padding.calculateTopPadding())
             ) {
                 FriendTabsRow(
                     selectedTab = state.selectedTab,

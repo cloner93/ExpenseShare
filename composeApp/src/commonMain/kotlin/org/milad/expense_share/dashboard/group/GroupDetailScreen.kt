@@ -41,7 +41,8 @@ fun GroupDetailScreen(
             }
         ) { padding ->
             GroupContent(
-                modifier = Modifier.padding(padding),
+                modifier = Modifier
+                    .padding(top = padding.calculateTopPadding()),
                 state = state,
                 onAction = onAction
             )
