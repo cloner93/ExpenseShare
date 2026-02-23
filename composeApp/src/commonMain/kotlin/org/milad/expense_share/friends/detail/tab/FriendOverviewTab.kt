@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.Card
@@ -35,6 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
+import model.FriendInfo
+import model.FriendRelationStatus
 import model.Group
 import model.MemberShareDto
 import model.PayerDto
@@ -44,6 +45,12 @@ import model.TransactionStatus
 import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
+import org.milad.expense_share.friends.detail.FriendBalanceHeader
+import org.milad.expense_share.friends.detail.tab.MockData.mockGroup1
+import org.milad.expense_share.friends.detail.tab.MockData.mockGroups
+import org.milad.expense_share.friends.detail.tab.MockData.mockTransactions
+import org.milad.expense_share.friends.detail.tab.MockData.mockUser1
+import org.milad.expense_share.friends.model.FriendBalance
 import org.milad.expense_share.friends.model.TransactionWithGroup
 import org.milad.expense_share.showSeparate
 
@@ -51,7 +58,11 @@ import org.milad.expense_share.showSeparate
 fun FriendOverviewTab(
     sharedGroups: List<Group>,
     recentTransactions: List<TransactionWithGroup>,
-    onGroupClick: (Group) -> Unit
+    friend: User,
+    balance: FriendBalance,
+    onSettleUp: () -> Unit,
+    onSendReminder: () -> Unit,
+    onGroupClick: (Group) -> Unit,
 ) {
     if (sharedGroups.isEmpty() && recentTransactions.isEmpty()) {
         EmptyListState()
@@ -61,8 +72,17 @@ fun FriendOverviewTab(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        item {
+            FriendBalanceHeader(
+                friend = friend,
+                balance = balance,
+                onSettleUp = onSettleUp,
+                onSendReminder = onSendReminder
+            )
+        }
+
         if (sharedGroups.isNotEmpty()) {
             item {
                 SectionHeader(
@@ -164,11 +184,11 @@ private fun SharedGroupCard(
                 )
             }
 
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+//            Icon(
+//                imageVector = Icons.Default.ChevronRight,
+//                contentDescription = null,
+//                tint = MaterialTheme.colorScheme.onSurfaceVariant
+//            )
         }
     }
 }
@@ -186,7 +206,7 @@ private fun RecentTransactionCard(transactionWithGroup: TransactionWithGroup) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(vertical = 8.dp, horizontal = 16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -253,27 +273,32 @@ private fun RecentTransactionCard(transactionWithGroup: TransactionWithGroup) {
     }
 }
 
-@Preview
-@Composable
-fun FriendOverviewTabPreview() {
+private object MockData {
     val mockUser1 = User(1, "Ali", "09121234567")
     val mockUser2 = User(2, "Sara", "09129876543")
-    
+    val mockFriend = FriendInfo(
+        user = mockUser1,
+        status = FriendRelationStatus.ACCEPTED,
+        requestedBy = 0,
+        createdAt = 0,
+        updatedAt = 0
+    )
+    val mockGroup1 = Group(
+        id = 1,
+        name = "Trip to Dubai",
+        ownerId = 1,
+        members = listOf(mockUser1, mockUser2),
+        transactions = listOf()
+    )
+    val mockGroup2 = Group(
+        id = 2,
+        name = "Dinner Friends",
+        ownerId = 1,
+        members = listOf(mockUser1, mockUser2),
+        transactions = listOf()
+    )
     val mockGroups = listOf(
-        Group(
-            id = 1,
-            name = "Trip to Dubai",
-            ownerId = 1,
-            members = listOf(mockUser1, mockUser2),
-            transactions = listOf()
-        ),
-        Group(
-            id = 2,
-            name = "Dinner Friends",
-            ownerId = 1,
-            members = listOf(mockUser1, mockUser2),
-            transactions = listOf()
-        )
+        mockGroup1, mockGroup2
     )
 
     val mockTransaction = Transaction(
@@ -307,14 +332,44 @@ fun FriendOverviewTabPreview() {
             friendShare = Amount(250000)
         )
     )
+}
 
+@Preview
+@Composable
+fun FriendOverviewTabPreview() {
     AppTheme {
         Surface {
             FriendOverviewTab(
                 sharedGroups = mockGroups,
                 recentTransactions = mockTransactions,
-                onGroupClick = {}
+                friend = mockUser1,
+                balance = FriendBalance(
+
+                ),
+                onSettleUp = {},
+                onSendReminder = {},
+                onGroupClick = {},
             )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun SharedGroupCardPreview() {
+    AppTheme {
+        Column(modifier = Modifier.background(AppTheme.colors.background)) {
+            SharedGroupCard(mockGroup1) {}
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun RecentTransactionCardPreview() {
+    AppTheme {
+        Column(modifier = Modifier.background(AppTheme.colors.background)) {
+            RecentTransactionCard(mockTransactions[0])
         }
     }
 }

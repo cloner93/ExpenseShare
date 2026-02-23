@@ -53,13 +53,6 @@ fun FriendDetailScreen(
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                FriendBalanceHeader(
-                    friend = state.friend.user,
-                    balance = state.balance,
-                    onSettleUp = { onAction(FriendDetailAction.SettleUp) },
-                    onSendReminder = { onAction(FriendDetailAction.SendReminder) }
-                )
-
                 FriendTabsRow(
                     selectedTab = state.selectedTab,
                     onTabSelected = { onAction(FriendDetailAction.SelectTab(it)) }
@@ -70,6 +63,10 @@ fun FriendDetailScreen(
                         FriendOverviewTab(
                             sharedGroups = state.sharedGroups,
                             recentTransactions = state.recentTransactions.take(5),
+                            friend = state.friend.user,
+                            balance = state.balance,
+                            onSettleUp = { onAction(FriendDetailAction.SettleUp) },
+                            onSendReminder = { onAction(FriendDetailAction.SendReminder) },
                             onGroupClick = { onAction(FriendDetailAction.OpenGroup(it)) }
                         )
                     }
