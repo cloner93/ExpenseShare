@@ -4,6 +4,7 @@ agp = "8.12.3"
 exposedCore = "0.55.0"
 hikaricp = "7.0.2"
 koinTestJunit5 = "3.5.6"
+konsist = "0.17.3"
 kotlin = "2.3.10"
 ksp = "2.3.0"
 kotest = "6.0.3"
@@ -84,6 +85,7 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
 # Logging
+lemonappdev-konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 # Ktor Server

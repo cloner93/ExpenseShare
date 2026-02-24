@@ -107,6 +107,10 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.kotzilla.sdk.compose)
         }
+        jvmTest.dependencies {
+            implementation(libs.lemonappdev.konsist)
+            implementation(libs.kotest.runner.junit5)
+        }
 
     }
 }
