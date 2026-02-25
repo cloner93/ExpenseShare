@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
-    kotlin("plugin.serialization") version "2.2.21"
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.kotest)
     alias(libs.plugins.ksp)
     alias(libs.plugins.jacoco)
