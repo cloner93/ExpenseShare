@@ -9,51 +9,8 @@ plugins {
     alias(libs.plugins.kotlinAndroid) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.kotest) apply false
+    alias(libs.plugins.ktor) apply false
+    alias(libs.plugins.kotlinSerialization) apply false
     id("io.mockative") version "3.0.1" apply false
     alias(libs.plugins.jacoco)
-    alias(libs.plugins.kotzilla) apply false
-    alias(libs.plugins.storytale) apply false
-}
-
-
-tasks.register<JacocoReport>("jacocoFullReport") {
-    group = "verification"
-    description = "Aggregate JaCoCo coverage report for all modules."
-
-    dependsOn(subprojects.map { it.tasks.matching { t -> t.name == "testDebugUnitTest" } })
-
-    reports {
-        xml.required.set(true)
-        html.required.set(true)
-    }
-
-    val excludes = listOf(
-        "**/R.class", "**/R$*.class", "**/BuildConfig.*",
-        "**/Manifest*.*", "**/*Test*.*", "android/**/*.*"
-    )
-
-    val executionDataFiles = files(subprojects.map {
-        fileTree("${it.buildDir}") {
-            include(
-                "jacoco/testDebugUnitTest.exec",
-                "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
-            )
-        }
-    })
-    executionData.setFrom(executionDataFiles)
-
-    subprojects.forEach { subproject ->
-        val javaSrc = "${subproject.projectDir}/src/main/java"
-        val kotlinSrc = "${subproject.projectDir}/src/main/kotlin"
-        sourceDirectories.from(files(javaSrc, kotlinSrc))
-
-        val javaTree = fileTree("${subproject.buildDir}/intermediates/javac/debug/classes") {
-            exclude(excludes)
-        }
-        val kotlinTree = fileTree("${subproject.buildDir}/tmp/kotlin-classes/debug") {
-            exclude(excludes)
-        }
-
-        classDirectories.from(javaTree, kotlinTree)
-    }
 }
