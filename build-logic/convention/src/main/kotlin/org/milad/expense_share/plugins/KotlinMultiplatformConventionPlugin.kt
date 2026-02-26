@@ -19,9 +19,14 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
 
         extensions.configure<KotlinMultiplatformExtension> {
 
-            androidTarget {
-                compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_21)
+            pluginManager.withPlugin("com.android.application") {
+                androidTarget {
+                    compilerOptions { jvmTarget.set(JvmTarget.JVM_21) }
+                }
+            }
+            pluginManager.withPlugin("com.android.library") {
+                androidTarget {
+                    compilerOptions { jvmTarget.set(JvmTarget.JVM_21) }
                 }
             }
 
@@ -42,7 +47,7 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
             wasmJs {
                 browser {
                     binaries.executable()
-                    val rootDirPath  = project.rootDir.path
+                    val rootDirPath = project.rootDir.path
                     val projectDirPath = project.projectDir.path
                     commonWebpackConfig {
                         devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
@@ -61,6 +66,7 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
                 commonMain.dependencies {
                     implementation(libs.findLibrary("kotlinx-coroutines-core").get())
                     implementation(libs.findLibrary("kotlinx-serialization-json").get())
+                    implementation(project.dependencies.platform(libs.findLibrary("koin-bom").get()))
                     implementation(libs.findLibrary("koin-core").get())
                 }
                 commonTest.dependencies {

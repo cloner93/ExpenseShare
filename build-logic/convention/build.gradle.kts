@@ -25,54 +25,53 @@ dependencies {
 }
 
 fun Provider<PluginDependency>.toDep() = map {plugin->
-    "${plugin.pluginId}:${plugin.pluginId}.gradle.plugin:${plugin.version}".also {
-        println("plugin: ${plugin.pluginId} ${plugin.version}")
-    }
+    "${plugin.pluginId}:${plugin.pluginId}.gradle.plugin:${plugin.version}"
 }
 
 gradlePlugin {
     plugins {
+        val packageName = "org.milad.expense_share.plugins"
 
         // ── Android ──────────────────────────────────────────────────────────
         register("androidApplication") {
             id = "expenseshare.android.application"
-            implementationClass = "org.milad.expense_share.plugins.AndroidApplicationConventionPlugin"
+            implementationClass = "$packageName.AndroidApplicationConventionPlugin"
         }
         register("androidLibrary") {
             id = "expenseshare.android.library"
-            implementationClass = "plugins.AndroidLibraryConventionPlugin"
+            implementationClass = "$packageName.AndroidLibraryConventionPlugin"
         }
         register("androidCompose") {
             id = "expenseshare.android.compose"
-            implementationClass = "plugins.AndroidComposeConventionPlugin"
+            implementationClass = "$packageName.AndroidComposeConventionPlugin"
         }
 
         // ── Kotlin Multiplatform ──────────────────────────────────────────────
         register("kotlinMultiplatform") {
             id = "expenseshare.kotlin.multiplatform"
-            implementationClass = "org.milad.expense_share.plugins.KotlinMultiplatformConventionPlugin"
+            implementationClass = "$packageName.KotlinMultiplatformConventionPlugin"
         }
         register("composeMultiplatform") {
             id = "expenseshare.compose.multiplatform"
-            implementationClass = "org.milad.expense_share.plugins.ComposeMultiplatformConventionPlugin"
+            implementationClass = "$packageName.ComposeMultiplatformConventionPlugin"
         }
 
         // ── JVM ───────────────────────────────────────────────────────────────
         register("kotlinJvm") {
             id = "expenseshare.kotlin.jvm"
-            implementationClass = "org.milad.expense_share.plugins.KotlinJvmConventionPlugin"
+            implementationClass = "$packageName.KotlinJvmConventionPlugin"
         }
 
         // ── Server ────────────────────────────────────────────────────────────
         register("ktorServer") {
             id = "expenseshare.ktor.server"
-            implementationClass = "org.milad.expense_share.plugins.KtorServerConventionPlugin"
+            implementationClass = "$packageName.KtorServerConventionPlugin"
         }
 
         // ── Cross-cutting ─────────────────────────────────────────────────────
         register("kotlinSerialization") {
             id = "expenseshare.kotlin.serialization"
-            implementationClass = "org.milad.expense_share.plugins.KotlinSerializationConventionPlugin"
+            implementationClass = "$packageName.KotlinSerializationConventionPlugin"
         }
     }
 }
