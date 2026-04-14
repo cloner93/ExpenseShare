@@ -12,9 +12,11 @@ import model.Transaction
 import model.TransactionStatus
 import model.User
 import org.milad.expense_share.dashboard.group.components.GroupTab
+import org.milad.expense_share.logger.AppLogger
 import usecase.friends.GetAllFriendsUseCase
 import usecase.groups.DeleteGroupUseCase
 import usecase.groups.UpdateGroupMembersUseCase
+import usecase.settlement.GroupSettlementUseCase
 import usecase.transactions.ApproveTransactionUseCase
 import usecase.transactions.DeleteTransactionUseCase
 import usecase.transactions.RejectTransactionUseCase
@@ -31,6 +33,7 @@ class GroupDetailViewModel(
     private val deleteGroupUseCase: DeleteGroupUseCase,
     private val updateGroupUseCase: UpdateGroupMembersUseCase,
     private val getAllFriendsUseCase: GetAllFriendsUseCase,
+    private val groupSettlementUseCase: GroupSettlementUseCase,
 ) : BaseViewModel<GroupDetailAction, GroupDetailState, GroupDetailEvent>(
     initialState = GroupDetailState(
         selectedGroup = initialGroup,
@@ -71,7 +74,10 @@ class GroupDetailViewModel(
             is GroupDetailAction.DeleteGroup -> deleteGroup(action.groupId.toString())
             is GroupDetailAction.SelectTab -> {
                 setState { it.copy(selectedTab = action.tab) }
-                if (action.tab == GroupTab.Members && viewState.value.friends.isEmpty()) loadUserFriends()
+                if (action.tab == GroupTab.Members && viewState.value.friends.isEmpty())
+                    loadUserFriends()
+                else if (action.tab == GroupTab.Settlement)
+                    loadGroupSettlement(viewState.value.selectedGroup.id)
             }
 
             is GroupDetailAction.ShowDeleteMemberDialog -> {
@@ -257,6 +263,37 @@ class GroupDetailViewModel(
                         )
                     }
                 }.onFailure { e ->
+                    setState {
+                        it.copy(
+                            isLoading = false,
+                            error = e
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadGroupSettlement(groupId: Int) {
+        viewModelScope.launch {
+            setState {
+                it.copy(
+                    isLoading = true,
+                    error = null
+                )
+            }
+            groupSettlementUseCase(
+                groupId
+            ).collect { result ->
+                result.onSuccess { settlements ->
+                    AppLogger.i("Log", settlements.toString())
+                    setState {
+                        it.copy(
+                            isLoading = false,
+                        )
+                    }
+                }.onFailure { e ->
+                    AppLogger.i("Log", e.toString())
                     setState {
                         it.copy(
                             isLoading = false,
