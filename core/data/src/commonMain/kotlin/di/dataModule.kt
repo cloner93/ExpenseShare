@@ -7,6 +7,8 @@ import repository.FriendsRepository
 import repository.FriendsRepositoryImpl
 import repository.GroupsRepository
 import repository.GroupsRepositoryImpl
+import repository.SettlementRepository
+import repository.SettlementRepositoryImpl
 import repository.TransactionsRepository
 import repository.TransactionsRepositoryImpl
 import repository.UserRepository
@@ -18,6 +20,7 @@ val dataModule = module {
     single { AuthRepositoryImpl(get(), get(), get()) as AuthRepository }
     single { FriendsRepositoryImpl(get()) as FriendsRepository }
     single { GroupsRepositoryImpl(get()) as GroupsRepository }
+    single { SettlementRepositoryImpl(get()) as SettlementRepository }
     single { TransactionsRepositoryImpl(get()) as TransactionsRepository }
 
 }
