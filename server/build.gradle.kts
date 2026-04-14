@@ -52,6 +52,25 @@ dependencies {
     testImplementation(libs.kotest.extensions.koin)
     testImplementation(libs.kotest.property)
     testImplementation(libs.koin.test.junit5)
+    implementation(libs.kotlinx.coroutines.test)
+
+    testImplementation("io.mockk:mockk:1.13.10")
 
     testImplementation(libs.ktor.server.test.host)
+
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
+        filter {
+            isFailOnNoMatchingTests = false
+        }
+        testLogging {
+            showExceptions = true
+            showStandardStreams = true
+            events = setOf(
+                org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+                org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
+            )
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        }
+    }
 }
