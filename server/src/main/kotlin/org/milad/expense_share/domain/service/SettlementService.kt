@@ -7,10 +7,12 @@ import org.milad.expense_share.data.models.User
 import org.milad.expense_share.domain.model.SettlementTransaction
 import org.milad.expense_share.domain.repository.GroupRepository
 import org.milad.expense_share.domain.repository.TransactionRepository
+import org.milad.expense_share.domain.repository.UserRepository
 import kotlin.math.min
 
 class SettlementService(
     private val groupRepository: GroupRepository,
+    private val userRepository: UserRepository,
     private val transactionRepository: TransactionRepository,
 ) {
 
@@ -78,17 +80,33 @@ class SettlementService(
 
         return transactions
     }
-
+    fun getUsersOfGroup(groupId: Int): List<User> {
+        val userIds = groupRepository.getUsersOfGroup(groupId)
+        val users = mutableListOf<User>()
+        userIds.forEach { userId ->
+            val user = userRepository.findById(userId)
+            if (user != null) {
+                users.add(user)
+            }
+        }
+        return users
+    }
 
     fun groupSettlement(
         groupId: Int,
         userId: Int,
     ): Result<List<SettlementTransaction>> {
-
         try{
-            val group = groupRepository.getGroupsOfUser(userId)
+            var group = groupRepository.getGroupsOfUser(userId)
                 .firstOrNull { it.id == groupId }
                 ?: throw IllegalArgumentException("گروه مورد نظر یافت نشد یا شما به آن دسترسی ندارید")
+            val transactions = transactionRepository.getTransactions(userId, group.id)
+            val members = getUsersOfGroup(group.id)
+
+            group = group.copy(
+                transactions = transactions,
+                members = members
+            )
 
             val totalGroupPaid = mutableMapOf<User, Amount>()
             val totalGroupShare = mutableMapOf<User, Amount>()

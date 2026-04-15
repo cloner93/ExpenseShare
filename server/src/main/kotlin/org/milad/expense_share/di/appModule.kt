@@ -12,6 +12,7 @@ import org.milad.expense_share.domain.repository.UserRepository
 import org.milad.expense_share.domain.service.AuthService
 import org.milad.expense_share.domain.service.FriendsService
 import org.milad.expense_share.domain.service.GroupService
+import org.milad.expense_share.domain.service.SettlementService
 import org.milad.expense_share.domain.service.TransactionService
 
 val appModule = module {
@@ -23,6 +24,7 @@ val appModule = module {
 
     single { AuthService(get()) }
     single { FriendsService(get(),get ()) }
+    single { SettlementService(get(),get (),get()) }
     single { GroupService(get(), get(), get()) }
     single { TransactionService(get()) }
 }
