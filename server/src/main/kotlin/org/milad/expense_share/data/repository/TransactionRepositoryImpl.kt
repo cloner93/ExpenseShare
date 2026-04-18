@@ -1,22 +1,10 @@
 package org.milad.expense_share.data.repository
 
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.batchInsert
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.innerJoin
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.or
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import org.milad.expense_share.Amount
-import org.milad.expense_share.data.db.table.Groups
-import org.milad.expense_share.data.db.table.TransactionPayers
-import org.milad.expense_share.data.db.table.TransactionShareMembers
-import org.milad.expense_share.data.db.table.TransactionShares
-import org.milad.expense_share.data.db.table.Transactions
-import org.milad.expense_share.data.db.table.Users
+import org.milad.expense_share.data.db.table.*
 import org.milad.expense_share.data.models.Transaction
 import org.milad.expense_share.data.models.TransactionStatus
 import org.milad.expense_share.data.models.User
@@ -233,7 +221,6 @@ class TransactionRepositoryImpl : TransactionRepository {
         }
     }
 
-
     override fun approveTransaction(transactionId: Int, managerId: Int): Boolean = transaction {
         val tx = Transactions.selectAll().where { Transactions.id eq transactionId }.singleOrNull()
             ?: return@transaction false
@@ -277,4 +264,13 @@ class TransactionRepositoryImpl : TransactionRepository {
             Transactions.deleteWhere { Transactions.id eq transactionId } > 0
         else return@transaction false
     }
+
+    override fun getGroupIdByTransaction(transactionId: Int): Int? = transaction {
+        Transactions
+            .selectAll()
+            .where { Transactions.id eq transactionId }
+            .singleOrNull()
+            ?.get(Transactions.groupId)
+    }
+
 }
