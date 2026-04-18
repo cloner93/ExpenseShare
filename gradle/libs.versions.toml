@@ -158,4 +158,3 @@ kotest = { id = "io.kotest", version.ref = "kotest" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotzilla = { id = "io.kotzilla.kotzilla-plugin", version.ref = "kotzilla" }
 jacoco = { id = "jacoco" }
-storytale = { id = "org.jetbrains.compose.storytale", version.ref = "storytale" }
