@@ -1,13 +1,14 @@
 package org.milad.expense_share.domain.service
 
-
-import org.milad.expense_share.Amount
+ import org.milad.expense_share.Amount
 import org.milad.expense_share.data.models.TransactionStatus
 import org.milad.expense_share.data.models.User
+import org.milad.expense_share.domain.model.SettlementStatus
 import org.milad.expense_share.domain.model.SettlementTransaction
 import org.milad.expense_share.domain.repository.GroupRepository
 import org.milad.expense_share.domain.repository.TransactionRepository
 import org.milad.expense_share.domain.repository.UserRepository
+import org.milad.expense_share.presentation.groups.model.UserGroupResponse
 import kotlin.math.min
 
 class SettlementService(
@@ -30,15 +31,15 @@ class SettlementService(
         }
 
         val totalBalance = Amount(balances.values.sumOf { it.value })
-        if (!totalBalance.isZero()) {
+        if (!totalBalance.isZero())
             throw IllegalArgumentException("Balance sum is not zero: ${totalBalance.value}")
-        }
 
         return balances
     }
 
     private fun calculateSettlements(
-        balances: Map<User, Amount>
+        balances: Map<User, Amount>,
+        group: UserGroupResponse
     ): List<SettlementTransaction> {
         val transactions = mutableListOf<SettlementTransaction>()
 
@@ -65,9 +66,12 @@ class SettlementService(
 
             transactions.add(
                 SettlementTransaction(
-                    fromUserId = debtor.first.id,
-                    toUserId = creditor.first.id,
-                    amount = Amount(settleAmount)
+                    id = "${debtor.first.id}_${creditor.first.id}_${group.id}",
+                    debtor = debtor.first,
+                    creditor = creditor.first,
+                    amount = Amount(settleAmount),
+                    groupName = group.name,
+                    status = SettlementStatus.PENDING // FIXME:
                 )
             )
 
@@ -80,7 +84,8 @@ class SettlementService(
 
         return transactions
     }
-    fun getUsersOfGroup(groupId: Int): List<User> {
+
+    private fun getUsersOfGroup(groupId: Int): List<User> {
         val userIds = groupRepository.getUsersOfGroup(groupId)
         val users = mutableListOf<User>()
         userIds.forEach { userId ->
@@ -96,10 +101,10 @@ class SettlementService(
         groupId: Int,
         userId: Int,
     ): Result<List<SettlementTransaction>> {
-        try{
+        try {
             var group = groupRepository.getGroupsOfUser(userId)
                 .firstOrNull { it.id == groupId }
-                ?: throw IllegalArgumentException("گروه مورد نظر یافت نشد یا شما به آن دسترسی ندارید")
+                ?: throw IllegalArgumentException("Group not found or access denied")
             val transactions = transactionRepository.getTransactions(userId, group.id)
             val members = getUsersOfGroup(group.id)
 
@@ -130,12 +135,11 @@ class SettlementService(
                 totalShareOfUser = totalGroupShare
             )
 
-            val res = calculateSettlements(groupUserNetBalance)
+            val res = calculateSettlements(balances = groupUserNetBalance, group = group)
             return Result.success(res)
-        }catch (e: Exception){
+        } catch (e: Exception) {
 
             return Result.failure(e)
         }
     }
-
 }

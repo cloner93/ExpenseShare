@@ -1,6 +1,7 @@
+
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.throwable.shouldHaveMessage
 import io.mockk.coEvery
@@ -10,8 +11,10 @@ import org.milad.expense_share.Amount
 import org.milad.expense_share.data.models.Transaction
 import org.milad.expense_share.data.models.TransactionStatus
 import org.milad.expense_share.data.models.User
+import org.milad.expense_share.domain.model.SettlementTransaction
 import org.milad.expense_share.domain.repository.GroupRepository
 import org.milad.expense_share.domain.repository.TransactionRepository
+import org.milad.expense_share.domain.repository.UserRepository
 import org.milad.expense_share.domain.service.SettlementService
 import org.milad.expense_share.presentation.groups.model.UserGroupResponse
 import org.milad.expense_share.presentation.transactions.model.PayerRequest
@@ -23,8 +26,13 @@ class SettlementServiceTest : DescribeSpec({
 
     val groupRepository = mockk<GroupRepository>()
     val transactionRepository = mockk<TransactionRepository>()
+    val userRepository = mockk<UserRepository>()
 
-    val settlementService = SettlementService(groupRepository, transactionRepository)
+    val settlementService = SettlementService(
+        groupRepository = groupRepository,
+        transactionRepository = transactionRepository,
+        userRepository = userRepository
+    )
 
     val user1 = User(id = 1, username = "Milad", phone = "09123456888")
     val user2 = User(id = 2, username = "Ali", phone = "09123456888")
@@ -67,9 +75,12 @@ class SettlementServiceTest : DescribeSpec({
 
             // Assert
             it("should return two transactions: Ali to Milad and Reza to Milad") {
-                settlements.size shouldBe 2
-                settlements.find { it.fromUserId == user2.id && it.toUserId == user1.id }?.amount shouldBe 1000
-                settlements.find { it.fromUserId == user3.id && it.toUserId == user1.id }?.amount shouldBe 1000
+                settlements shouldBeSuccess { list ->
+
+                    list.size shouldBe 2
+                    list.find { it.debtor == user2 && it.creditor == user1 }?.amount shouldBe 1000
+                    list.find { it.debtor == user3 && it.creditor == user1 }?.amount shouldBe 1000
+                }
 
                 // MockK Verification
                 coVerify(exactly = 1) { groupRepository.getGroupsOfUser(userId) }
@@ -126,9 +137,11 @@ class SettlementServiceTest : DescribeSpec({
 
             // Assert
             it("should generate correct settlements for complex scenario") {
-                settlements.size shouldBe 2
-                settlements.find { it.fromUserId == user3.id && it.toUserId == user1.id }?.amount shouldBe 2000
-                settlements.find { it.fromUserId == user2.id && it.toUserId == user1.id }?.amount shouldBe 500
+                settlements.shouldBeSuccess { list ->
+                    list.size shouldBe 2
+                    list.find { it.debtor == user3 && it.creditor == user1 }?.amount shouldBe 2000
+                    list.find { it.debtor == user2 && it.creditor == user1 }?.amount shouldBe 500
+                }
             }
         }
 
@@ -170,7 +183,7 @@ class SettlementServiceTest : DescribeSpec({
 
             // Assert
             it("should return an empty list of settlements") {
-                settlements.shouldBeEmpty()
+                settlements.shouldBe(emptyList<SettlementTransaction>())
             }
         }
     }
