@@ -49,34 +49,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pmb.common.theme.AppTheme
 import model.Group
+import model.SettlementStatus
+import model.SettlementTransaction
 import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
-import org.milad.expense_share.friends.model.SettlementItem
 import org.milad.expense_share.showSeparate
-
-sealed class SettlementStatus {
-
-    object Pending : SettlementStatus()
-    object Approved : SettlementStatus()
-
-    object YouOwe : SettlementStatus()
-    object YouPaid : SettlementStatus()
-    data class TheyPaid(val payerName: String) : SettlementStatus()
-    object YouAreOwed : SettlementStatus()
-    object Settled : SettlementStatus()
-    object Rejected : SettlementStatus()
-    data class ThirdParty(val debtor: String, val creditor: String) : SettlementStatus()
-}
 
 @Composable
 fun SettlementListItem(
     modifier: Modifier = Modifier,
-    item: SettlementItem,
+    item: SettlementTransaction,
     currentUserId: Int,
-    onPayClick: (SettlementItem) -> Unit = {},
-    onApproveClick: (SettlementItem) -> Unit = {},
-    onCorrectClick: (SettlementItem) -> Unit = {},
+    onPayClick: (SettlementTransaction) -> Unit = {},
+    onApproveClick: (SettlementTransaction) -> Unit = {},
+    onCorrectClick: (SettlementTransaction) -> Unit = {},
 ) {
     val userRole = when (currentUserId) {
         item.debtor.id -> UserRole.DEBTOR
@@ -89,12 +76,12 @@ fun SettlementListItem(
         UserRole.OBSERVER -> AppTheme.colors.onBackground
     }
     val backgroundColor = when (item.status) {
-        is SettlementStatus.Settled -> AppTheme.colors.surfaceVariant
+        SettlementStatus.SETTLED -> AppTheme.colors.surfaceVariant
         else -> AppTheme.colors.surfaceContainerHighest
     }
     val alpha by animateFloatAsState(
         targetValue = when (item.status) {
-            is SettlementStatus.YouPaid -> 0.7f
+            SettlementStatus.YOU_PAID -> 0.7f
             else -> 1f
         }
     )
@@ -104,7 +91,7 @@ fun SettlementListItem(
             .fillMaxWidth()
             .padding(8.dp)
             .alpha(alpha).then(
-                if (item.status is SettlementStatus.TheyPaid) {
+                if (item.status == SettlementStatus.THEY_PAID) {
                     Modifier.border(
                         1.dp,
                         AppTheme.colors.primary,
@@ -126,7 +113,7 @@ fun SettlementListItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 UserColumn(
-                    name = item.debtor.username, isHighlighted = userRole == UserRole.DEBTOR
+                    name = item.debtor.username + if (currentUserId == item.debtor.id) "(me)" else "", isHighlighted = userRole == UserRole.DEBTOR
                 )
                 Column(
                     modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
@@ -155,7 +142,7 @@ fun SettlementListItem(
                     }
                 }
                 UserColumn(
-                    name = item.creditor.username, isHighlighted = userRole == UserRole.CREDITOR
+                    name = item.creditor.username + if (currentUserId == item.creditor.id) "(me)" else "", isHighlighted = userRole == UserRole.CREDITOR
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -211,7 +198,7 @@ private fun UserColumn(
 
 @Composable
 private fun StatusSection(
-    item: SettlementItem,
+    item: SettlementTransaction,
     onPayClick: () -> Unit,
     onApproveClick: () -> Unit,
     onCorrectClick: () -> Unit,
@@ -220,7 +207,7 @@ private fun StatusSection(
         modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
     ) {
         when (item.status) {
-            is SettlementStatus.YouOwe -> {
+             SettlementStatus.YOU_OWE -> {
                 StatusLabel(
                     text = "You must pay!",
                     icon = Icons.Default.Payment,
@@ -238,7 +225,7 @@ private fun StatusSection(
                 }
             }
 
-            is SettlementStatus.YouPaid -> {
+             SettlementStatus.YOU_PAID -> {
                 StatusLabel(
                     text = "Waiting for ${item.creditor.username}'s confirmation.",
                     icon = Icons.Default.Schedule,
@@ -246,9 +233,9 @@ private fun StatusSection(
                 )
             }
 
-            is SettlementStatus.TheyPaid -> {
+             SettlementStatus.THEY_PAID -> {
                 StatusLabel(
-                    text = "${item.status.payerName} paid. Do you approve?",
+                    text = "${item.debtor.username} paid. Do you approve?",
                     icon = Icons.Default.Notifications,
                     color = AppTheme.colors.primary
                 )
@@ -264,7 +251,7 @@ private fun StatusSection(
                 }
             }
 
-            is SettlementStatus.YouAreOwed -> {
+             SettlementStatus.YOU_ARE_OWED -> {
                 StatusLabel(
                     text = "Waiting for payment",
                     icon = Icons.Default.NotificationsActive,
@@ -272,7 +259,7 @@ private fun StatusSection(
                 )
             }
 
-            is SettlementStatus.Settled -> {
+             SettlementStatus.SETTLED -> {
                 StatusLabel(
                     text = "Payed",
                     icon = Icons.Default.CheckCircle,
@@ -280,7 +267,7 @@ private fun StatusSection(
                 )
             }
 
-            is SettlementStatus.Rejected -> {
+             SettlementStatus.REJECTED -> {
                 StatusLabel(
                     text = "Rejected by ${item.creditor.username}",
                     icon = Icons.Default.Error,
@@ -298,16 +285,33 @@ private fun StatusSection(
                 }
             }
 
-            is SettlementStatus.ThirdParty -> {
+             SettlementStatus.THIRD_PARTY -> {
                 StatusLabel(
-                    text = "${item.status.debtor} to ${item.status.creditor}",
+                    text = "${item.debtor.username} to ${item.creditor.username}",
                     icon = Icons.Default.SwapHoriz,
                     color = AppTheme.colors.primary
                 )
             }
 
-            SettlementStatus.Approved -> TODO()
-            SettlementStatus.Pending -> TODO()
+            SettlementStatus.APPROVED -> TODO()
+            SettlementStatus.PENDING -> {
+                StatusLabel(
+                    text = "Waiting for payment",
+                    icon = Icons.Default.NotificationsActive,
+                    color = AppTheme.colors.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = onPayClick, colors = ButtonDefaults.buttonColors(
+                        containerColor = AppTheme.colors.primary
+                    )
+                ) {
+                    Icon(Icons.Default.Payment, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Pay!")
+                }
+            }
+            else -> {}
         }
     }
 }
@@ -510,66 +514,66 @@ object FakeDate {
     val userNarges = User(id = 9, username = "Narges", phone = "09129999999")
 
     val mockSettlementItems = listOf(
-        SettlementItem(
+        SettlementTransaction(
             id = "1",
             debtor = userMilad,
             creditor = userSara,
             amount = Amount(250000),
-            status = SettlementStatus.YouOwe,
+            status = SettlementStatus.YOU_OWE,
             groupName = "NAN"
         ),
 
-        SettlementItem(
+        SettlementTransaction(
             id = "2",
             debtor = userMilad,
             creditor = userReza,
             amount = Amount(120000),
-            status = SettlementStatus.YouPaid,
+            status = SettlementStatus.YOU_PAID,
             groupName = "NAN"
         ),
 
-        SettlementItem(
+        SettlementTransaction(
             id = "3",
             debtor = userMaryam,
             creditor = userMilad,
             amount = Amount(450000),
-            status = SettlementStatus.TheyPaid(userMaryam.username),
+            status = SettlementStatus.THEY_PAID,
             groupName = "NAN"
         ),
 
-        SettlementItem(
+        SettlementTransaction(
             id = "4",
             debtor = userHamid,
             creditor = userMilad,
             amount = Amount(85000),
-            status = SettlementStatus.YouAreOwed,
+            status = SettlementStatus.YOU_ARE_OWED,
             groupName = "NAN"
         ),
 
-        SettlementItem(
+        SettlementTransaction(
             id = "5",
             debtor = userMilad,
             creditor = userNiloufar,
             amount = Amount(320000),
-            status = SettlementStatus.Settled,
+            status = SettlementStatus.SETTLED,
             groupName = "NAN"
         ),
 
-        SettlementItem(
+        SettlementTransaction(
             id = "6",
             debtor = userMilad,
             creditor = userParham,
             amount = Amount(50000),
-            status = SettlementStatus.Rejected,
+            status = SettlementStatus.REJECTED,
             groupName = "NAN"
         ),
 
-        SettlementItem(
+        SettlementTransaction(
             id = "7",
             debtor = userSaeid,
             creditor = userNarges,
             amount = Amount(1000000),
-            status = SettlementStatus.ThirdParty(userSaeid.username, userNarges.username),
+            status = SettlementStatus.THIRD_PARTY,
             groupName = "NAN"
         ),
     )

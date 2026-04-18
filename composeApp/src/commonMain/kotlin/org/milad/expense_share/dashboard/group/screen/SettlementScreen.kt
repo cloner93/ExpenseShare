@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -33,7 +34,6 @@ import org.milad.expense_share.Amount
 import org.milad.expense_share.dashboard.group.GroupDetailAction
 import org.milad.expense_share.dashboard.group.GroupDetailState
 import org.milad.expense_share.dashboard.group.components.FakeDate
-import org.milad.expense_share.dashboard.group.components.FakeDate.mockSettlementItems
 import org.milad.expense_share.dashboard.group.components.SettlementListItem
 import org.milad.expense_share.showSeparate
 
@@ -42,8 +42,8 @@ fun SettlementScreen(
     state: GroupDetailState,
     onAction: (GroupDetailAction) -> Unit,
 ) {
-    Column {
-        if (mockSettlementItems.isNotEmpty()) {
+    Column (modifier = Modifier.fillMaxSize()){
+        if (state.settlement.isNotEmpty()) {
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -51,10 +51,10 @@ fun SettlementScreen(
                 item {
                     BalanceSummaryRow(
                         totalGroupSpend = Amount(state.selectedGroup.transactions.sumOf { it.amount.value }),
-                        totalBalance = Amount(mockSettlementItems.sumOf { it.amount.value })
+                        totalBalance = Amount(state.settlement.sumOf { it.amount.value })
                     )
                 }
-                items(mockSettlementItems) { item ->
+                items(state.settlement) { item ->
                     SettlementListItem(item = item, currentUserId = state.currentUser.id)
                 }
             }

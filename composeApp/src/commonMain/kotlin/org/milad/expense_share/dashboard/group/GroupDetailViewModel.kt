@@ -8,11 +8,11 @@ import com.pmb.common.viewmodel.BaseViewState
 import kotlinx.coroutines.launch
 import model.FriendRelationStatus
 import model.Group
+import model.SettlementTransaction
 import model.Transaction
 import model.TransactionStatus
 import model.User
 import org.milad.expense_share.dashboard.group.components.GroupTab
-import org.milad.expense_share.logger.AppLogger
 import usecase.friends.GetAllFriendsUseCase
 import usecase.groups.DeleteGroupUseCase
 import usecase.groups.UpdateGroupMembersUseCase
@@ -282,18 +282,16 @@ class GroupDetailViewModel(
                     error = null
                 )
             }
-            groupSettlementUseCase(
-                groupId
-            ).collect { result ->
+            groupSettlementUseCase(groupId).collect { result ->
                 result.onSuccess { settlements ->
-                    AppLogger.i("Log", settlements.toString())
                     setState {
                         it.copy(
                             isLoading = false,
+                            error = null,
+                            settlement = settlements
                         )
                     }
                 }.onFailure { e ->
-                    AppLogger.i("Log", e.toString())
                     setState {
                         it.copy(
                             isLoading = false,
@@ -342,6 +340,8 @@ data class GroupDetailState(
 
     val isListAndDetailVisible: Boolean = false,
     val isDetailVisible: Boolean = false,
+
+    val settlement: List<SettlementTransaction> = emptyList()
 ) : BaseViewState {
     val isOwner: Boolean
         get() = selectedGroup.ownerId == currentUser.id
