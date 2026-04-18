@@ -1,57 +1,115 @@
 package org.milad.expense_share.domain.service
 
- import org.milad.expense_share.Amount
+import org.milad.expense_share.Amount
+import org.milad.expense_share.data.models.Settlement
 import org.milad.expense_share.data.models.TransactionStatus
 import org.milad.expense_share.data.models.User
 import org.milad.expense_share.domain.model.SettlementStatus
-import org.milad.expense_share.domain.model.SettlementTransaction
 import org.milad.expense_share.domain.repository.GroupRepository
+import org.milad.expense_share.domain.repository.SettlementRepository
 import org.milad.expense_share.domain.repository.TransactionRepository
 import org.milad.expense_share.domain.repository.UserRepository
-import org.milad.expense_share.presentation.groups.model.UserGroupResponse
 import kotlin.math.min
 
 class SettlementService(
     private val groupRepository: GroupRepository,
     private val userRepository: UserRepository,
     private val transactionRepository: TransactionRepository,
+    private val settlementRepository: SettlementRepository,
 ) {
 
-    private fun calculateNetBalances(
-        totalPaidByUser: Map<User, Amount>,
-        totalShareOfUser: Map<User, Amount>
-    ): Map<User, Amount> {
-        val balances = mutableMapOf<User, Amount>()
-        val allUserIds = totalPaidByUser.keys + totalShareOfUser.keys
+    fun recalculate(groupId: Int, requesterId: Int) {
+        val transactions = transactionRepository.getTransactions(requesterId, groupId)
+        val approved = transactions.filter { it.status == TransactionStatus.APPROVED }
 
-        for (user in allUserIds) {
-            val paid = totalPaidByUser[user] ?: Amount(0)
-            val share = totalShareOfUser[user] ?: Amount(0)
-            balances[user] = paid - share
+        if (approved.isEmpty()) {
+            settlementRepository.replaceAll(groupId, emptyList())
+            return
         }
 
-        val totalBalance = Amount(balances.values.sumOf { it.value })
-        if (!totalBalance.isZero())
-            throw IllegalArgumentException("Balance sum is not zero: ${totalBalance.value}")
+        val balances = buildNetBalances(approved)
+        val settlements = buildSettlements(groupId, balances)
+        settlementRepository.replaceAll(groupId, settlements)
+    }
+
+    fun getGroupSettlements(groupId: Int, userId: Int): Result<List<Settlement>> {
+        return try {
+            val isMember = groupRepository.getGroupsOfUser(userId)
+                .any { it.id == groupId }
+            if (!isMember) return Result.failure(
+                IllegalAccessException("Access denied: user is not a member of this group")
+            )
+            Result.success(settlementRepository.getByGroup(groupId))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    fun markAsPaid(settlementId: Int, userId: Int): Result<String> {
+        val updated = settlementRepository.markAsPaid(settlementId, userId)
+        return if (updated) Result.success("Payment marked. Waiting for creditor confirmation.")
+        else Result.failure(IllegalAccessException("Only the debtor can mark this as paid, or status is not PENDING."))
+    }
+
+    fun confirmPayment(settlementId: Int, userId: Int): Result<String> {
+        val updated = settlementRepository.confirm(settlementId, userId)
+        return if (updated) Result.success("Payment confirmed. Settlement is complete.")
+        else Result.failure(IllegalAccessException("Only the creditor can confirm, or status is not PAID."))
+    }
+
+    fun disputePayment(settlementId: Int, userId: Int): Result<String> {
+        val updated = settlementRepository.dispute(settlementId, userId)
+        return if (updated) Result.success("Payment disputed. Settlement is back to PENDING.")
+        else Result.failure(IllegalAccessException("Only the creditor can dispute, or status is not PAID."))
+    }
+
+    private fun buildNetBalances(
+        transactions: List<org.milad.expense_share.data.models.Transaction>
+    ): Map<User, Amount> {
+        val paid = mutableMapOf<User, Amount>()
+        val share = mutableMapOf<User, Amount>()
+
+        transactions.forEach { trx ->
+            trx.payers?.forEach { payer ->
+                paid[payer.user] = (paid[payer.user] ?: Amount(0)) + payer.amountPaid
+            }
+            trx.shareDetails?.members?.forEach { member ->
+                share[member.user] = (share[member.user] ?: Amount(0)) + member.share
+            }
+        }
+
+        val allUsers = paid.keys + share.keys
+        val balances = mutableMapOf<User, Amount>()
+        for (user in allUsers) {
+            balances[user] = (paid[user] ?: Amount(0)) - (share[user] ?: Amount(0))
+        }
+
+        val total = Amount(balances.values.sumOf { it.value })
+        if (!total.isZero()) {
+            throw IllegalStateException(
+                "Net balance is not zero (${total.value}). Data may be inconsistent."
+            )
+        }
 
         return balances
     }
 
-    private fun calculateSettlements(
-        balances: Map<User, Amount>,
-        group: UserGroupResponse
-    ): List<SettlementTransaction> {
-        val transactions = mutableListOf<SettlementTransaction>()
+    private fun buildSettlements(
+        groupId: Int,
+        balances: Map<User, Amount>
+    ): List<Settlement> {
+        val now = System.currentTimeMillis()
+        val result = mutableListOf<Settlement>()
 
         val creditors = balances
             .filter { it.value.isPositive() }
-            .map { Pair(it.key, it.value) }
+            .map { it.key to it.value }
             .sortedByDescending { it.second }
             .toMutableList()
 
         val debtors = balances
             .filter { it.value.isNegative() }
-            .map { Pair(it.key, -it.value) }
+            .map { it.key to -it.value }
             .sortedByDescending { it.second }
             .toMutableList()
 
@@ -59,87 +117,31 @@ class SettlementService(
         var j = 0
 
         while (i < creditors.size && j < debtors.size) {
-            val creditor = creditors[i]
-            val debtor = debtors[j]
+            val (creditor, creditAmt) = creditors[i]
+            val (debtor, debtAmt) = debtors[j]
 
-            val settleAmount = min(creditor.second.value, debtor.second.value)
+            val settleAmt = min(creditAmt.value, debtAmt.value)
 
-            transactions.add(
-                SettlementTransaction(
-                    id = "${debtor.first.id}_${creditor.first.id}_${group.id}",
-                    debtor = debtor.first,
-                    creditor = creditor.first,
-                    amount = Amount(settleAmount),
-                    groupName = group.name,
-                    status = SettlementStatus.PENDING // FIXME:
+            result.add(
+                Settlement(
+                    id = 0,
+                    groupId = groupId,
+                    debtor = debtor,
+                    creditor = creditor,
+                    amount = Amount(settleAmt),
+                    status = SettlementStatus.PENDING,
+                    createdAt = now,
+                    updatedAt = now,
                 )
             )
 
-            creditors[i] = creditor.copy(second = creditor.second - settleAmount)
-            debtors[j] = debtor.copy(second = debtor.second - settleAmount)
+            creditors[i] = creditor to (creditAmt - settleAmt)
+            debtors[j] = debtor to (debtAmt - settleAmt)
 
             if (creditors[i].second.isZero()) i++
             if (debtors[j].second.isZero()) j++
         }
 
-        return transactions
-    }
-
-    private fun getUsersOfGroup(groupId: Int): List<User> {
-        val userIds = groupRepository.getUsersOfGroup(groupId)
-        val users = mutableListOf<User>()
-        userIds.forEach { userId ->
-            val user = userRepository.findById(userId)
-            if (user != null) {
-                users.add(user)
-            }
-        }
-        return users
-    }
-
-    fun groupSettlement(
-        groupId: Int,
-        userId: Int,
-    ): Result<List<SettlementTransaction>> {
-        try {
-            var group = groupRepository.getGroupsOfUser(userId)
-                .firstOrNull { it.id == groupId }
-                ?: throw IllegalArgumentException("Group not found or access denied")
-            val transactions = transactionRepository.getTransactions(userId, group.id)
-            val members = getUsersOfGroup(group.id)
-
-            group = group.copy(
-                transactions = transactions,
-                members = members
-            )
-
-            val totalGroupPaid = mutableMapOf<User, Amount>()
-            val totalGroupShare = mutableMapOf<User, Amount>()
-
-            group.transactions.forEach { trx ->
-                if (trx.status == TransactionStatus.APPROVED) {
-                    trx.payers?.forEach { payer ->
-                        val currentPaid = totalGroupPaid[payer.user] ?: Amount(0)
-                        totalGroupPaid[payer.user] = currentPaid + payer.amountPaid
-                    }
-
-                    trx.shareDetails?.members?.forEach { item ->
-                        val currentShare = totalGroupShare[item.user] ?: Amount(0)
-                        totalGroupShare[item.user] = currentShare + item.share
-                    }
-                }
-            }
-
-            val groupUserNetBalance = calculateNetBalances(
-                totalPaidByUser = totalGroupPaid,
-                totalShareOfUser = totalGroupShare
-            )
-
-            val res = calculateSettlements(balances = groupUserNetBalance, group = group)
-            return Result.success(res)
-        } catch (e: Exception) {
-
-            return Result.failure(e)
-        }
+        return result
     }
 }

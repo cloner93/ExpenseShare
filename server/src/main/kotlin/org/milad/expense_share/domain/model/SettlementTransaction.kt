@@ -17,12 +17,7 @@ data class SettlementTransaction(
 @Serializable
 enum class SettlementStatus {
     PENDING,
-    APPROVED,
-    YOU_OWE,
-    YOU_PAID,
-    THEY_PAID,
-    YOU_ARE_OWED,
-    SETTLED,
-    REJECTED,
-    THIRD_PARTY
+    PAID,
+    CONFIRMED,
+    DISPUTED
 }
