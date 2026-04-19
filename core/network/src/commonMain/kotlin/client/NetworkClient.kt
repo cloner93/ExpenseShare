@@ -19,7 +19,7 @@ import plugin.installErrorHandler
 import token.TokenProvider
 
 data class HttpConfig(
-    val baseUrl: String = "http://192.168.0.4:8082/",
+    val baseUrl: String = "http://192.168.0.3:8082/",
     val timeoutMillis: Long = 15000,
     val isDebug: Boolean = true,
     val refreshTokenEndpoint: String = "/auth/refresh", // FIXME

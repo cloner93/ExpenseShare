@@ -1,17 +1,18 @@
-package org.milad.expense_share.domain.model
+package model
 
 import kotlinx.serialization.Serializable
 import org.milad.expense_share.Amount
-import org.milad.expense_share.data.models.User
 
 @Serializable
-data class SettlementTransaction(
-    val id: String,
+data class Settlement(
+    val id: Int,
+    val groupId: Int,
     val debtor: User,
     val creditor: User,
     val amount: Amount,
-    val groupName: String,
-    val status: SettlementStatus
+    val status: SettlementStatus,
+    val createdAt: Long,
+    val updatedAt: Long,
 )
 
 @Serializable
