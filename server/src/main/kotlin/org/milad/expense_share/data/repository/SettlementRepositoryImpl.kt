@@ -6,8 +6,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.milad.expense_share.data.db.table.Settlements
 import org.milad.expense_share.data.db.table.Users
 import org.milad.expense_share.data.models.Settlement
+import org.milad.expense_share.data.models.SettlementStatus
 import org.milad.expense_share.data.models.User
-import org.milad.expense_share.domain.model.SettlementStatus
 import org.milad.expense_share.domain.repository.SettlementRepository
 
 class SettlementRepositoryImpl : SettlementRepository {

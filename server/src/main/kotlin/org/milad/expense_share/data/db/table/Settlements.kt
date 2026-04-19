@@ -2,7 +2,7 @@ package org.milad.expense_share.data.db.table
 
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
-import org.milad.expense_share.domain.model.SettlementStatus
+import org.milad.expense_share.data.models.SettlementStatus
 
 object Settlements : Table("settlements") {
     val id          = integer("id").autoIncrement()

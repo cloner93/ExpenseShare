@@ -2,9 +2,9 @@ package org.milad.expense_share.domain.service
 
 import org.milad.expense_share.Amount
 import org.milad.expense_share.data.models.Settlement
+import org.milad.expense_share.data.models.SettlementStatus
 import org.milad.expense_share.data.models.TransactionStatus
 import org.milad.expense_share.data.models.User
-import org.milad.expense_share.domain.model.SettlementStatus
 import org.milad.expense_share.domain.repository.GroupRepository
 import org.milad.expense_share.domain.repository.SettlementRepository
 import org.milad.expense_share.domain.repository.TransactionRepository

@@ -2,7 +2,6 @@ package org.milad.expense_share.data.models
 
 import kotlinx.serialization.Serializable
 import org.milad.expense_share.Amount
-import org.milad.expense_share.domain.model.SettlementStatus
 
 @Serializable
 data class Settlement(
@@ -15,3 +14,11 @@ data class Settlement(
     val createdAt: Long,
     val updatedAt: Long,
 )
+
+@Serializable
+enum class SettlementStatus {
+    PENDING,
+    PAID,
+    CONFIRMED,
+    DISPUTED
+}
