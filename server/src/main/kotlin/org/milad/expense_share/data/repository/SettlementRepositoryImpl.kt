@@ -108,7 +108,7 @@ class SettlementRepositoryImpl : SettlementRepository {
         if (row[Settlements.status] != SettlementStatus.PAID) return@transaction false
 
         Settlements.update({ Settlements.id eq settlementId }) {
-            it[status] = SettlementStatus.PENDING
+            it[status] = SettlementStatus.DISPUTED
             it[updatedAt] = System.currentTimeMillis()
         } > 0
     }

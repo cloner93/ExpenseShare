@@ -1,18 +1,23 @@
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.throwable.shouldHaveMessage
-import io.mockk.coEvery
-import io.mockk.coVerify
+import io.kotest.matchers.shouldNotBe
+import io.mockk.every
+import io.mockk.justRun
 import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import org.milad.expense_share.Amount
+import org.milad.expense_share.data.models.Settlement
 import org.milad.expense_share.data.models.Transaction
 import org.milad.expense_share.data.models.TransactionStatus
 import org.milad.expense_share.data.models.User
-import org.milad.expense_share.domain.model.SettlementTransaction
+import org.milad.expense_share.domain.model.SettlementStatus
 import org.milad.expense_share.domain.repository.GroupRepository
+import org.milad.expense_share.domain.repository.SettlementRepository
 import org.milad.expense_share.domain.repository.TransactionRepository
 import org.milad.expense_share.domain.repository.UserRepository
 import org.milad.expense_share.domain.service.SettlementService
@@ -24,309 +29,439 @@ import org.milad.expense_share.presentation.transactions.model.ShareType
 
 class SettlementServiceTest : DescribeSpec({
 
-    val groupRepository = mockk<GroupRepository>()
+    val groupRepository       = mockk<GroupRepository>()
     val transactionRepository = mockk<TransactionRepository>()
-    val userRepository = mockk<UserRepository>()
+    val userRepository        = mockk<UserRepository>()
+    val settlementRepository  = mockk<SettlementRepository>()
 
     val settlementService = SettlementService(
-        groupRepository = groupRepository,
+        groupRepository       = groupRepository,
+        userRepository        = userRepository,
         transactionRepository = transactionRepository,
-        userRepository = userRepository
+        settlementRepository  = settlementRepository,
     )
 
-    val user1 = User(id = 1, username = "Milad", phone = "09123456888")
-    val user2 = User(id = 2, username = "Ali", phone = "09123456888")
-    val user3 = User(id = 3, username = "Reza", phone = "09123456888")
-    val user4 = User(id = 4, username = "Sara", phone = "09123456888")
+    val milad = User(id = 1, username = "Milad", phone = "09120000001")
+    val ali   = User(id = 2, username = "Ali",   phone = "09120000002")
+    val reza  = User(id = 3, username = "Reza",  phone = "09120000003")
+    val sara  = User(id = 4, username = "Sara",  phone = "09120000004")
 
-    // --- Successful Scenarios ---
+    fun makeTransaction(
+        id: Int,
+        groupId: Int,
+        amount: Long,
+        payers: List<Pair<User, Long>>,
+        shares: List<Pair<User, Long>>,
+        status: TransactionStatus = TransactionStatus.APPROVED,
+    ) = Transaction(
+        id              = id,
+        groupId         = groupId,
+        title           = "Transaction $id",
+        amount          = Amount(amount),
+        description     = "",
+        createdBy       = payers.first().first.id,
+        status          = status,
+        createdAt       = 0L,
+        transactionDate = 0L,
+        payers          = payers.map { PayerRequest(it.first, Amount(it.second)) },
+        shareDetails    = ShareDetailsRequest(
+            type    = ShareType.Equal,
+            members = shares.map { ShareMemberRequest(it.first, Amount(it.second)) }
+        )
+    )
 
-    describe("groupSettlement") {
-        context("when data is valid and simple settlement is needed") {
+    describe("recalculate") {
+
+        context("simple case — single payer, three participants") {
             val groupId = 10
-            val userId = 1 // The user requesting the settlement
+            val slot    = slot<List<Settlement>>()
 
-            // Arrange
-            val transaction1 = Transaction(
-                id = 1, groupId = groupId, title = "Groceries", amount = Amount(3000),
-                description = "", createdBy = 1, transactionDate = System.currentTimeMillis(),
-                status = TransactionStatus.APPROVED,
-                payers = listOf(PayerRequest(user1, Amount(3000))),
-                shareDetails = ShareDetailsRequest(
-                    type = ShareType.Equal,
-                    members = listOf(
-                        ShareMemberRequest(user1, Amount(1000)),
-                        ShareMemberRequest(user2, Amount(1000)),
-                        ShareMemberRequest(user3, Amount(1000))
-                    )
+            every { transactionRepository.getTransactions(1, groupId) } returns listOf(
+                makeTransaction(
+                    id      = 1,
+                    groupId = groupId,
+                    amount  = 3000,
+                    payers  = listOf(milad to 3000L),
+                    shares  = listOf(milad to 1000L, ali to 1000L, reza to 1000L),
                 )
             )
-            val group = UserGroupResponse(
-                id = groupId,
-                name = "Trip",
-                ownerId = 1,
-                transactions = listOf(transaction1)
-            )
+            justRun { settlementRepository.replaceAll(groupId, capture(slot)) }
 
-            coEvery { groupRepository.getGroupsOfUser(userId) } returns listOf(group)
+            settlementService.recalculate(groupId, requesterId = 1)
 
-            // Act
-            val settlements = settlementService.groupSettlement(groupId, userId)
-
-            // Assert
-            it("should return two transactions: Ali to Milad and Reza to Milad") {
-                settlements shouldBeSuccess { list ->
-
-                    list.size shouldBe 2
-                    list.find { it.debtor == user2 && it.creditor == user1 }?.amount shouldBe 1000
-                    list.find { it.debtor == user3 && it.creditor == user1 }?.amount shouldBe 1000
-                }
-
-                // MockK Verification
-                coVerify(exactly = 1) { groupRepository.getGroupsOfUser(userId) }
+            it("should create two settlements") {
+                slot.captured.size shouldBe 2
+            }
+            it("ali should owe 1000 to milad") {
+                slot.captured.find { it.debtor == ali && it.creditor == milad }?.amount shouldBe Amount(1000)
+            }
+            it("reza should owe 1000 to milad") {
+                slot.captured.find { it.debtor == reza && it.creditor == milad }?.amount shouldBe Amount(1000)
+            }
+            it("all settlements should be created with PENDING status") {
+                slot.captured.all { it.status == SettlementStatus.PENDING } shouldBe true
+            }
+            it("replaceAll should be called exactly once") {
+                verify(exactly = 1) { settlementRepository.replaceAll(groupId, any()) }
             }
         }
 
-        context("when complex settlement is needed with multiple payers and shares") {
+        context("multiple transactions with multiple payers") {
+
             val groupId = 20
-            val userId = 2
+            val slot    = slot<List<Settlement>>()
 
-            // Arrange
-            val transaction1 = Transaction(
-                id = 1, groupId = groupId, title = "Food", amount = Amount(5000), createdBy = 1,
-                payers = listOf(PayerRequest(user1, Amount(5000))),
-                shareDetails = ShareDetailsRequest(
-                    ShareType.Equal, listOf(
-                        ShareMemberRequest(user1, Amount(1500)),
-                        ShareMemberRequest(user2, Amount(1500)),
-                        ShareMemberRequest(user3, Amount(2000))
-                    )
+            every { transactionRepository.getTransactions(2, groupId) } returns listOf(
+                makeTransaction(
+                    id      = 1, groupId = groupId, amount = 5000,
+                    payers  = listOf(milad to 5000L),
+                    shares  = listOf(milad to 1500L, ali to 1500L, reza to 2000L),
                 ),
-                description = "",
-                status = TransactionStatus.APPROVED,
-                createdAt = 0L,
-                transactionDate = 0L,
-                approvedBy = 1
+                makeTransaction(
+                    id      = 2, groupId = groupId, amount = 3000,
+                    payers  = listOf(ali to 3000L),
+                    shares  = listOf(milad to 1000L, ali to 2000L),
+                )
             )
-            val transaction2 = Transaction(
-                id = 2, groupId = groupId, title = "Gas", amount = Amount(3000), createdBy = 2,
-                payers = listOf(PayerRequest(user2, Amount(3000))),
-                shareDetails = ShareDetailsRequest(
-                    ShareType.Equal, listOf(
-                        ShareMemberRequest(user1, Amount(1000)),
-                        ShareMemberRequest(user2, Amount(2000))
-                    )
+            justRun { settlementRepository.replaceAll(groupId, capture(slot)) }
+
+            settlementService.recalculate(groupId, requesterId = 2)
+
+            it("should create two settlements") {
+                slot.captured.size shouldBe 2
+            }
+            it("reza should owe 2000 to milad") {
+                slot.captured.find { it.debtor == reza && it.creditor == milad }?.amount shouldBe Amount(2000)
+            }
+            it("ali should owe 500 to milad") {
+                slot.captured.find { it.debtor == ali && it.creditor == milad }?.amount shouldBe Amount(500)
+            }
+        }
+
+        context("four participants — multiple creditors and debtors") {
+
+            val groupId = 25
+            val slot    = slot<List<Settlement>>()
+
+            every { transactionRepository.getTransactions(1, groupId) } returns listOf(
+                makeTransaction(
+                    id      = 1, groupId = groupId, amount = 600,
+                    payers  = listOf(milad to 600L),
+                    shares  = listOf(milad to 300L, ali to 300L),
                 ),
-                description = "",
-                status = TransactionStatus.APPROVED,
-                createdAt = 0L,
-                transactionDate = 0L,
-                approvedBy = 1
+                makeTransaction(
+                    id      = 2, groupId = groupId, amount = 800,
+                    payers  = listOf(reza to 800L),
+                    shares  = listOf(reza to 200L, sara to 600L),
+                )
             )
-            val group = UserGroupResponse(
-                id = groupId,
-                name = "Weekend",
-                ownerId = 1,
-                transactions = listOf(transaction1, transaction2)
-            )
+            justRun { settlementRepository.replaceAll(groupId, capture(slot)) }
 
-            coEvery { groupRepository.getGroupsOfUser(userId) } returns listOf(group)
+            settlementService.recalculate(groupId, requesterId = 1)
 
-            // Act
-            val settlements = settlementService.groupSettlement(groupId, userId)
-
-            // Assert
-            it("should generate correct settlements for complex scenario") {
-                settlements.shouldBeSuccess { list ->
-                    list.size shouldBe 2
-                    list.find { it.debtor == user3 && it.creditor == user1 }?.amount shouldBe 2000
-                    list.find { it.debtor == user2 && it.creditor == user1 }?.amount shouldBe 500
-                }
+            it("should create two settlements") {
+                slot.captured.size shouldBe 2
+            }
+            it("sara should owe 600 to reza") {
+                slot.captured.find { it.debtor == sara && it.creditor == reza }?.amount shouldBe Amount(600)
+            }
+            it("ali should owe 300 to milad") {
+                slot.captured.find { it.debtor == ali && it.creditor == milad }?.amount shouldBe Amount(300)
             }
         }
 
         context("when all balances are zero") {
             val groupId = 30
-            val userId = 3
+            val slot    = slot<List<Settlement>>()
 
-            // Arrange
-            val transaction = Transaction(
-                id = 3, groupId = groupId, title = "Equal Split", amount = Amount(2000),
-                payers = listOf(
-                    PayerRequest(user1, Amount(1000)),
-                    PayerRequest(user2, Amount(1000))
-                ),
-                shareDetails = ShareDetailsRequest(
-                    ShareType.Equal, listOf(
-                        ShareMemberRequest(user1, Amount(1000)),
-                        ShareMemberRequest(user2, Amount(1000))
-                    )
-                ),
-                description = "",
-                status = TransactionStatus.APPROVED,
-                createdAt = 0L,
-                transactionDate = 0L,
-                approvedBy = 1,
-                createdBy = 1
+            every { transactionRepository.getTransactions(1, groupId) } returns listOf(
+                makeTransaction(
+                    id      = 3, groupId = groupId, amount = 2000,
+                    payers  = listOf(milad to 1000L, ali to 1000L),
+                    shares  = listOf(milad to 1000L, ali to 1000L),
+                )
             )
-            val group = UserGroupResponse(
-                id = groupId,
-                name = "Balanced",
-                transactions = listOf(transaction),
-                ownerId = 1,
+            justRun { settlementRepository.replaceAll(groupId, capture(slot)) }
+
+            settlementService.recalculate(groupId, requesterId = 1)
+
+            it("should store an empty list") {
+                slot.captured.size shouldBe 0
+            }
+        }
+
+        context("when there are no APPROVED transactions") {
+            val groupId = 35
+            val slot    = slot<List<Settlement>>()
+
+            every { transactionRepository.getTransactions(1, groupId) } returns listOf(
+                makeTransaction(
+                    id      = 1, groupId = groupId, amount = 1000,
+                    payers  = listOf(milad to 1000L),
+                    shares  = listOf(milad to 500L, ali to 500L),
+                    status  = TransactionStatus.PENDING,
+                )
+            )
+            justRun { settlementRepository.replaceAll(groupId, capture(slot)) }
+
+            settlementService.recalculate(groupId, requesterId = 1)
+
+            it("should store an empty list since there are no APPROVED transactions") {
+                slot.captured.size shouldBe 0
+            }
+            it("replaceAll should be called with an empty list") {
+                verify { settlementRepository.replaceAll(groupId, emptyList()) }
+            }
+        }
+
+        context("when paid and share are not equal — inconsistent data") {
+
+            val groupId = 40
+
+            every { transactionRepository.getTransactions(1, groupId) } returns listOf(
+                makeTransaction(
+                    id      = 4, groupId = groupId, amount = 3000,
+                    payers  = listOf(milad to 3000L),
+                    shares  = listOf(milad to 1000L, ali to 1500L),
+                )
             )
 
-            coEvery { groupRepository.getGroupsOfUser(userId) } returns listOf(group)
-
-            // Act
-            val settlements = settlementService.groupSettlement(groupId, userId)
-
-            // Assert
-            it("should return an empty list of settlements") {
-                settlements.shouldBe(emptyList<SettlementTransaction>())
+            it("should throw IllegalStateException") {
+                shouldThrow<IllegalStateException> {
+                    settlementService.recalculate(groupId, requesterId = 1)
+                }
+            }
+            it("replaceAll should not be called") {
+                verify(exactly = 0) { settlementRepository.replaceAll(any(), any()) }
             }
         }
     }
 
-    // --- Error Handling Scenarios ---
+    describe("getGroupSettlements") {
 
-    describe("groupSettlement error handling") {
-        context("when the group is not found for the user") {
-            val userId = 1
-            val nonExistentGroupId = 99
+        context("when the user is a group member") {
+            val groupId = 10
+            val userId  = 1
 
-            // Arrange
-            coEvery { groupRepository.getGroupsOfUser(userId) } returns emptyList()
-
-            // Act & Assert
-            it("should throw IllegalArgumentException") {
-                val exception = shouldThrow<IllegalArgumentException> {
-                    settlementService.groupSettlement(nonExistentGroupId, userId)
-                }
-                exception shouldHaveMessage "گروه مورد نظر یافت نشد یا شما به آن دسترسی ندارید"
-            }
-        }
-
-        context("when total paid amount does not equal total shares amount") {
-            val groupId = 40
-            val userId = 1
-
-            // Arrange
-            val transaction = Transaction(
-                id = 4, groupId = groupId, title = "Math Error", amount = Amount(3000),
-                payers = listOf(PayerRequest(user1, Amount(3000))),
-                status = TransactionStatus.APPROVED,
-                shareDetails = ShareDetailsRequest(
-                    ShareType.Equal, listOf(
-                        ShareMemberRequest(user1, Amount(1000)),
-                        ShareMemberRequest(user2, Amount(1500)) // Sum is 2500, not 3000
-                    )
-                ), description = "", createdBy = 1
-            )
-            val group = UserGroupResponse(
-                id = groupId,
-                name = "Math Error Group",
-                transactions = listOf(transaction), ownerId = 0
-            )
-
-            coEvery { groupRepository.getGroupsOfUser(userId) } returns listOf(group)
-
-            // Act & Assert
-            it("should throw IllegalArgumentException due to balance sum not being zero") {
-                val exception = shouldThrow<IllegalArgumentException> {
-                    settlementService.groupSettlement(groupId, userId)
-                }
-                exception shouldHaveMessage "Balance sum is not zero: 500"
-            }
-        }
-
-        xcontext("when any amount (paid or share) is negative") {
-            val groupId = 50
-            val userId = 1
-
-            // Arrange
-            val transaction = Transaction(
-                id = 5, groupId = groupId, title = "Negative Amount", amount = Amount(-3000),
-                payers = listOf(PayerRequest(user1, Amount(-3000))),
-                status = TransactionStatus.APPROVED,
-                shareDetails = ShareDetailsRequest(
-                    ShareType.Equal, listOf(
-                        ShareMemberRequest(user1, Amount(-1000)),
-                        ShareMemberRequest(user2, Amount(-2000))
-                    )
-                ), description = "", createdBy = 1
-            )
-            val group = UserGroupResponse(
-                id = groupId,
-                name = "Negative Amounts",
-                transactions = listOf(transaction), ownerId = 0
-            )
-
-            coEvery { groupRepository.getGroupsOfUser(userId) } returns listOf(group)
-
-            // Act & Assert
-            it("should throw IllegalArgumentException because amounts are negative") {
-                shouldThrow<IllegalArgumentException> {
-                    settlementService.groupSettlement(groupId, userId)
-                }
-            }
-        }
-
-        context("when transaction has empty payers or shareDetails") {
-            val groupId = 60
-            val userId = 1
-
-            // Arrange
-            val transactionNoPayers = Transaction(
-                id = 61, groupId = groupId, title = "No Payers", amount = Amount(1000),
-                payers = emptyList(),
-                status = TransactionStatus.APPROVED,
-                shareDetails = ShareDetailsRequest(
-                    ShareType.Equal,
-                    listOf(ShareMemberRequest(user1, Amount(1000)))
-                ), description = "", createdBy = 1
-            )
-            val transactionNoShares = Transaction(
-                id = 62,
-                groupId = groupId,
-                title = "No Shares",
-                status = TransactionStatus.APPROVED,
-                amount = Amount(1000),
-                payers = listOf(PayerRequest(user1, Amount(1000))),
-                shareDetails = ShareDetailsRequest(ShareType.Equal, emptyList()),
-                description = "",
-                createdBy = 1
-            )
-            val group = UserGroupResponse(
-                id = groupId,
-                name = "Empty Transaction Lists",
-                transactions = listOf(transactionNoPayers, transactionNoShares), ownerId = 0
-            )
-
-            coEvery { groupRepository.getGroupsOfUser(userId) } returns listOf(group)
-
-            // Act & Assert
-            it("should throw IllegalArgumentException for transaction with no payers") {
-                coEvery { groupRepository.getGroupsOfUser(userId) } returns listOf(
-                    group.copy(
-                        transactions = listOf(transactionNoPayers)
-                    )
+            val fakeSettlements = listOf(
+                Settlement(
+                    id        = 1,
+                    groupId   = groupId,
+                    debtor    = ali,
+                    creditor  = milad,
+                    amount    = Amount(1000),
+                    status    = SettlementStatus.PENDING,
+                    createdAt = 0L,
+                    updatedAt = 0L,
                 )
-                shouldThrow<IllegalArgumentException> {
-                    settlementService.groupSettlement(groupId, userId)
-                }
-            }
+            )
 
-            it("should throw IllegalArgumentException for transaction with no share members") {
-                coEvery { groupRepository.getGroupsOfUser(userId) } returns listOf(
-                    group.copy(
-                        transactions = listOf(transactionNoShares)
-                    )
-                )
-                shouldThrow<IllegalArgumentException> {
-                    settlementService.groupSettlement(groupId, userId)
+            every { groupRepository.getGroupsOfUser(userId) } returns listOf(
+                UserGroupResponse(id = groupId, name = "Trip", ownerId = 1)
+            )
+            every { settlementRepository.getByGroup(groupId) } returns fakeSettlements
+
+            val result = settlementService.getGroupSettlements(groupId, userId)
+
+            it("should return success") {
+                result.isSuccess shouldBe true
+            }
+            it("should return the settlements list") {
+                result shouldBeSuccess { list ->
+                    list.size shouldBe 1
+                    list[0].debtor   shouldBe ali
+                    list[0].creditor shouldBe milad
+                    list[0].amount   shouldBe Amount(1000)
                 }
             }
+        }
+
+        context("when the user is not a group member") {
+            val groupId = 99
+            val userId  = 5
+
+            every { groupRepository.getGroupsOfUser(userId) } returns emptyList()
+
+            val result = settlementService.getGroupSettlements(groupId, userId)
+
+            it("should return failure") {
+                result.isFailure shouldBe true
+            }
+            it("should be IllegalAccessException") {
+                result shouldBeFailure { error ->
+                    error shouldNotBe null
+                    (error is IllegalAccessException) shouldBe true
+                }
+            }
+            it("settlementRepository should not be called") {
+                verify(exactly = 0) { settlementRepository.getByGroup(any()) }
+            }
+        }
+    }
+
+    describe("markAsPaid") {
+
+        context("debtor requests payment — success") {
+            val settlementId = 1
+            val debtorId     = ali.id
+
+            every { settlementRepository.markAsPaid(settlementId, debtorId) } returns true
+
+            val result = settlementService.markAsPaid(settlementId, debtorId)
+
+            it("should return success") {
+                result.isSuccess shouldBe true
+            }
+            it("should return confirmation message") {
+                result shouldBeSuccess { message ->
+                    message.contains("Waiting") shouldBe true
+                }
+            }
+        }
+
+        context("non-debtor attempts — failure") {
+            val settlementId = 1
+            val wrongUserId  = milad.id
+
+            every { settlementRepository.markAsPaid(settlementId, wrongUserId) } returns false
+
+            val result = settlementService.markAsPaid(settlementId, wrongUserId)
+
+            it("should return failure") {
+                result.isFailure shouldBe true
+            }
+            it("should be IllegalAccessException") {
+                result shouldBeFailure { (it is IllegalAccessException) shouldBe true }
+            }
+        }
+    }
+
+    describe("confirmPayment") {
+
+        context("creditor confirms payment — success") {
+            val settlementId = 1
+            val creditorId   = milad.id
+
+            every { settlementRepository.confirm(settlementId, creditorId) } returns true
+
+            val result = settlementService.confirmPayment(settlementId, creditorId)
+
+            it("should return success") {
+                result.isSuccess shouldBe true
+            }
+            it("should return settlement completion message") {
+                result shouldBeSuccess { message ->
+                    message.contains("confirmed") shouldBe true
+                }
+            }
+        }
+
+        context("non-creditor attempts — failure") {
+            val settlementId = 1
+            val wrongUserId  = ali.id
+
+            every { settlementRepository.confirm(settlementId, wrongUserId) } returns false
+
+            val result = settlementService.confirmPayment(settlementId, wrongUserId)
+
+            it("should return failure") {
+                result.isFailure shouldBe true
+            }
+        }
+
+        context("attempt to confirm in PENDING status — failure") {
+            val settlementId = 2
+            val creditorId   = milad.id
+
+            every { settlementRepository.confirm(settlementId, creditorId) } returns false
+
+            val result = settlementService.confirmPayment(settlementId, creditorId)
+
+            it("should return failure") {
+                result.isFailure shouldBe true
+            }
+        }
+    }
+
+    describe("disputePayment") {
+
+        context("creditor disputes payment — success") {
+            val settlementId = 1
+            val creditorId   = milad.id
+
+            every { settlementRepository.dispute(settlementId, creditorId) } returns true
+
+            val result = settlementService.disputePayment(settlementId, creditorId)
+
+            it("should return success") {
+                result.isSuccess shouldBe true
+            }
+            it("should return message indicating status reverted to PENDING") {
+                result shouldBeSuccess { message ->
+                    message.contains("PENDING") shouldBe true
+                }
+            }
+        }
+
+        context("non-creditor attempts — failure") {
+            val settlementId = 1
+            val wrongUserId  = reza.id
+
+            every { settlementRepository.dispute(settlementId, wrongUserId) } returns false
+
+            val result = settlementService.disputePayment(settlementId, wrongUserId)
+
+            it("should return failure") {
+                result.isFailure shouldBe true
+            }
+        }
+    }
+
+    describe("end-to-end trip scenario") {
+
+        val groupId = 100
+        val slot    = slot<List<Settlement>>()
+
+        every { transactionRepository.getTransactions(1, groupId) } returns listOf(
+            makeTransaction(
+                id = 1, groupId = groupId, amount = 900_000,
+                payers = listOf(milad to 900_000L),
+                shares = listOf(milad to 300_000L, sara to 300_000L, reza to 300_000L),
+            ),
+            makeTransaction(
+                id = 2, groupId = groupId, amount = 450_000,
+                payers = listOf(sara to 450_000L),
+                shares = listOf(milad to 150_000L, sara to 150_000L, reza to 150_000L),
+            ),
+            makeTransaction(
+                id = 3, groupId = groupId, amount = 180_000,
+                payers = listOf(reza to 180_000L),
+                shares = listOf(milad to 60_000L, sara to 60_000L, reza to 60_000L),
+            )
+        )
+        justRun { settlementRepository.replaceAll(groupId, capture(slot)) }
+
+        settlementService.recalculate(groupId, requesterId = 1)
+
+        it("should create two settlements") {
+            slot.captured.size shouldBe 2
+        }
+        it("reza should owe 330,000 to milad") {
+            slot.captured
+                .find { it.debtor == reza && it.creditor == milad }
+                ?.amount shouldBe Amount(330_000)
+        }
+        it("sara should owe 60,000 to milad") {
+            slot.captured
+                .find { it.debtor == sara && it.creditor == milad }
+                ?.amount shouldBe Amount(60_000)
+        }
+        it("sum of all settlements should equal total positive net (390,000)") {
+            val total = slot.captured.sumOf { it.amount.value }
+            total shouldBe 390_000L
+        }
+        it("all should have PENDING status") {
+            slot.captured.all { it.status == SettlementStatus.PENDING } shouldBe true
         }
     }
 })
