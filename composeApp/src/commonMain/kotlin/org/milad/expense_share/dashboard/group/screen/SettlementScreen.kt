@@ -29,11 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
 import org.milad.expense_share.dashboard.group.GroupDetailAction
 import org.milad.expense_share.dashboard.group.GroupDetailState
-import org.milad.expense_share.dashboard.group.components.FakeDate
 import org.milad.expense_share.dashboard.group.components.SettlementListItem
 import org.milad.expense_share.showSeparate
 
@@ -64,7 +62,7 @@ fun SettlementScreen(
     }
 }
 
-@Preview
+/*@Preview
 @Composable
 fun PreviewSettlementScreen() {
     AppTheme(content = {
@@ -78,7 +76,7 @@ fun PreviewSettlementScreen() {
             )
         }
     })
-}
+}*/
 
 @Composable
 fun BalanceSummaryRow(

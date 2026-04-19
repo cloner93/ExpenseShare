@@ -8,7 +8,7 @@ import com.pmb.common.viewmodel.BaseViewState
 import kotlinx.coroutines.launch
 import model.FriendInfo
 import model.Group
-import model.SettlementTransaction
+import model.Settlement
 import model.User
 import org.milad.expense_share.Amount
 import org.milad.expense_share.friends.model.FriendBalance
@@ -173,7 +173,7 @@ data class FriendDetailState(
     val balance: FriendBalance = FriendBalance(),
     val sharedGroups: List<Group> = emptyList(),
     val recentTransactions: List<TransactionWithGroup> = emptyList(),
-    val pendingSettlements: List<SettlementTransaction> = emptyList(),
+    val pendingSettlements: List<Settlement> = emptyList(),
     val isLoading: Boolean = true,
     val error: Throwable? = null,
     val selectedTab: FriendTab = FriendTab.Overview

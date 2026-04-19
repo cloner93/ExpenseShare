@@ -7,13 +7,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import com.pmb.common.ui.emptyState.EmptyListState
-import model.SettlementStatus
-import model.SettlementTransaction
+import model.Settlement
 import org.milad.expense_share.dashboard.group.components.SettlementListItem
 
 @Composable
 fun FriendSettlementsTab(
-    settlements: List<SettlementTransaction>,
+    settlements: List<Settlement>,
     currentUserId: Int
 ) {
     if (settlements.isEmpty()) {
@@ -28,14 +27,7 @@ fun FriendSettlementsTab(
         items(settlements) { settlement ->
 
             SettlementListItem(
-                item = SettlementTransaction(
-                    id = settlement.id,
-                    debtor = settlement.debtor,
-                    creditor = settlement.creditor,
-                    amount = settlement.amount,
-                    status = SettlementStatus.YOU_OWE,
-                    groupName = settlement.groupName
-                ),
+                item = settlement,
                 currentUserId = currentUserId
             )
         }

@@ -28,7 +28,7 @@ import usecase.groups.CreateGroupUseCase
 import usecase.groups.DeleteGroupUseCase
 import usecase.groups.GetGroupsUseCase
 import usecase.groups.UpdateGroupMembersUseCase
-import usecase.settlement.GroupSettlementUseCase
+import usecase.settlement.GetSettlementUseCase
 import usecase.transactions.ApproveTransactionUseCase
 import usecase.transactions.CreateTransactionUseCase
 import usecase.transactions.DeleteTransactionUseCase
@@ -61,7 +61,7 @@ val domainModule = module {
     factory { GetUserInfoUseCase(get()) }
     factory { DeleteGroupUseCase(get()) }
     factory { UpdateGroupMembersUseCase(get()) }
-    factory { GroupSettlementUseCase(get()) }
+    factory { GetSettlementUseCase(get()) }
 
     includes(friendUseCasesModule)
 

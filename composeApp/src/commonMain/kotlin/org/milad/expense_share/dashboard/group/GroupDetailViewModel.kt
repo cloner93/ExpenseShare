@@ -8,7 +8,7 @@ import com.pmb.common.viewmodel.BaseViewState
 import kotlinx.coroutines.launch
 import model.FriendRelationStatus
 import model.Group
-import model.SettlementTransaction
+import model.Settlement
 import model.Transaction
 import model.TransactionStatus
 import model.User
@@ -16,7 +16,7 @@ import org.milad.expense_share.dashboard.group.components.GroupTab
 import usecase.friends.GetAllFriendsUseCase
 import usecase.groups.DeleteGroupUseCase
 import usecase.groups.UpdateGroupMembersUseCase
-import usecase.settlement.GroupSettlementUseCase
+import usecase.settlement.GetSettlementUseCase
 import usecase.transactions.ApproveTransactionUseCase
 import usecase.transactions.DeleteTransactionUseCase
 import usecase.transactions.RejectTransactionUseCase
@@ -33,7 +33,7 @@ class GroupDetailViewModel(
     private val deleteGroupUseCase: DeleteGroupUseCase,
     private val updateGroupUseCase: UpdateGroupMembersUseCase,
     private val getAllFriendsUseCase: GetAllFriendsUseCase,
-    private val groupSettlementUseCase: GroupSettlementUseCase,
+    private val getSettlementUseCase: GetSettlementUseCase,
 ) : BaseViewModel<GroupDetailAction, GroupDetailState, GroupDetailEvent>(
     initialState = GroupDetailState(
         selectedGroup = initialGroup,
@@ -282,7 +282,7 @@ class GroupDetailViewModel(
                     error = null
                 )
             }
-            groupSettlementUseCase(groupId).collect { result ->
+            getSettlementUseCase(groupId).collect { result ->
                 result.onSuccess { settlements ->
                     setState {
                         it.copy(
@@ -341,7 +341,7 @@ data class GroupDetailState(
     val isListAndDetailVisible: Boolean = false,
     val isDetailVisible: Boolean = false,
 
-    val settlement: List<SettlementTransaction> = emptyList()
+    val settlement: List<Settlement> = emptyList()
 ) : BaseViewState {
     val isOwner: Boolean
         get() = selectedGroup.ownerId == currentUser.id
