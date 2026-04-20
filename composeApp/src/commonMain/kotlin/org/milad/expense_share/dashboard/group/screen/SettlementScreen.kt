@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
+import model.Settlement
 import org.milad.expense_share.Amount
 import org.milad.expense_share.dashboard.group.GroupDetailAction
 import org.milad.expense_share.dashboard.group.GroupDetailState
@@ -47,9 +48,17 @@ fun SettlementScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 item {
+                    var total = Amount(0)
+                    state.settlement.forEach { item ->
+                        if (item.debtor.id == state.currentUser.id)
+                            total += item.amount
+                        else if (item.creditor.id == state.currentUser.id)
+                            total -= item.amount
+                    }
+
                     BalanceSummaryRow(
                         totalGroupSpend = Amount(state.selectedGroup.transactions.sumOf { it.amount.value }),
-                        totalBalance = Amount(state.settlement.sumOf { it.amount.value })
+                        totalBalance = state.settlement.calculateTotalBalance(state.currentUser.id)
                     )
                 }
                 items(state.settlement) { item ->
@@ -60,6 +69,17 @@ fun SettlementScreen(
             EmptyListState()
         }
     }
+}
+
+private fun List<Settlement>.calculateTotalBalance(userId: Int): Amount {
+    val total = sumOf { item ->
+        when (userId) {
+            item.debtor.id -> -item.amount.value
+            item.creditor.id -> item.amount.value
+            else -> 0
+        }
+    }
+    return Amount(total)
 }
 
 /*@Preview
@@ -112,7 +132,7 @@ fun BalanceSummaryRow(
             BalanceCard(
                 modifier = Modifier.weight(1f),
                 title = "Your Total Balance",
-                amount = totalBalance,
+                amount = if(totalBalance.isNegative()) -totalBalance else totalBalance,
                 backgroundColor = containerColor,
                 textColor = textColor,
                 icon = Icons.Outlined.Wallet

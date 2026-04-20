@@ -31,6 +31,7 @@ import expenseshare.composeapp.generated.resources.paris
 import model.Group
 import model.User
 import org.jetbrains.compose.resources.painterResource
+import org.milad.expense_share.friends.friendsList.upperFirstChar
 
 @Composable
 fun MemberList(
@@ -92,7 +93,7 @@ private fun MemberRow(
                     .weight(1f)
             ) {
                 Text(
-                    text = user.username,
+                    text = user.username.upperFirstChar(),
                     style = AppTheme.typography.bodyLarge.copy(color = AppTheme.colors.onSurface)
                 )
                 Spacer(modifier = Modifier.height(4.dp))

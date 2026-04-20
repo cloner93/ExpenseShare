@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import com.pmb.common.theme.AppTheme
 import model.Settlement
 import model.SettlementStatus
+import org.milad.expense_share.friends.friendsList.upperFirstChar
 import org.milad.expense_share.showSeparate
 
 @Composable
@@ -187,7 +188,7 @@ private fun UserColumn(
 
 
         Text(
-            text = name,
+            text = name.upperFirstChar(),
             fontSize = 12.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
