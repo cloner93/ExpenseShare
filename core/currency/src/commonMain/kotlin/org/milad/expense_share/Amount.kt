@@ -2,6 +2,8 @@ package org.milad.expense_share
 
 import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
+import kotlin.math.abs
+import kotlin.math.sign
 
 @Serializable(with = AmountSerializer::class)
 @JvmInline
@@ -30,6 +32,21 @@ value class Amount(val value: Long) : Comparable<Amount> {
     fun isZero(): Boolean = value == 0L
 
     fun abs(): Amount = Amount(kotlin.math.abs(value))
+
+    fun split(parts: Int): List<Amount> {
+
+        val baseValue = value / parts
+        val remainder = abs(value % parts).toInt()
+        val amountSign = value.sign.toLong()
+
+        return List(parts) { index ->
+            if (index < remainder) {
+
+                Amount(baseValue + amountSign)
+            } else
+                Amount(baseValue)
+        }
+    }
 }
 
 fun Amount.showSeparate(): String {
