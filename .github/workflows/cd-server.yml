@@ -2,7 +2,7 @@ name: CD — Build & Push Server Docker Image
 
 on:
   push:
-    branches: [ "main" ,"ci/test"]
+    branches: [ "main" ,"ci/test" ]
     paths:
       - 'server/**'
       - 'core/**'
