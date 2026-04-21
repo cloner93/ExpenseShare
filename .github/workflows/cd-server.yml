@@ -1,0 +1,89 @@
+name: CD — Build & Push Server Docker Image
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'server/**'
+      - 'core/**'
+      - 'server/Dockerfile'
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/expense-share-server
+
+jobs:
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker Metadata (tags & labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=sha-
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Set up Docker Buildx (for layer caching)
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: server/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Print Image URL
+        run: echo "Image pushed to ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+
+  # ─────────────────────────────────────────────
+  # بعد از انتخاب hosting، این job رو کامل کن
+  # ─────────────────────────────────────────────
+  # deploy:
+  #   name: Deploy to VPS
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Deploy via SSH
+  #       uses: appleboy/ssh-action@v1
+  #       with:
+  #         host: ${{ secrets.VPS_HOST }}
+  #         username: ${{ secrets.VPS_USER }}
+  #         key: ${{ secrets.VPS_SSH_KEY }}
+  #         script: |
+  #           docker pull ghcr.io/${{ github.repository }}/expense-share-server:latest
+  #           docker stop expense-share-server || true
+  #           docker rm expense-share-server || true
+  #           docker run -d \
+  #             --name expense-share-server \
+  #             --restart always \
+  #             -p 8082:8082 \
+  #             -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
+  #             ghcr.io/${{ github.repository }}/expense-share-server:latest

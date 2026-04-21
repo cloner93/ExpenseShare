@@ -1,0 +1,86 @@
+name: CD — Build Android
+
+on:
+  push:
+    tags:
+      - 'v0.0.1'
+  workflow_dispatch:
+
+jobs:
+  build-debug:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+
+      - name: Setup Gradle (with caching)
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
+
+      - name: Build Debug APK
+        run: ./gradlew :composeApp:assembleDebug
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-${{ github.ref_name }}
+          path: composeApp/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+  # ─────────────────────────────────────────────
+  # ۲. Release AAB → Google Play
+  # این job فقط وقتی secrets تنظیم باشن کار می‌کنه
+  # بعد از ساختن Keystore و گرفتن Play Console، uncomment کن
+  # ─────────────────────────────────────────────
+  # build-release:
+  #   name: Build Release AAB & Upload to Google Play
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Set up JDK 21
+  #       uses: actions/setup-java@v4
+  #       with:
+  #         java-version: '21'
+  #         distribution: 'zulu'
+  #
+  #     - name: Setup Gradle (with caching)
+  #       uses: gradle/actions/setup-gradle@v3
+  #
+  #     - name: Create local.properties
+  #       run: echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
+  #
+  #     - name: Decode Keystore from Secret
+  #       run: |
+  #         echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/keystore.jks
+  #
+  #     - name: Build Signed Release AAB
+  #       env:
+  #         KEYSTORE_PATH: ${{ runner.temp }}/keystore.jks
+  #         STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+  #         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+  #         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+  #       run: |
+  #         ./gradlew :composeApp:bundleRelease \
+  #           -Pandroid.injected.signing.store.file=$KEYSTORE_PATH \
+  #           -Pandroid.injected.signing.store.password=$STORE_PASSWORD \
+  #           -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
+  #           -Pandroid.injected.signing.key.password=$KEY_PASSWORD
+  #
+  #     - name: Upload AAB to Google Play (Internal Testing)
+  #       uses: r0adkll/upload-google-play@v1
+  #       with:
+  #         serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+  #         packageName: org.milad.expense_share
+  #         releaseFiles: composeApp/build/outputs/bundle/release/*.aab
+  #         track: internal   # internal → alpha → beta → production

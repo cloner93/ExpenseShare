@@ -1,0 +1,53 @@
+name: CD — Build Desktop Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os-name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os-name: Linux
+            task: packageDeb
+            artifact-path: composeApp/build/compose/binaries/main/deb/*.deb
+
+          - os: macos-latest
+            os-name: macOS
+            task: packageDmg
+            artifact-path: composeApp/build/compose/binaries/main/dmg/*.dmg
+
+          - os: windows-latest
+            os-name: Windows
+            task: packageMsi
+            artifact-path: composeApp/build/compose/binaries/main/msi/*.msi
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+
+      - name: Setup Gradle (with caching)
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build ${{ matrix.os-name }} Package
+        run: ./gradlew :composeApp:${{ matrix.task }}
+
+      - name: Upload ${{ matrix.os-name }} Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.os-name }}-${{ github.ref_name }}
+          path: ${{ matrix.artifact-path }}
+          retention-days: 30

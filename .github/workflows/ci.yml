@@ -1,0 +1,70 @@
+name: CI — Run Tests
+
+on:
+  push:
+    branches: [ "main","ci/test" ]
+  pull_request:
+    branches: [ "main","ci/test" ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-core:
+    name: Run Core Module Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+
+      - name: Setup Gradle (with caching)
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Run Domain Tests
+        run: ./gradlew :core:domain:jvmTest -Pio.mockative.enabled=true
+
+      - name: Run Network Tests
+        run: ./gradlew :core:network:jvmTest -Pio.mockative.enabled=true
+
+      - name: Upload Test Reports on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-core
+          path: |
+            core/**/build/reports/tests/
+          retention-days: 7
+
+  test-server:
+    name: Run Server Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+
+      - name: Setup Gradle (with caching)
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Run Server Tests
+        run: ./gradlew :server:test
+
+      - name: Upload Test Reports on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-server
+          path: server/build/reports/tests/
+          retention-days: 7
