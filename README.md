@@ -66,16 +66,49 @@ Supported platforms:
 - Coroutines + Flow  
 - No local DB (server = source of truth)
 
-### Project Structure
+### Navigation Graph
 
+The app uses a hierarchical navigation structure:
+
+```mermaid
+graph TD
+    Root[RootRoute] --> Auth[AuthRoute]
+    Root --> Main[MainRoute]
+    
+    subgraph AuthFlow [Authentication Flow]
+        Auth --> Login[Login Screen]
+        Auth --> Register[Register Screen]
+    end
+    
+    subgraph MainFlow [Main Application Flow]
+        Main --> Dashboard[Dashboard Screen]
+        Main --> Friends[Friends Screen]
+        Main --> Profile[Profile Screen]
+        
+        Dashboard --> GroupDetail[Group Detail View]
+        Dashboard --> AddTransaction[Add Transaction View]
+        
+        Friends --> FriendDetail[Friend Detail View]
+    end
 ```
-/composeApp
-├── commonMain
-├── androidMain
-├── iosMain
-├── jvmMain
-└── wasmJsMain
-```
+
+- **RootRoute**: Handles switching between `Auth` and `Main` flows.
+  - **AuthRoute**: Contains `Login` and `Register` screens.
+  - **MainRoute**: Contains `Dashboard`, `Friends`, and `Profile` screens.
+
+### State Management & Persistence
+
+#### ViewModel Architecture (MVI)
+The project follows the MVI (Model-View-Intent) pattern using a `BaseViewModel`. 
+- **State**: Managed via `StateFlow`. The UI observes `viewState` to react to changes.
+- **Actions**: The UI sends `Actions` (e.g., `LoadData`, `SelectGroup`) to the ViewModel via the `handle()` function.
+- **Events**: One-time side effects (e.g., showing a Toast, navigating) are emitted via `SharedFlow`.
+
+#### In-Memory Data Sync
+To ensure a smooth and responsive user experience, the application maintains the latest data in memory within the `ViewModel` state:
+- **Reactive Updates**: When a transaction is added or a group is updated, the `ViewModel` updates its internal `groups` list by applying the changes to the existing state.
+- **Single Source of Truth (Client-side)**: While the server is the ultimate source of truth, the `ViewModel` state acts as a local cache. When an API call succeeds, the `ViewModel` surgically updates the specific entity (e.g., adding a `Transaction` to a `Group`) in the `groups` list. 
+- **Seamless UI**: This approach allows the UI to reflect changes immediately without requiring a full screen reload or a new fetch from the network, provided the local state is correctly synchronized with the server's response.
 
 - **commonMain** → Shared UI & domain logic  
 - **androidMain** → Android-specific  
