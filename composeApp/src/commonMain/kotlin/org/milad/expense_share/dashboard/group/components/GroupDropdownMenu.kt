@@ -19,6 +19,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.pmb.common.theme.AppTheme
+import expenseshare.composeapp.generated.resources.Res
+import expenseshare.composeapp.generated.resources.delete
+import expenseshare.composeapp.generated.resources.help
+import expenseshare.composeapp.generated.resources.more_options
+import expenseshare.composeapp.generated.resources.rename
+import org.jetbrains.compose.resources.stringResource
 import org.milad.expense_share.dashboard.group.GroupDetailAction
 
 @Composable
@@ -29,7 +35,7 @@ fun GroupDropdownMenu(
     var expanded by remember { mutableStateOf(false) }
 
     IconButton(onClick = { expanded = !expanded }) {
-        Icon(Icons.Default.MoreVert, contentDescription = "More options")
+        Icon(Icons.Default.MoreVert, contentDescription = stringResource(Res.string.more_options))
     }
 
     DropdownMenu(
@@ -42,7 +48,7 @@ fun GroupDropdownMenu(
                     textColor = AppTheme.colors.error,
                     leadingIconColor = AppTheme.colors.error,
                 ),
-                text = { Text("Delete") },
+                text = { Text(stringResource(Res.string.delete)) },
                 leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
                 onClick = {
                     expanded = false
@@ -51,7 +57,7 @@ fun GroupDropdownMenu(
             )
 
             DropdownMenuItem(
-                text = { Text("Rename") },
+                text = { Text(stringResource(Res.string.rename)) },
                 enabled = false,
                 leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
                 onClick = {
@@ -64,7 +70,7 @@ fun GroupDropdownMenu(
         }
 
         DropdownMenuItem(
-            text = { Text("Help") },
+            text = { Text(stringResource(Res.string.help)) },
             enabled = false,
             leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Help, contentDescription = null) },
             trailingIcon = {

@@ -18,6 +18,8 @@ import org.milad.expense_share.domain.service.FriendsService
 import org.milad.expense_share.presentation.api_model.ErrorResponse
 import org.milad.expense_share.presentation.api_model.SuccessResponse
 import org.milad.expense_share.presentation.friends.model.FriendRequest
+import org.milad.expense_share.utils.ErrorCodes
+import org.milad.expense_share.utils.Messages
 import org.milad.expense_share.utils.getUserId
 
 internal fun Routing.friendRoutes(
@@ -30,7 +32,7 @@ internal fun Routing.friendRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@get call.respond(
                         HttpStatusCode.Unauthorized,
-                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                        ErrorResponse(Messages.INVALID_TOKEN, ErrorCodes.INVALID_TOKEN)
                     )
 
                 val statusParam = call.request.queryParameters["status"]
@@ -41,8 +43,8 @@ internal fun Routing.friendRoutes(
                         return@get call.respond(
                             HttpStatusCode.BadRequest,
                             ErrorResponse(
-                                "Invalid status. Valid values: PENDING, ACCEPTED, BLOCKED, REJECTED",
-                                "INVALID_STATUS"
+                                Messages.INVALID_STATUS,
+                                ErrorCodes.INVALID_STATUS
                             )
                         )
                     }
@@ -60,8 +62,8 @@ internal fun Routing.friendRoutes(
                         call.respond(
                             HttpStatusCode.InternalServerError,
                             ErrorResponse(
-                                error.message ?: "Failed to fetch friends",
-                                "FETCH_FAILED"
+                                error.message ?: Messages.FETCH_FRIENDS_FAILED,
+                                ErrorCodes.FETCH_FAILED
                             )
                         )
                     }
@@ -71,7 +73,7 @@ internal fun Routing.friendRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@get call.respond(
                         HttpStatusCode.Unauthorized,
-                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                        ErrorResponse(Messages.INVALID_TOKEN, ErrorCodes.INVALID_TOKEN)
                     )
 
                 friendsService.getAcceptedFriends(userId)
@@ -85,8 +87,8 @@ internal fun Routing.friendRoutes(
                         call.respond(
                             HttpStatusCode.InternalServerError,
                             ErrorResponse(
-                                error.message ?: "Failed to fetch friends",
-                                "FETCH_FAILED"
+                                error.message ?: Messages.FETCH_FRIENDS_FAILED,
+                                ErrorCodes.FETCH_FAILED
                             )
                         )
                     }
@@ -96,7 +98,7 @@ internal fun Routing.friendRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@get call.respond(
                         HttpStatusCode.Unauthorized,
-                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                        ErrorResponse(Messages.INVALID_TOKEN, ErrorCodes.INVALID_TOKEN)
                     )
 
                 friendsService.getIncomingRequests(userId)
@@ -110,8 +112,8 @@ internal fun Routing.friendRoutes(
                         call.respond(
                             HttpStatusCode.InternalServerError,
                             ErrorResponse(
-                                error.message ?: "Failed to fetch requests",
-                                "FETCH_FAILED"
+                                error.message ?: Messages.FETCH_REQUESTS_FAILED,
+                                ErrorCodes.FETCH_FAILED
                             )
                         )
                     }
@@ -121,7 +123,7 @@ internal fun Routing.friendRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@get call.respond(
                         HttpStatusCode.Unauthorized,
-                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                        ErrorResponse(Messages.INVALID_TOKEN, ErrorCodes.INVALID_TOKEN)
                     )
 
                 friendsService.getOutgoingRequests(userId)
@@ -135,8 +137,8 @@ internal fun Routing.friendRoutes(
                         call.respond(
                             HttpStatusCode.InternalServerError,
                             ErrorResponse(
-                                error.message ?: "Failed to fetch requests",
-                                "FETCH_FAILED"
+                                error.message ?: Messages.FETCH_REQUESTS_FAILED,
+                                ErrorCodes.FETCH_FAILED
                             )
                         )
                     }
@@ -146,7 +148,7 @@ internal fun Routing.friendRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@get call.respond(
                         HttpStatusCode.Unauthorized,
-                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                        ErrorResponse(Messages.INVALID_TOKEN, ErrorCodes.INVALID_TOKEN)
                     )
 
                 friendsService.getBlockedFriends(userId)
@@ -160,8 +162,8 @@ internal fun Routing.friendRoutes(
                         call.respond(
                             HttpStatusCode.InternalServerError,
                             ErrorResponse(
-                                error.message ?: "Failed to fetch blocked users",
-                                "FETCH_FAILED"
+                                error.message ?: Messages.FETCH_BLOCKED_FAILED,
+                                ErrorCodes.FETCH_FAILED
                             )
                         )
                     }
@@ -171,13 +173,13 @@ internal fun Routing.friendRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@get call.respond(
                         HttpStatusCode.Unauthorized,
-                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                        ErrorResponse(Messages.INVALID_TOKEN, ErrorCodes.INVALID_TOKEN)
                     )
 
                 val phone = call.parameters["phone"]
                     ?: return@get call.respond(
                         HttpStatusCode.BadRequest,
-                        ErrorResponse("Phone number is required", "PHONE_REQUIRED")
+                        ErrorResponse(Messages.PHONE_REQUIRED, ErrorCodes.PHONE_REQUIRED)
                     )
 
                 friendsService.getFriendshipStatus(userId, phone)
@@ -190,14 +192,14 @@ internal fun Routing.friendRoutes(
                         } else {
                             call.respond(
                                 HttpStatusCode.NotFound,
-                                ErrorResponse("No friendship found", "NOT_FOUND")
+                                ErrorResponse(Messages.NO_FRIENDSHIP_FOUND, ErrorCodes.NOT_FOUND)
                             )
                         }
                     }
                     .onFailure { error ->
                         call.respond(
                             HttpStatusCode.InternalServerError,
-                            ErrorResponse(error.message ?: "Failed to get status", "STATUS_FAILED")
+                            ErrorResponse(error.message ?: Messages.STATUS_FAILED, ErrorCodes.STATUS_FAILED)
                         )
                     }
             }
@@ -254,7 +256,7 @@ private suspend fun ApplicationCall.handleFriendAction(
     val userId = principal<JWTPrincipal>().getUserId()
         ?: return respond(
             HttpStatusCode.Unauthorized,
-            ErrorResponse("Invalid token", "INVALID_TOKEN")
+            ErrorResponse(Messages.INVALID_TOKEN, ErrorCodes.INVALID_TOKEN)
         )
 
     val request = receive<FriendRequest>()
@@ -262,7 +264,7 @@ private suspend fun ApplicationCall.handleFriendAction(
     if (request.phone.isBlank()) {
         return respond(
             HttpStatusCode.BadRequest,
-            ErrorResponse("Phone number is required", "PHONE_REQUIRED")
+            ErrorResponse(Messages.PHONE_REQUIRED, ErrorCodes.PHONE_REQUIRED)
         )
     }
 
@@ -273,13 +275,13 @@ private suspend fun ApplicationCall.handleFriendAction(
         .onFailure { error ->
             val (statusCode, errorCode) = when {
                 error.message?.contains("not found", ignoreCase = true) == true ->
-                    HttpStatusCode.NotFound to "NOT_FOUND"
+                    HttpStatusCode.NotFound to ErrorCodes.NOT_FOUND
 
                 error.message?.contains("already", ignoreCase = true) == true ->
-                    HttpStatusCode.Conflict to "ALREADY_EXISTS"
+                    HttpStatusCode.Conflict to ErrorCodes.ALREADY_EXISTS
 
                 error.message?.contains("Cannot", ignoreCase = true) == true ->
-                    HttpStatusCode.BadRequest to "INVALID_ACTION"
+                    HttpStatusCode.BadRequest to ErrorCodes.INVALID_ACTION
 
                 else ->
                     HttpStatusCode.InternalServerError to "${actionName.uppercase()}_FAILED"
@@ -287,7 +289,7 @@ private suspend fun ApplicationCall.handleFriendAction(
 
             respond(
                 statusCode,
-                ErrorResponse(error.message ?: "Action failed", errorCode)
+                ErrorResponse(error.message ?: Messages.ACTION_FAILED, errorCode)
             )
         }
 }

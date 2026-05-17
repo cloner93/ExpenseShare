@@ -11,6 +11,8 @@ import org.milad.expense_share.presentation.api_model.ErrorResponse
 import org.milad.expense_share.presentation.api_model.SuccessResponse
 import org.milad.expense_share.presentation.auth.model.LoginRequest
 import org.milad.expense_share.presentation.auth.model.RegisterRequest
+import org.milad.expense_share.utils.ErrorCodes
+import org.milad.expense_share.utils.Messages
 
 internal fun Routing.authRoutes(authService: AuthService) {
 
@@ -28,7 +30,7 @@ internal fun Routing.authRoutes(authService: AuthService) {
             }.onFailure {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    ErrorResponse(it.message ?: "Registration failed", "REGISTER_FAILED")
+                    ErrorResponse(it.message ?: Messages.REGISTRATION_FAILED, ErrorCodes.REGISTER_FAILED)
                 )
             }
         }
@@ -43,7 +45,7 @@ internal fun Routing.authRoutes(authService: AuthService) {
                 .onFailure {
                     call.respond(
                         HttpStatusCode.Unauthorized,
-                        ErrorResponse(it.message ?: "Invalid credentials", "INVALID_CREDENTIALS")
+                        ErrorResponse(it.message ?: Messages.INVALID_CREDENTIALS, ErrorCodes.INVALID_CREDENTIALS)
                     )
                 }
         }

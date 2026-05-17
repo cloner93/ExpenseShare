@@ -15,6 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pmb.common.theme.AppTheme
+import expenseshare.composeapp.generated.resources.Res
+import expenseshare.composeapp.generated.resources.logout
+import expenseshare.composeapp.generated.resources.under_construction
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -32,7 +36,7 @@ fun ProfileScreen(
         ) {
             Text(
                 modifier = Modifier.padding(8.dp),
-                text = "Screen under construction",
+                text = stringResource(Res.string.under_construction),
                 style = AppTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
                 color = AppTheme.colors.primary,
@@ -44,7 +48,7 @@ fun ProfileScreen(
                     onLogout()
                 }
             ) {
-                Text("Logout")
+                Text(stringResource(Res.string.logout))
             }
         }
     }

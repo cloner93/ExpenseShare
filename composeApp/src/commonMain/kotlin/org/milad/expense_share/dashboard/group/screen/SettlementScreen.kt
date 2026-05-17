@@ -29,7 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
+import expenseshare.composeapp.generated.resources.Res
+import expenseshare.composeapp.generated.resources.total_group_spend
+import expenseshare.composeapp.generated.resources.your_total_balance
 import model.Settlement
+import org.jetbrains.compose.resources.stringResource
 import org.milad.expense_share.Amount
 import org.milad.expense_share.dashboard.group.GroupDetailAction
 import org.milad.expense_share.dashboard.group.GroupDetailState
@@ -122,7 +126,7 @@ fun BalanceSummaryRow(
         ) {
             BalanceCard(
                 modifier = Modifier.weight(1f),
-                title = "Total Group Spend",
+                title = stringResource(Res.string.total_group_spend),
                 amount = totalGroupSpend,
                 backgroundColor = AppTheme.colors.surfaceVariant,
                 textColor = AppTheme.colors.onSurfaceVariant,
@@ -131,7 +135,7 @@ fun BalanceSummaryRow(
 
             BalanceCard(
                 modifier = Modifier.weight(1f),
-                title = "Your Total Balance",
+                title = stringResource(Res.string.your_total_balance),
                 amount = if(totalBalance.isNegative()) -totalBalance else totalBalance,
                 backgroundColor = containerColor,
                 textColor = textColor,

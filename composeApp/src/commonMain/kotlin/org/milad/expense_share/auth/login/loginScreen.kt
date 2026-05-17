@@ -32,6 +32,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.pmb.common.loading.FullScreenLoading
+import expenseshare.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -61,10 +63,10 @@ fun LoginScreen(
             .fillMaxSize()
     ) {
         Scaffold(topBar = {
-            TopAppBar(title = { Text("Login") }, navigationIcon = {
+            TopAppBar(title = { Text(stringResource(Res.string.login_title)) }, navigationIcon = {
                 if (showBackButton) {
                     IconButton(onClick = { viewModel.handle(LoginAction.NavigateBack) }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 }
             })
@@ -80,7 +82,7 @@ fun LoginScreen(
                 OutlinedTextField(
                     value = state.phone,
                     onValueChange = { viewModel.handle(LoginAction.UpdatePhone(it)) },
-                    label = { Text("Phone") },
+                    label = { Text(stringResource(Res.string.phone_label)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     isError = state.phoneError != null,
                     supportingText = { if (state.phoneError != null) Text(state.phoneError!!) })
@@ -88,7 +90,7 @@ fun LoginScreen(
                 OutlinedTextField(
                     value = state.password,
                     onValueChange = { viewModel.handle(LoginAction.UpdatePassword(it)) },
-                    label = { Text("Password") },
+                    label = { Text(stringResource(Res.string.password_label)) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     isError = state.passwordError != null,
@@ -97,11 +99,11 @@ fun LoginScreen(
                 Button(
                     onClick = { viewModel.handle(LoginAction.Login) }, enabled = !state.isLoading
                 ) {
-                    Text("Login")
+                    Text(stringResource(Res.string.login_button))
                 }
                 Spacer(Modifier.height(8.dp))
                 TextButton(onClick = onNavigateToRegister) {
-                    Text("Don't have an account? Register")
+                    Text(stringResource(Res.string.no_account_register))
                 }
             }
         }

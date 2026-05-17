@@ -15,6 +15,8 @@ import org.milad.expense_share.domain.service.GroupService
 import org.milad.expense_share.presentation.api_model.ErrorResponse
 import org.milad.expense_share.presentation.api_model.SuccessResponse
 import org.milad.expense_share.presentation.groups.model.CreateGroupRequest
+import org.milad.expense_share.utils.ErrorCodes
+import org.milad.expense_share.utils.Messages
 import org.milad.expense_share.utils.getIntParameter
 import org.milad.expense_share.utils.getUserId
 
@@ -28,7 +30,7 @@ internal fun Routing.groupsRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@post call.respond(
                         HttpStatusCode.Unauthorized,
-                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                        ErrorResponse(Messages.INVALID_TOKEN, ErrorCodes.INVALID_TOKEN)
                     )
 
                 val request = call.receive<CreateGroupRequest>()
@@ -38,8 +40,8 @@ internal fun Routing.groupsRoutes(
                         call.respond(
                             HttpStatusCode.BadRequest,
                             ErrorResponse(
-                                it.message ?: "Failed to create group",
-                                "CREATE_GROUP_FAILED"
+                                it.message ?: Messages.CREATE_GROUP_FAILED,
+                                ErrorCodes.CREATE_GROUP_FAILED
                             )
                         )
                     }
@@ -49,7 +51,7 @@ internal fun Routing.groupsRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@get call.respond(
                         HttpStatusCode.Unauthorized,
-                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                        ErrorResponse(Messages.INVALID_TOKEN, ErrorCodes.INVALID_TOKEN)
                     )
 
                 groupService.getUserGroups(userId).onSuccess {
@@ -61,8 +63,8 @@ internal fun Routing.groupsRoutes(
                     call.respond(
                         HttpStatusCode.Forbidden,
                         ErrorResponse(
-                            it.message ?: "Only group owner can add members",
-                            "NOT_GROUP_OWNER"
+                            it.message ?: Messages.NOT_GROUP_OWNER,
+                            ErrorCodes.NOT_GROUP_OWNER
                         )
                     )
                 }
@@ -73,13 +75,13 @@ internal fun Routing.groupsRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@post call.respond(
                         HttpStatusCode.Unauthorized,
-                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                        ErrorResponse(Messages.INVALID_TOKEN, ErrorCodes.INVALID_TOKEN)
                     )
 
                 val groupId = call.getIntParameter("groupId")
                     ?: return@post call.respond(
                         HttpStatusCode.BadRequest,
-                        ErrorResponse("Invalid group ID", "INVALID_GROUP_ID")
+                        ErrorResponse(Messages.INVALID_GROUP_ID, ErrorCodes.INVALID_GROUP_ID)
                     )
 
                 val request = call.receive<List<Int>>()
@@ -89,8 +91,8 @@ internal fun Routing.groupsRoutes(
                         call.respond(
                             HttpStatusCode.Forbidden,
                             ErrorResponse(
-                                it.message ?: "Filed to fetch data.",
-                                "FETCH_DATA_FAILED"
+                                it.message ?: Messages.FETCH_DATA_FAILED,
+                                ErrorCodes.FETCH_DATA_FAILED
                             )
                         )
                     }
@@ -100,13 +102,13 @@ internal fun Routing.groupsRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@delete call.respond(
                         HttpStatusCode.Unauthorized,
-                        ErrorResponse("Invalid token", "INVALID_TOKEN")
+                        ErrorResponse(Messages.INVALID_TOKEN, ErrorCodes.INVALID_TOKEN)
                     )
 
                 val groupId = call.getIntParameter("groupId")
                     ?: return@delete call.respond(
                         HttpStatusCode.BadRequest,
-                        ErrorResponse("Invalid group ID", "INVALID_GROUP_ID")
+                        ErrorResponse(Messages.INVALID_GROUP_ID, ErrorCodes.INVALID_GROUP_ID)
                     )
 
                 groupService.deleteGroup(userId, groupId)
@@ -115,8 +117,8 @@ internal fun Routing.groupsRoutes(
                         call.respond(
                             HttpStatusCode.Forbidden,
                             ErrorResponse(
-                                it.message ?: "Only group owner can delete group",
-                                "NOT_GROUP_OWNER"
+                                it.message ?: Messages.NOT_GROUP_OWNER,
+                                ErrorCodes.NOT_GROUP_OWNER
                             )
                         )
                     }
