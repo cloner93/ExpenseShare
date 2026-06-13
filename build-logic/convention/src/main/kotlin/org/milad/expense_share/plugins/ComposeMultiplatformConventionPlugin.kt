@@ -56,7 +56,7 @@ class ComposeMultiplatformConventionPlugin : Plugin<Project> {
                     implementation(libs.findLibrary("koin-android").get())
                 }
 
-                getByName("jvmMain").dependencies {
+                findByName("jvmMain")?.dependencies {
                     implementation(compose.dependencies.desktop.currentOs)
                 }
             }

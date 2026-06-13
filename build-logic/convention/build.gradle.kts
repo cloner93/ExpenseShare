@@ -22,6 +22,7 @@ dependencies {
     compileOnly(libs.plugins.composeMultiplatform.toDep())
     compileOnly(libs.plugins.composeCompiler.toDep())
     compileOnly(libs.plugins.ktor.toDep())
+    compileOnly(libs.plugins.ksp.toDep())
 }
 
 fun Provider<PluginDependency>.toDep() = map {plugin->
@@ -40,6 +41,10 @@ gradlePlugin {
         register("androidLibrary") {
             id = "expenseshare.android.library"
             implementationClass = "$packageName.AndroidLibraryConventionPlugin"
+        }
+        register("androidMultiplatformLibrary") {
+            id = "expenseshare.android.multiplatform.library"
+            implementationClass = "$packageName.AndroidMultiplatformLibraryConventionPlugin"
         }
         register("androidCompose") {
             id = "expenseshare.android.compose"

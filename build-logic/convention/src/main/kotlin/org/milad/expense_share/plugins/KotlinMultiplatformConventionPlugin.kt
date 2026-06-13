@@ -41,8 +41,6 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
                 }
             }
 
-            jvm()
-
             @OptIn(ExperimentalWasmDsl::class)
             wasmJs {
                 browser {
@@ -75,7 +73,7 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
                 androidMain.dependencies {
                     implementation(libs.findLibrary("kotlinx-coroutines-android").get())
                 }
-                getByName("jvmMain").dependencies {
+                findByName("jvmMain")?.dependencies {
                     implementation(libs.findLibrary("kotlinx-coroutines-swing").get())
                 }
             }

@@ -3,7 +3,7 @@ package org.milad.expense_share.plugins
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.get
 import org.milad.expense_share.ext.libs
 
 class AndroidMultiplatformLibraryConventionPlugin : Plugin<Project> {
@@ -12,12 +12,13 @@ class AndroidMultiplatformLibraryConventionPlugin : Plugin<Project> {
             apply("com.android.kotlin.multiplatform.library")
         }
 
-        extensions.configure<KotlinMultiplatformAndroidLibraryExtension> {
-            val compileSdk = libs.findVersion("android-compileSdk").get().requiredVersion.toInt()
-            val minSdk = libs.findVersion("android-minSdk").get().requiredVersion.toInt()
+        val compileSdkValue = libs.findVersion("android-compileSdk").get().requiredVersion.toInt()
+        val minSdkVersionValue = libs.findVersion("android-minSdk").get().requiredVersion.toInt()
 
-            this.compileSdk = compileSdk
-            this.minSdk = minSdk
-        }
+        val kotlinExt = extensions["kotlin"] as org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+        val androidLib = (kotlinExt as org.gradle.api.plugins.ExtensionAware).extensions.getByName("androidLibrary") as KotlinMultiplatformAndroidLibraryExtension
+        
+        androidLib.compileSdk = compileSdkValue
+        androidLib.minSdk = minSdkVersionValue
     }
 }
