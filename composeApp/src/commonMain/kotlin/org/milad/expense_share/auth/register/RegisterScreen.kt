@@ -34,6 +34,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.pmb.common.loading.FullScreenLoading
+import expenseshare.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -62,10 +64,10 @@ fun RegisterScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Register") },
+                    title = { Text(stringResource(Res.string.register_title)) },
                     navigationIcon = {
                         IconButton(onClick = { viewModel.handle(RegisterAction.NavigateBack) }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                         }
                     }
                 )
@@ -83,7 +85,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = state.userName,
                     onValueChange = { viewModel.handle(RegisterAction.UpdateUserName(it)) },
-                    label = { Text("Username") },
+                    label = { Text(stringResource(Res.string.username_label)) },
                     isError = state.nameNameError != null,
                     supportingText = { if (state.nameNameError != null) Text(state.nameNameError!!) }
                 )
@@ -91,7 +93,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = state.phone,
                     onValueChange = { viewModel.handle(RegisterAction.UpdatePhone(it)) },
-                    label = { Text("Phone") },
+                    label = { Text(stringResource(Res.string.phone_label)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     isError = state.phoneError != null,
                     supportingText = { if (state.phoneError != null) Text(state.phoneError!!) }
@@ -100,7 +102,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = state.password,
                     onValueChange = { viewModel.handle(RegisterAction.UpdatePassword(it)) },
-                    label = { Text("Password") },
+                    label = { Text(stringResource(Res.string.password_label)) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     isError = state.passwordError != null,
@@ -111,11 +113,11 @@ fun RegisterScreen(
                     onClick = { viewModel.handle(RegisterAction.Register) },
                     enabled = !state.isLoading
                 ) {
-                    Text("Register")
+                    Text(stringResource(Res.string.register_button))
                 }
                 Spacer(Modifier.height(8.dp))
                 TextButton(onClick = onNavigateToLogin) {
-                    Text("Already have an account? Login")
+                    Text(stringResource(Res.string.already_have_account_login))
                 }
             }
         }

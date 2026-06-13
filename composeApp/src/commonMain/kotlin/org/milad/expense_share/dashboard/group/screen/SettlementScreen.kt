@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,12 +29,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import expenseshare.composeapp.generated.resources.Res
+import expenseshare.composeapp.generated.resources.total_group_spend
+import expenseshare.composeapp.generated.resources.your_total_balance
+import model.Settlement
+import org.jetbrains.compose.resources.stringResource
 import org.milad.expense_share.Amount
 import org.milad.expense_share.dashboard.group.GroupDetailAction
 import org.milad.expense_share.dashboard.group.GroupDetailState
-import org.milad.expense_share.dashboard.group.components.FakeDate
-import org.milad.expense_share.dashboard.group.components.FakeDate.mockSettlementItems
 import org.milad.expense_share.dashboard.group.components.SettlementListItem
 import org.milad.expense_share.showSeparate
 
@@ -42,19 +45,27 @@ fun SettlementScreen(
     state: GroupDetailState,
     onAction: (GroupDetailAction) -> Unit,
 ) {
-    Column {
-        if (mockSettlementItems.isNotEmpty()) {
+    Column (modifier = Modifier.fillMaxSize()){
+        if (state.settlement.isNotEmpty()) {
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 item {
+                    var total = Amount(0)
+                    state.settlement.forEach { item ->
+                        if (item.debtor.id == state.currentUser.id)
+                            total += item.amount
+                        else if (item.creditor.id == state.currentUser.id)
+                            total -= item.amount
+                    }
+
                     BalanceSummaryRow(
                         totalGroupSpend = Amount(state.selectedGroup.transactions.sumOf { it.amount.value }),
-                        totalBalance = Amount(mockSettlementItems.sumOf { it.amount.value })
+                        totalBalance = state.settlement.calculateTotalBalance(state.currentUser.id)
                     )
                 }
-                items(mockSettlementItems) { item ->
+                items(state.settlement) { item ->
                     SettlementListItem(item = item, currentUserId = state.currentUser.id)
                 }
             }
@@ -64,7 +75,18 @@ fun SettlementScreen(
     }
 }
 
-@Preview
+private fun List<Settlement>.calculateTotalBalance(userId: Int): Amount {
+    val total = sumOf { item ->
+        when (userId) {
+            item.debtor.id -> -item.amount.value
+            item.creditor.id -> item.amount.value
+            else -> 0
+        }
+    }
+    return Amount(total)
+}
+
+/*@Preview
 @Composable
 fun PreviewSettlementScreen() {
     AppTheme(content = {
@@ -78,7 +100,7 @@ fun PreviewSettlementScreen() {
             )
         }
     })
-}
+}*/
 
 @Composable
 fun BalanceSummaryRow(
@@ -104,7 +126,7 @@ fun BalanceSummaryRow(
         ) {
             BalanceCard(
                 modifier = Modifier.weight(1f),
-                title = "Total Group Spend",
+                title = stringResource(Res.string.total_group_spend),
                 amount = totalGroupSpend,
                 backgroundColor = AppTheme.colors.surfaceVariant,
                 textColor = AppTheme.colors.onSurfaceVariant,
@@ -113,8 +135,8 @@ fun BalanceSummaryRow(
 
             BalanceCard(
                 modifier = Modifier.weight(1f),
-                title = "Your Total Balance",
-                amount = totalBalance,
+                title = stringResource(Res.string.your_total_balance),
+                amount = if(totalBalance.isNegative()) -totalBalance else totalBalance,
                 backgroundColor = containerColor,
                 textColor = textColor,
                 icon = Icons.Outlined.Wallet

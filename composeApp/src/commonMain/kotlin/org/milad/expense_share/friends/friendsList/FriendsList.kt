@@ -46,13 +46,14 @@ import androidx.compose.ui.unit.dp
 import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
 import expenseshare.composeapp.generated.resources.Res
+import expenseshare.composeapp.generated.resources.add_friend_button
+import expenseshare.composeapp.generated.resources.friends_title
 import expenseshare.composeapp.generated.resources.paris
 import model.FriendInfo
 import model.FriendRelationStatus
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.resources.stringResource
 import org.milad.expense_share.dashboard.AppExtendedButton
-import org.milad.expense_share.dashboard.group.components.FakeDate
 import org.milad.expense_share.expenses.AnimatedLoadingButton
 import org.milad.expense_share.friends.FriendsAction
 import org.milad.expense_share.friends.FriendsState
@@ -67,12 +68,12 @@ fun FriendsList(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Friends") })
+            TopAppBar(title = { Text(stringResource(Res.string.friends_title)) })
         },
         floatingActionButton = {
             if (navLayoutType == NavigationSuiteType.NavigationBar)
                 AppExtendedButton(
-                    title = "Add Friend",
+                    title = stringResource(Res.string.add_friend_button),
                     onClick = { onAction(FriendsAction.ShowSentRequest) }
                 )
         }) { padding ->
@@ -222,7 +223,7 @@ fun FriendRow(
     }
 }
 
-@Composable
+/*@Composable
 @Preview
 fun FriendRowPreview() {
     val user = FriendInfo(
@@ -260,7 +261,7 @@ fun FriendRowPreview() {
             ) {}
         }
     }
-}
+}*/
 
 fun String.phoneMapToView(): String {
     if (this.length != 11)

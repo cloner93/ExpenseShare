@@ -51,11 +51,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.pmb.common.theme.AppTheme
-import expenseshare.composeapp.generated.resources.Res
-import expenseshare.composeapp.generated.resources.paris
+import expenseshare.composeapp.generated.resources.*
 import kotlinx.coroutines.launch
 import model.User
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.milad.expense_share.expenses.ConfirmButton
 
 @Composable
@@ -82,21 +83,23 @@ fun AddGroupScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = AppTheme.colors.inverseOnSurface,
                 ),
-                title = { Text("Add Group", style = AppTheme.typography.titleLarge) },
+                title = { Text(stringResource(Res.string.add_group_title), style = AppTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
             )
         },
         bottomBar = {
             ConfirmButton(loading = isLoading, hasError = hasError) {
-                groupNameError = if (groupName.isBlank()) "Group name cannot be empty" else null
-                membersError = if (selectedFriends.isEmpty()) "Select at least one member" else null
+                scope.launch {
+                    groupNameError = if (groupName.isBlank()) getString(Res.string.error_group_name_empty) else null
+                    membersError = if (selectedFriends.isEmpty()) getString(Res.string.error_select_member) else null
 
-                if (groupNameError == null && membersError == null) {
-                    onAddClick(groupName, selectedFriends.map { it.id })
+                    if (groupNameError == null && membersError == null) {
+                        onAddClick(groupName, selectedFriends.map { it.id })
+                    }
                 }
             }
         }
@@ -117,7 +120,7 @@ fun AddGroupScreen(
                     groupName = it
                     if (it.isNotBlank()) groupNameError = null
                 },
-                label = { Text("Group name (Trip, Dinner)") },
+                label = { Text(stringResource(Res.string.group_name_label)) },
                 isError = groupNameError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             )
@@ -133,7 +136,7 @@ fun AddGroupScreen(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "Members",
+                text = stringResource(Res.string.members_title),
                 style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -162,7 +165,7 @@ fun AddGroupScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Add Members")
+                Text(stringResource(Res.string.add_members))
             }
         }
 
@@ -179,7 +182,7 @@ fun AddGroupScreen(
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "Select Friends",
+                        text = stringResource(Res.string.select_friends_title),
                         style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -213,7 +216,7 @@ fun AddGroupScreen(
                                 }
                             }
                         ) {
-                            Text("Cancel")
+                            Text(stringResource(Res.string.cancel))
                         }
 
                         Button(
@@ -226,7 +229,7 @@ fun AddGroupScreen(
                                 }
                             }
                         ) {
-                            Text("Confirm (${tempSelected.size})")
+                            Text(stringResource(Res.string.confirm_with_count, tempSelected.size))
                         }
                     }
                 }

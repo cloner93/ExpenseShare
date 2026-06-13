@@ -63,12 +63,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
-import expenseshare.composeapp.generated.resources.Res
-import expenseshare.composeapp.generated.resources.paris
+import expenseshare.composeapp.generated.resources.*
 import model.Group
 import model.TransactionStatus
 import model.User
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
 import org.milad.expense_share.chat.ChatScreen
@@ -95,13 +95,13 @@ fun Dashboard(
         floatingActionButton = {
             if (navLayoutType == NavigationSuiteType.NavigationBar)
                 AppExtendedButton(
-                    title = "Add Group",
+                    title = stringResource(Res.string.add_group_title),
                     onClick = onAddGroupClick
                 )
         },
         topBar = {
             TopAppBar(
-                title = { Text("Dashboard") },
+                title = { Text(stringResource(Res.string.dashboard_title)) },
                 actions = {
                     val infiniteTransition =
                         rememberInfiniteTransition(label = "infinite animation")
@@ -137,7 +137,7 @@ fun Dashboard(
                     IconButton(onClick = { showAiAssistant = true }) {
                         Icon(
                             imageVector = Icons.Filled.AutoAwesome,
-                            contentDescription = "AI Assistant",
+                            contentDescription = stringResource(Res.string.ai_assistant_desc),
                             tint = color,
                             modifier = Modifier
                                 .scale(scale)
@@ -205,7 +205,7 @@ fun BalanceSummaryRow(
     ) {
         BalanceCard(
             modifier = Modifier.weight(1f),
-            title = "You owe",
+            title = stringResource(Res.string.you_owe),
             amount = totalOwe,
             backgroundColor = AppTheme.colors.successContainer,
             textColor = AppTheme.colors.onSuccessContainer
@@ -213,7 +213,7 @@ fun BalanceSummaryRow(
 
         BalanceCard(
             modifier = Modifier.weight(1f),
-            title = "You are owed",
+            title = stringResource(Res.string.you_are_owed),
             amount = totalOwed,
             backgroundColor = AppTheme.colors.errorContainer,
             textColor = AppTheme.colors.onErrorContainer
@@ -268,7 +268,7 @@ fun GroupSection(
     ) {
         if (groups.isNotEmpty()) {
             Text(
-                text = "Groups",
+                text = stringResource(Res.string.groups_title),
                 style = AppTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(vertical = 8.dp)
             )
@@ -353,10 +353,10 @@ private fun GroupItem(
                         Icon(
                             modifier = Modifier.padding(end = 2.dp).size(18.dp),
                             imageVector = Icons.Outlined.SupervisorAccount,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(Res.string.back)
                         )
                     Text(
-                        text = "${group.members.size} members",
+                        text = stringResource(Res.string.members_count, group.members.size),
                         style = AppTheme.typography.bodySmall
                     )
                 }

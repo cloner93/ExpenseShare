@@ -16,15 +16,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Payment
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -32,7 +28,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,55 +43,41 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pmb.common.theme.AppTheme
-import model.Group
-import model.User
-import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.milad.expense_share.Amount
-import org.milad.expense_share.friends.model.SettlementItem
+import model.Settlement
+import model.SettlementStatus
+import org.milad.expense_share.friends.friendsList.upperFirstChar
 import org.milad.expense_share.showSeparate
-
-sealed class SettlementStatus {
-
-    object Pending : SettlementStatus()
-    object Approved : SettlementStatus()
-
-    object YouOwe : SettlementStatus()
-    object YouPaid : SettlementStatus()
-    data class TheyPaid(val payerName: String) : SettlementStatus()
-    object YouAreOwed : SettlementStatus()
-    object Settled : SettlementStatus()
-    object Rejected : SettlementStatus()
-    data class ThirdParty(val debtor: String, val creditor: String) : SettlementStatus()
-}
 
 @Composable
 fun SettlementListItem(
     modifier: Modifier = Modifier,
-    item: SettlementItem,
+    item: Settlement,
     currentUserId: Int,
-    onPayClick: (SettlementItem) -> Unit = {},
-    onApproveClick: (SettlementItem) -> Unit = {},
-    onCorrectClick: (SettlementItem) -> Unit = {},
+    onPayClick: (Settlement) -> Unit = {},
+    onApproveClick: (Settlement) -> Unit = {},
+    onRejectClick: (Settlement) -> Unit = {},
+    onCorrectClick: (Settlement) -> Unit = {},
 ) {
     val userRole = when (currentUserId) {
         item.debtor.id -> UserRole.DEBTOR
         item.creditor.id -> UserRole.CREDITOR
         else -> UserRole.OBSERVER
     }
+
     val amountColor = when (userRole) {
         UserRole.DEBTOR -> AppTheme.colors.error
         UserRole.CREDITOR -> AppTheme.colors.success
         UserRole.OBSERVER -> AppTheme.colors.onBackground
     }
+
     val backgroundColor = when (item.status) {
-        is SettlementStatus.Settled -> AppTheme.colors.surfaceVariant
+        SettlementStatus.PAID -> AppTheme.colors.surfaceVariant
         else -> AppTheme.colors.surfaceContainerHighest
     }
+
     val alpha by animateFloatAsState(
-        targetValue = when (item.status) {
-            is SettlementStatus.YouPaid -> 0.7f
-            else -> 1f
-        }
+        targetValue = if (item.status == SettlementStatus.PAID && currentUserId == item.debtor.id) 0.7f else 1f,
+        label = "alpha_anim"
     )
 
     Card(
@@ -104,7 +85,7 @@ fun SettlementListItem(
             .fillMaxWidth()
             .padding(8.dp)
             .alpha(alpha).then(
-                if (item.status is SettlementStatus.TheyPaid) {
+                if (item.status == SettlementStatus.PAID) {
                     Modifier.border(
                         1.dp,
                         AppTheme.colors.primary,
@@ -126,7 +107,8 @@ fun SettlementListItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 UserColumn(
-                    name = item.debtor.username, isHighlighted = userRole == UserRole.DEBTOR
+                    name = item.debtor.username + if (currentUserId == item.debtor.id) " (me)" else "",
+                    isHighlighted = userRole == UserRole.DEBTOR
                 )
                 Column(
                     modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
@@ -136,7 +118,7 @@ fun SettlementListItem(
                         text = "$ ${item.amount.showSeparate()}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                            color = amountColor,
+                        color = amountColor,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -155,14 +137,21 @@ fun SettlementListItem(
                     }
                 }
                 UserColumn(
-                    name = item.creditor.username, isHighlighted = userRole == UserRole.CREDITOR
+                    name = item.creditor.username + if (currentUserId == item.creditor.id) " (me)" else "",
+                    isHighlighted = userRole == UserRole.CREDITOR
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
+
+            // فراخوانی StatusSection جدید
             StatusSection(
                 item = item,
+                userRole = userRole,
                 onPayClick = { onPayClick(item) },
-                onApproveClick = { onApproveClick(item) }) { onCorrectClick(item) }
+                onApproveClick = { onApproveClick(item) },
+                onRejectClick = { onRejectClick(item) },
+                onCorrectClick = { onCorrectClick(item) }
+            )
         }
     }
 }
@@ -199,7 +188,7 @@ private fun UserColumn(
 
 
         Text(
-            text = name,
+            text = name.upperFirstChar(),
             fontSize = 12.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -211,103 +200,107 @@ private fun UserColumn(
 
 @Composable
 private fun StatusSection(
-    item: SettlementItem,
+    item: Settlement,
+    userRole: UserRole,
     onPayClick: () -> Unit,
     onApproveClick: () -> Unit,
+    onRejectClick: () -> Unit,
     onCorrectClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
     ) {
         when (item.status) {
-            is SettlementStatus.YouOwe -> {
-                StatusLabel(
-                    text = "You must pay!",
-                    icon = Icons.Default.Payment,
-                    color = AppTheme.colors.primary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = onPayClick, colors = ButtonDefaults.buttonColors(
-                        containerColor = AppTheme.colors.primary
-                    )
-                ) {
-                    Icon(Icons.Default.Payment, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Pay!")
+            SettlementStatus.PENDING -> {
+                when (userRole) {
+                    UserRole.DEBTOR -> {
+                        StatusLabel("Waiting for your payment", Icons.Default.NotificationsActive, AppTheme.colors.primary)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = onPayClick,
+                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.colors.primary)
+                        ) {
+                            Icon(Icons.Default.Payment, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Pay!")
+                        }
+                    }
+                    UserRole.CREDITOR -> {
+                        StatusLabel("Waiting for ${item.debtor.username}'s payment", Icons.Default.NotificationsActive, AppTheme.colors.primary)
+                    }
+                    UserRole.OBSERVER -> {
+                        StatusLabel("Pending payment from ${item.debtor.username}", Icons.Default.NotificationsActive, Color.Gray)
+                    }
                 }
             }
 
-            is SettlementStatus.YouPaid -> {
-                StatusLabel(
-                    text = "Waiting for ${item.creditor.username}'s confirmation.",
-                    icon = Icons.Default.Schedule,
-                    color = AppTheme.colors.primary
-                )
-            }
+            SettlementStatus.PAID -> {
+                when (userRole) {
+                    UserRole.CREDITOR -> {
+                        StatusLabel("${item.debtor.username} marked as paid", Icons.Default.NotificationsActive, AppTheme.colors.primary)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // دکمه رد کردن
+                            Button(
+                                onClick = onRejectClick,
+                                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.colors.error)
+                            ) {
+                                // اگر آیکون Close رو ایمپورت نکردید از Icons.Default.Error استفاده کنید
+                                Icon(Icons.Default.Error, contentDescription = "Reject")
+                                Spacer(Modifier.width(4.dp))
+                                Text("Reject")
+                            }
 
-            is SettlementStatus.TheyPaid -> {
-                StatusLabel(
-                    text = "${item.status.payerName} paid. Do you approve?",
-                    icon = Icons.Default.Notifications,
-                    color = AppTheme.colors.primary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = onApproveClick, colors = ButtonDefaults.buttonColors(
-                        containerColor = AppTheme.colors.primary
-                    )
-                ) {
-                    Icon(Icons.Default.Check, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text("approve")
+                            // دکمه تایید کردن
+                            Button(
+                                onClick = onApproveClick,
+                                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.colors.success)
+                            ) {
+                                Icon(Icons.Default.Done, contentDescription = "Approve")
+                                Spacer(Modifier.width(4.dp))
+                                Text("Approve")
+                            }
+                        }
+                    }
+                    UserRole.DEBTOR -> {
+                        StatusLabel("Waiting for ${item.creditor.username} to confirm", Icons.Default.NotificationsActive, AppTheme.colors.primary)
+                    }
+                    UserRole.OBSERVER -> {
+                        StatusLabel("Waiting for ${item.creditor.username}'s confirmation", Icons.Default.NotificationsActive, Color.Gray)
+                    }
                 }
             }
 
-            is SettlementStatus.YouAreOwed -> {
-                StatusLabel(
-                    text = "Waiting for payment",
-                    icon = Icons.Default.NotificationsActive,
-                    color = AppTheme.colors.primary
-                )
+            SettlementStatus.CONFIRMED -> {
+                // تایید نهایی برای همه یک پیام مشترک دارد (بدون دکمه)
+                StatusLabel("Payment is successful", Icons.Default.Done, AppTheme.colors.success)
             }
 
-            is SettlementStatus.Settled -> {
-                StatusLabel(
-                    text = "Payed",
-                    icon = Icons.Default.CheckCircle,
-                    color = AppTheme.colors.primary
-                )
-            }
-
-            is SettlementStatus.Rejected -> {
-                StatusLabel(
-                    text = "Rejected by ${item.creditor.username}",
-                    icon = Icons.Default.Error,
-                    color = AppTheme.colors.error
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = onCorrectClick, colors = ButtonDefaults.buttonColors(
-                        containerColor = AppTheme.colors.primary
-                    )
-                ) {
-                    Icon(Icons.Default.Edit, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Edit Payments")
+            SettlementStatus.DISPUTED -> {
+                when (userRole) {
+                    UserRole.DEBTOR -> {
+                        StatusLabel("Rejected by ${item.creditor.username}", Icons.Default.Error, AppTheme.colors.error)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = onCorrectClick,
+                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.colors.primary)
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Edit Payments")
+                        }
+                    }
+                    UserRole.CREDITOR -> {
+                        StatusLabel("You rejected this payment", Icons.Default.Error, AppTheme.colors.error)
+                    }
+                    UserRole.OBSERVER -> {
+                        StatusLabel("Payment disputed", Icons.Default.Error, AppTheme.colors.error)
+                    }
                 }
             }
-
-            is SettlementStatus.ThirdParty -> {
-                StatusLabel(
-                    text = "${item.status.debtor} to ${item.status.creditor}",
-                    icon = Icons.Default.SwapHoriz,
-                    color = AppTheme.colors.primary
-                )
-            }
-
-            SettlementStatus.Approved -> TODO()
-            SettlementStatus.Pending -> TODO()
         }
     }
 }
@@ -342,9 +335,9 @@ private enum class UserRole {
     DEBTOR, CREDITOR, OBSERVER
 }
 
-@Preview(name = "1. You Owe")
+/*@Preview
 @Composable
-fun PreviewYouOwe() {
+fun PreviewPending() {
     Column {
 
         AppTheme(darkTheme = true, content = {
@@ -365,10 +358,11 @@ fun PreviewYouOwe() {
     }
 }
 
-@Preview(name = "2. You Paid (Pending)")
+@Preview
 @Composable
-fun PreviewYouPaid() {
+fun PreviewPaid() {
     Column {
+
         AppTheme(darkTheme = true, content = {
             Surface {
                 SettlementListItem(
@@ -376,6 +370,7 @@ fun PreviewYouPaid() {
                 )
             }
         })
+
         AppTheme(darkTheme = false, content = {
             Surface {
                 SettlementListItem(
@@ -386,10 +381,11 @@ fun PreviewYouPaid() {
     }
 }
 
-@Preview(name = "3. They Paid (Action Required)")
+@Preview
 @Composable
-fun PreviewTheyPaid() {
+fun PreviewConfirm() {
     Column {
+
         AppTheme(darkTheme = true, content = {
             Surface {
                 SettlementListItem(
@@ -397,6 +393,7 @@ fun PreviewTheyPaid() {
                 )
             }
         })
+
         AppTheme(darkTheme = false, content = {
             Surface {
                 SettlementListItem(
@@ -407,10 +404,11 @@ fun PreviewTheyPaid() {
     }
 }
 
-@Preview(name = "4. You Are Owed")
+@Preview
 @Composable
-fun PreviewYouAreOwed() {
+fun PreviewDisputed() {
     Column {
+
         AppTheme(darkTheme = true, content = {
             Surface {
                 SettlementListItem(
@@ -418,73 +416,11 @@ fun PreviewYouAreOwed() {
                 )
             }
         })
+
         AppTheme(darkTheme = false, content = {
             Surface {
                 SettlementListItem(
                     item = FakeDate.mockSettlementItems[3], currentUserId = FakeDate.userMilad.id
-                )
-            }
-        })
-    }
-}
-
-@Preview(name = "5. Settled")
-@Composable
-fun PreviewSettled() {
-    Column {
-        AppTheme(darkTheme = true, content = {
-            Surface {
-                SettlementListItem(
-                    item = FakeDate.mockSettlementItems[4], currentUserId = FakeDate.userMilad.id
-                )
-            }
-        })
-        AppTheme(darkTheme = false, content = {
-            Surface {
-                SettlementListItem(
-                    item = FakeDate.mockSettlementItems[4], currentUserId = FakeDate.userMilad.id
-                )
-            }
-        })
-    }
-}
-
-@Preview(name = "6. Rejected")
-@Composable
-fun PreviewRejected() {
-    Column {
-        AppTheme(darkTheme = true, content = {
-            Surface {
-                SettlementListItem(
-                    item = FakeDate.mockSettlementItems[5], currentUserId = FakeDate.userMilad.id
-                )
-            }
-        })
-        AppTheme(darkTheme = false, content = {
-            Surface {
-                SettlementListItem(
-                    item = FakeDate.mockSettlementItems[5], currentUserId = FakeDate.userMilad.id
-                )
-            }
-        })
-    }
-}
-
-@Preview(name = "7. Third Party")
-@Composable
-fun PreviewThirdParty() {
-    Column {
-        AppTheme(darkTheme = true, content = {
-            Surface {
-                SettlementListItem(
-                    item = FakeDate.mockSettlementItems[6], currentUserId = FakeDate.userMilad.id
-                )
-            }
-        })
-        AppTheme(darkTheme = false, content = {
-            Surface {
-                SettlementListItem(
-                    item = FakeDate.mockSettlementItems[6], currentUserId = FakeDate.userMilad.id
                 )
             }
         })
@@ -510,75 +446,43 @@ object FakeDate {
     val userNarges = User(id = 9, username = "Narges", phone = "09129999999")
 
     val mockSettlementItems = listOf(
-        SettlementItem(
-            id = "1",
+        Settlement(
+            id = 0,
             debtor = userMilad,
             creditor = userSara,
             amount = Amount(250000),
-            status = SettlementStatus.YouOwe,
-            groupName = "NAN"
+            status = SettlementStatus.PENDING,
+            groupId = TODO(),
+            createdAt = TODO(),
+            updatedAt = TODO()
         ),
 
-        SettlementItem(
+        Settlement(
             id = "2",
             debtor = userMilad,
             creditor = userReza,
             amount = Amount(120000),
-            status = SettlementStatus.YouPaid,
+            status = SettlementStatus.CONFIRMED,
             groupName = "NAN"
         ),
 
-        SettlementItem(
+        Settlement(
             id = "3",
             debtor = userMaryam,
             creditor = userMilad,
             amount = Amount(450000),
-            status = SettlementStatus.TheyPaid(userMaryam.username),
+            status = SettlementStatus.PAID,
             groupName = "NAN"
         ),
 
-        SettlementItem(
+        Settlement(
             id = "4",
             debtor = userHamid,
             creditor = userMilad,
             amount = Amount(85000),
-            status = SettlementStatus.YouAreOwed,
-            groupName = "NAN"
-        ),
-
-        SettlementItem(
-            id = "5",
-            debtor = userMilad,
-            creditor = userNiloufar,
-            amount = Amount(320000),
-            status = SettlementStatus.Settled,
-            groupName = "NAN"
-        ),
-
-        SettlementItem(
-            id = "6",
-            debtor = userMilad,
-            creditor = userParham,
-            amount = Amount(50000),
-            status = SettlementStatus.Rejected,
-            groupName = "NAN"
-        ),
-
-        SettlementItem(
-            id = "7",
-            debtor = userSaeid,
-            creditor = userNarges,
-            amount = Amount(1000000),
-            status = SettlementStatus.ThirdParty(userSaeid.username, userNarges.username),
+            status = SettlementStatus.DISPUTED,
             groupName = "NAN"
         ),
     )
-
-   /* val mockFriends = listOf(
-        Friend(userSara, FriendRelationStatus.ACCEPTED),
-        Friend(userReza, FriendRelationStatus.ACCEPTED),
-        Friend(userMaryam, FriendRelationStatus.PENDING),
-        Friend(userHamid, FriendRelationStatus.REJECTED),
-        Friend(userNiloufar, FriendRelationStatus.BLOCKED),
-    )*/
 }
+*/

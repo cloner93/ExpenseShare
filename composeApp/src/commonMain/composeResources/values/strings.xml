@@ -1,0 +1,74 @@
+<resources>
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm_with_count">Confirm (%d)</string>
+    <string name="error_generic">ERROR !</string>
+    <string name="logout">Logout</string>
+    <string name="under_construction">Screen under construction</string>
+    <string name="more_options">More options</string>
+    <string name="delete">Delete</string>
+    <string name="rename">Rename</string>
+    <string name="help">Help</string>
+
+    <!-- Auth (Login/Register) -->
+    <string name="login_title">Login</string>
+    <string name="register_title">Register</string>
+    <string name="phone_label">Phone</string>
+    <string name="password_label">Password</string>
+    <string name="username_label">Username</string>
+    <string name="login_button">Login</string>
+    <string name="register_button">Register</string>
+    <string name="no_account_register">Don\'t have an account? Register</string>
+    <string name="already_have_account_login">Already have an account? Login</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Dashboard</string>
+    <string name="ai_assistant_desc">AI Assistant</string>
+    <string name="you_owe">You owe</string>
+    <string name="you_are_owed">You are owed</string>
+    <string name="groups_title">Groups</string>
+    <string name="members_count">%d members</string>
+
+    <!-- Add Group -->
+    <string name="add_group_title">Add Group</string>
+    <string name="error_group_name_empty">Group name cannot be empty</string>
+    <string name="group_name_label">Group name (Trip, Dinner)</string>
+    <string name="members_title">Members</string>
+    <string name="select_friends_title">Select Friends</string>
+
+    <!-- Add Expense -->
+    <string name="add_expense">Add Expense</string>
+    <string name="error_name_empty">Name cannot be empty</string>
+    <string name="error_invalid_price">Invalid price</string>
+    <string name="error_select_payer">Select at least one payer</string>
+    <string name="error_select_member">Select at least one member</string>
+    <string name="error_choose_share_type">Choose a share type</string>
+    <string name="error_total_sum_mismatch">your share must equal %s</string>
+    <string name="error_payer_no_amount">One or more payers have no amount</string>
+    <string name="error_payer_total_mismatch">Total payer amounts (%s) must equal the expense price</string>
+    <string name="expense_name_label">Expense name (Trip, Dinner)</string>
+    <string name="expense_price_label">Expense Price (100,000)</string>
+    <string name="expense_desc_label">Expense Desc</string>
+    <string name="payers_title">Payers</string>
+    <string name="remove_payer">remove payer</string>
+    <string name="add_payer">Add Payer</string>
+    <string name="share_type_title">Share type</string>
+    <string name="add_members">Add Members</string>
+    <string name="select_payers_title">Select Payers</string>
+    <string name="select_members_title">Select Members</string>
+
+    <string name="share_type_equal">Equal</string>
+    <string name="share_type_percent">Percent</string>
+    <string name="share_type_weight">Weight</string>
+    <string name="share_type_manual">Manual</string>
+
+    <!-- Friends -->
+    <string name="friends_title">Friends</string>
+    <string name="add_friend_button">Add Friend</string>
+
+    <!-- Settlement -->
+    <string name="total_group_spend">Total Group Spend</string>
+    <string name="your_total_balance">Your Total Balance</string>
+</resources>

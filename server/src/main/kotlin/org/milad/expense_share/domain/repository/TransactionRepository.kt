@@ -20,4 +20,6 @@ interface TransactionRepository {
     fun approveTransaction(transactionId: Int, managerId: Int): Boolean
     fun rejectTransaction(transactionId: Int, managerId: Int): Boolean
     fun deleteTransaction(transactionId: Int, managerId: Int): Boolean
+
+    fun getGroupIdByTransaction(transactionId: Int): Int?
 }

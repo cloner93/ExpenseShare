@@ -6,21 +6,25 @@ import org.koin.ktor.ext.inject
 import org.milad.expense_share.domain.service.AuthService
 import org.milad.expense_share.domain.service.FriendsService
 import org.milad.expense_share.domain.service.GroupService
+import org.milad.expense_share.domain.service.SettlementService
 import org.milad.expense_share.domain.service.TransactionService
 import org.milad.expense_share.presentation.auth.authRoutes
 import org.milad.expense_share.presentation.friends.friendRoutes
 import org.milad.expense_share.presentation.groups.groupsRoutes
+import org.milad.expense_share.presentation.settlement.settlementRoutes
 import org.milad.expense_share.presentation.transactions.transactionsRoutes
 
 internal fun Application.configureRouting() {
     val authService by inject<AuthService>()
     val groupService by inject<GroupService>()
+    val settlementService by inject<SettlementService>()
     val transactionService by inject<TransactionService>()
     val friendsService by inject<FriendsService>()
 
     routing {
         authRoutes(authService)
         groupsRoutes(groupService)
+        settlementRoutes(settlementService)
         transactionsRoutes(transactionService)
         friendRoutes(friendsService)
     }

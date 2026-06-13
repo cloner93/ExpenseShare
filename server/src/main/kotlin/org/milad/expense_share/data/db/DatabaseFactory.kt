@@ -5,15 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.milad.expense_share.data.db.table.FriendRelations
-import org.milad.expense_share.data.db.table.GroupMembers
-import org.milad.expense_share.data.db.table.Groups
-import org.milad.expense_share.data.db.table.Passwords
-import org.milad.expense_share.data.db.table.TransactionPayers
-import org.milad.expense_share.data.db.table.TransactionShareMembers
-import org.milad.expense_share.data.db.table.TransactionShares
-import org.milad.expense_share.data.db.table.Transactions
-import org.milad.expense_share.data.db.table.Users
+import org.milad.expense_share.data.db.table.*
 
 object DatabaseFactory {
 
@@ -30,7 +22,8 @@ object DatabaseFactory {
                 Transactions,
                 TransactionPayers,
                 TransactionShares,
-                TransactionShareMembers
+                TransactionShareMembers,
+                Settlements,
             )
         }
     }

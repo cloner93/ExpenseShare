@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.expenseshare.compose.multiplatform)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.jacoco)
+    alias(libs.plugins.kotzilla)
 }
 
 android {
