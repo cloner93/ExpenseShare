@@ -32,26 +32,25 @@ kotlinx-serialization = "1.8.0"
 # ── Ktor ──────────────────────────────────────────────────────────────────────
 ktor = "3.3.3"
 
-# ── Database ──────────────────────────────────────────────────────────────────
-exposedCore = "0.55.0"
-postgresql = "42.7.3"
-hikaricp = "7.0.2"
-
 # ── DI ───────────────────────────────────────────────────────────────────────
 koin-bom = "4.1.1"
-koinTestJunit5 = "3.5.6"
 
 # ── Logging & Security ────────────────────────────────────────────────────────
 logback = "1.5.18"
 jbcrypt = "0.4"
 
+# ── Database ──────────────────────────────────────────────────────────────────
+exposedCore = "0.55.0"
+postgresql = "42.7.3"
+hikaricp = "7.0.2"
+
 # ── Testing ───────────────────────────────────────────────────────────────────
 junit = "4.13.2"
 kotest = "6.0.3"
+mockative = "3.0.1"
 
 # ── Tooling ───────────────────────────────────────────────────────────────────
 kotzilla = "1.3.1"
-storytale = "0.0.4-alpha01+dev19"
 # ─────────────────────────────────────────────────────────────────────────────
 [libraries]
 # ── Kotlin ────────────────────────────────────────────────────────────────────
@@ -98,7 +97,7 @@ ktor-server-test-host = { module = "io.ktor:ktor-server-test-host-jvm", version.
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
-ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }   # fixed: was ktor-server-cros
+ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-tests = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
@@ -132,6 +131,9 @@ kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", versio
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-extensions-koin = { module = "io.kotest:kotest-extensions-koin", version.ref = "kotest" }
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+mockative = { module = "io.mockative:mockative", version.ref = "mockative" }
 
 # ── Exposed + PostgreSQL ──────────────────────────────────────────────────────
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposedCore" }
@@ -214,12 +216,13 @@ kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotest = { id = "io.kotest", version.ref = "kotest" }
-#kotzilla                        = { id = "io.kotzilla.kotzilla-plugin",                    version.ref = "kotzilla"             }
+kotzilla = { id = "io.kotzilla.kotzilla-plugin", version.ref = "kotzilla" }
 jacoco = { id = "jacoco" }
 
 # ── Convention plugins (build-logic) ─────────────────────────────────────────
 expenseshare-android-application = { id = "expenseshare.android.application" }
 expenseshare-android-library = { id = "expenseshare.android.library" }
+expenseshare-android-multiplatform-library = { id = "expenseshare.android.multiplatform.library" }
 expenseshare-android-compose = { id = "expenseshare.android.compose" }
 expenseshare-kotlin-multiplatform = { id = "expenseshare.kotlin.multiplatform" }
 expenseshare-compose-multiplatform = { id = "expenseshare.compose.multiplatform" }
