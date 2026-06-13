@@ -35,6 +35,10 @@ kotlin {
             implementation(projects.core.currency)
             implementation(projects.core.logger)
         }
+        jvmMain.dependencies {
+            implementation(compose.desktop.currentOs)
+            implementation(libs.kotlinx.coroutines.swing)
+        }
     }
 }
 
