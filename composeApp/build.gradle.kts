@@ -19,6 +19,7 @@ jacoco {
 }
 
 kotlin {
+    jvm()
     sourceSets {
         androidMain.dependencies {
             implementation(libs.kotzilla.sdk.compose)
