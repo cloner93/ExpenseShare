@@ -4,7 +4,14 @@ package org.milad.expense_share.friends
 
 import EmptySelectionPlaceholder
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -16,11 +23,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.pmb.common.loading.FullScreenLoading
 import com.pmb.common.theme.AppTheme
 import kotlinx.coroutines.launch
+import model.Group
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.milad.expense_share.friends.detail.FriendDetailAction
@@ -28,18 +39,23 @@ import org.milad.expense_share.friends.detail.FriendDetailEvent
 import org.milad.expense_share.friends.detail.FriendDetailScreen
 import org.milad.expense_share.friends.detail.FriendDetailViewModel
 import org.milad.expense_share.friends.friendsList.FriendsList
+import org.milad.expense_share.friends.model.FriendBalance
+import org.milad.expense_share.showSeparate
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun FriendsScreen(
     navLayoutType: NavigationSuiteType,
     friendsViewModel: FriendsViewModel = koinViewModel(),
+    onOpenGroup: ((Group) -> Unit)? = null,
 ) {
     val state by friendsViewModel.viewState.collectAsState()
 
     val navigator = rememberListDetailPaneScaffoldNavigator<Nothing>()
     val scope = rememberCoroutineScope()
     val loading by mutableStateOf(false)
+    val snackbarHostState = remember { SnackbarHostState() }
+    var settleUpBalance by remember { mutableStateOf<FriendBalance?>(null) }
 
     val isListAndDetailVisible =
         navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded && navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded
@@ -53,10 +69,15 @@ fun FriendsScreen(
                     scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail) }
                 }
 
-                is FriendsEvent.ShowToast -> {}
+                is FriendsEvent.ShowToast -> {
+                    val displayMessage = if (event.message.length > 200) event.message.take(200) + "..." else event.message
+                    scope.launch { snackbarHostState.showSnackbar(displayMessage) }
+                }
             }
         }
     }
+
+    Box(modifier = Modifier.fillMaxSize()) {
 
     ListDetailPaneScaffold(
         modifier = Modifier.background(color = AppTheme.colors.background),
@@ -96,12 +117,24 @@ fun FriendsScreen(
                                 }
 
                                 is FriendDetailEvent.OpenGroup -> {
+                                    if (event.group.id <= 0) {
+                                        scope.launch { snackbarHostState.showSnackbar("Invalid group destination") }
+                                    } else {
+                                        if (onOpenGroup != null) {
+                                            onOpenGroup(event.group)
+                                        } else {
+                                            scope.launch { snackbarHostState.showSnackbar("Opening group: ${event.group.name}") }
+                                        }
+                                    }
                                 }
 
                                 is FriendDetailEvent.ShowToast -> {
+                                    val displayMessage = if (event.message.length > 200) event.message.take(200) + "..." else event.message
+                                    scope.launch { snackbarHostState.showSnackbar(displayMessage) }
                                 }
 
                                 is FriendDetailEvent.ShowSettleUpDialog -> {
+                                    settleUpBalance = event.balance
                                 }
                             }
                         }
@@ -118,4 +151,30 @@ fun FriendsScreen(
             }
         },
     )
+
+    SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = Modifier.align(Alignment.BottomCenter)
+    )
+
+    settleUpBalance?.let { balance ->
+        val dialogMessage = if (balance.netBalance.isZero()) {
+            "Nothing to settle! All even."
+        } else if (balance.netBalance.isNegative()) {
+            "You owe $ ${(-balance.netBalance).showSeparate()}"
+        } else {
+            "You are owed $ ${balance.netBalance.showSeparate()}"
+        }
+        AlertDialog(
+            onDismissRequest = { settleUpBalance = null },
+            title = { Text("Settle Up") },
+            text = { Text(dialogMessage) },
+            confirmButton = {
+                TextButton(onClick = { settleUpBalance = null }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+}
 }

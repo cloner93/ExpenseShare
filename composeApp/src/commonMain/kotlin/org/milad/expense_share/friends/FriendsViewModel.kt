@@ -106,7 +106,7 @@ class FriendsViewModel(
             result.onSuccess { newFriends ->
                 setState {
                     it.copy(
-                        friends = it.friends + newFriends,
+                        friends = newFriends,
                         listPaneLoading = false,
                         listPaneError = null
                     )
