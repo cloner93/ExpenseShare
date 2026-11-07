@@ -14,16 +14,19 @@ import repository.TransactionsRepositoryImpl
 import repository.UserRepository
 import repository.UserRepositoryImpl
 
+import repository.UserStorage
+import repository.createPlatformUserStorage
+
 val dataModule = module {
-
-    single { UserRepositoryImpl() as UserRepository }
-    single { AuthRepositoryImpl(get(), get(), get()) as AuthRepository }
-    single { FriendsRepositoryImpl(get()) as FriendsRepository }
-    single { GroupsRepositoryImpl(get()) as GroupsRepository }
-    single { SettlementRepositoryImpl(get()) as SettlementRepository }
-    single { TransactionsRepositoryImpl(get()) as TransactionsRepository }
-
+    single<UserStorage> { createPlatformUserStorage() }
+    single<UserRepository> { UserRepositoryImpl(get()) }
+    single<AuthRepository> { AuthRepositoryImpl(get(), get(), get()) }
+    single<FriendsRepository> { FriendsRepositoryImpl(get()) }
+    single<GroupsRepository> { GroupsRepositoryImpl(get()) }
+    single<SettlementRepository> { SettlementRepositoryImpl(get()) }
+    single<TransactionsRepository> { TransactionsRepositoryImpl(get()) }
 }
+
 
 val dataAggregator = module {
     includes(networkModule)

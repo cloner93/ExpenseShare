@@ -7,10 +7,12 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
 import org.koin.core.logger.Level
 import org.milad.expense_share.di.appModules
+import token.ContextHolder
 
 class ExpenseShareApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        ContextHolder.context = this@ExpenseShareApp
         startKoin {
             androidContext(this@ExpenseShareApp)
             androidLogger(Level.DEBUG)
