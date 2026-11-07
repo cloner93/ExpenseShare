@@ -6,7 +6,9 @@ import io.kotest.matchers.shouldNotBe
 import repository.AuthRepository
 import repository.FriendsRepository
 import repository.GroupsRepository
+import repository.SettlementRepository
 import repository.TransactionsRepository
+import repository.UserRepository
 
 import org.koin.test.KoinTest
 import org.koin.test.inject
@@ -14,6 +16,11 @@ import org.koin.test.inject
 class DataModuleTest : KoinTest, StringSpec() {
     init {
         extension(KoinExtension(module = dataAggregator))
+
+        "UserRepository should be injected correctly" {
+            val repo: UserRepository by inject()
+            repo shouldNotBe null
+        }
 
         "AuthRepository should be injected correctly" {
             val repo: AuthRepository by inject()
@@ -30,6 +37,11 @@ class DataModuleTest : KoinTest, StringSpec() {
             repo shouldNotBe null
         }
 
+        "SettlementRepository should be injected correctly" {
+            val repo: SettlementRepository by inject()
+            repo shouldNotBe null
+        }
+
         "TransactionsRepository should be injected correctly" {
             val repo: TransactionsRepository by inject()
             repo shouldNotBe null
@@ -42,3 +54,4 @@ class DataModuleTest : KoinTest, StringSpec() {
         }
     }
 }
+

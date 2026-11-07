@@ -1,59 +1,68 @@
 package usecase.transactions
 
+import fakes.FakeTransactionsRepository
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.mockative.coEvery
-import io.mockative.coVerify
-import io.mockative.mock
-import io.mockative.of
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
+import model.PayerDto
+import model.ShareDetailsRequest
 import model.Transaction
 import model.TransactionStatus
-import repository.TransactionsRepository
+import org.milad.expense_share.Amount
 
 class CreateTransactionUseCaseTest : StringSpec({
-    val repo = mock(of<TransactionsRepository>())
+    val repo = FakeTransactionsRepository()
     val usecase = CreateTransactionUseCase(repo)
 
     "should return created transaction when repository succeeds" {
-        val groupId = "123"
+        repo.reset()
+        val groupId = 123
+        val amount = Amount(250)
+        val payers = emptyList<PayerDto>()
+        val shareDetails = ShareDetailsRequest("Equal", emptyList())
         val transaction = Transaction(
             id = 1,
             groupId = 123,
             title = "Dinner at Restaurant",
-            amount = 250.0,
+            amount = amount,
             description = "Team dinner with colleagues",
             createdBy = 42,
             status = TransactionStatus.PENDING,
-            createdAt = 0,
-            transactionDate = 0,
-            approvedBy = null
+            createdAt = 0L,
+            transactionDate = 0L,
+            approvedBy = null,
+            payers = payers,
+            shareDetails = shareDetails
         )
 
-        coEvery { repo.createTransaction(groupId, "Dinner at Restaurant", 250.0, "Team dinner with colleagues") }
-            .returns(flowOf(Result.success(transaction)))
+        repo.createTransactionResult = Result.success(transaction)
 
-        val result = usecase(groupId, "Dinner at Restaurant", 250.0, "Team dinner with colleagues").first()
+        val result = usecase(groupId, "Dinner at Restaurant", amount, "Team dinner with colleagues", payers, shareDetails).first()
 
         result.isSuccess shouldBe true
         result.getOrNull() shouldBe transaction
-        coVerify { repo.createTransaction(groupId, "Dinner at Restaurant", 250.0, "Team dinner with colleagues") }
-            .wasInvoked(exactly = 1)
+        repo.createTransactionCallCount shouldBe 1
+        repo.lastCreateTransactionArgs?.groupId shouldBe groupId
+        repo.lastCreateTransactionArgs?.title shouldBe "Dinner at Restaurant"
+        repo.lastCreateTransactionArgs?.amount shouldBe amount
     }
 
     "should return failure when repository fails" {
-        val groupId = "123"
+        repo.reset()
+        val groupId = 123
+        val amount = Amount(250)
+        val payers = emptyList<PayerDto>()
+        val shareDetails = ShareDetailsRequest("Equal", emptyList())
         val error = RuntimeException("network error")
 
-        coEvery { repo.createTransaction(groupId, "Dinner at Restaurant", 250.0, "Team dinner with colleagues") }
-            .returns(flowOf(Result.failure(error)))
+        repo.createTransactionResult = Result.failure(error)
 
-        val result = usecase(groupId, "Dinner at Restaurant", 250.0, "Team dinner with colleagues").first()
+        val result = usecase(groupId, "Dinner at Restaurant", amount, "Team dinner with colleagues", payers, shareDetails).first()
 
         result.isSuccess shouldBe false
         result.exceptionOrNull() shouldBe error
-        coVerify { repo.createTransaction(groupId, "Dinner at Restaurant", 250.0, "Team dinner with colleagues") }
-            .wasInvoked(exactly = 1)
+        repo.createTransactionCallCount shouldBe 1
+        repo.lastCreateTransactionArgs?.groupId shouldBe groupId
     }
 })
+

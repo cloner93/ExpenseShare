@@ -3,73 +3,71 @@ package client
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.http.HttpStatusCode
-import io.mockative.Mockable
-import io.mockative.any
-import io.mockative.coEvery
-import io.mockative.coVerify
-import io.mockative.every
-import io.mockative.mock
-import io.mockative.of
 import kotlinx.coroutines.test.runTest
 
-
-class ApiClientTest : StringSpec() {
-    private val apiClient = mock(of<ApiClient>())
-    private val res = mock(of<HttpResponse>())
-
-    init {
-        "should mock POST and return custom response" {
-            runTest {
-
-                every { res.status }.returns(HttpStatusCode.OK)
-
-                coEvery { apiClient.post(any<HttpRequestBuilder.() -> Unit>()) }
-                    .returns(res)
-
-                val response = apiClient.post { /* builder mock */ }
-                response.status shouldBe HttpStatusCode.OK
+class ApiClientTest : StringSpec({
+    "should perform GET request and return OK response" {
+        runTest {
+            val mockEngine = MockEngine { _ ->
+                respond("{}", HttpStatusCode.OK)
             }
-        }
-
-        "should mock GET and simulate failure" {
-            runTest {
-                coEvery { apiClient.get(any()) } throws Exception("Network error")
-
-                shouldThrow<Exception> {
-                    apiClient.get { /* builder */ }
-                }.message shouldBe "Network error"
-            }
-        }
-
-        "should verify PUT call with builder" {
-            runTest {
-                every { res.status }.returns(HttpStatusCode.OK)
-
-                coEvery { apiClient.put(any<HttpRequestBuilder.() -> Unit>()) }
-                    .returns(res)
-
-                apiClient.put { /* simulate builder */ }
-
-                coVerify { apiClient.put(any()) }.wasInvoked(exactly = 1)
-            }
-        }
-
-        "should stub DELETE and check invocation" {
-            runTest {
-
-                every { res.status }.returns(HttpStatusCode.NoContent)
-
-                coEvery { apiClient.delete(any<HttpRequestBuilder.() -> Unit>()) }
-                    .returns(res)
-
-                val response = apiClient.delete { /* builder */ }
-                response.status shouldBe HttpStatusCode.NoContent
-
-                coVerify { apiClient.delete(any()) }.wasInvoked(1)
-            }
+            val apiClient = KtorApiClient(HttpClient(mockEngine))
+            val response = apiClient.get {}
+            response.status shouldBe HttpStatusCode.OK
         }
     }
-}
+
+    "should perform POST request and return Created response" {
+        runTest {
+            val mockEngine = MockEngine { _ ->
+                respond("{}", HttpStatusCode.Created)
+            }
+            val apiClient = KtorApiClient(HttpClient(mockEngine))
+            val response = apiClient.post {}
+            response.status shouldBe HttpStatusCode.Created
+        }
+    }
+
+    "should perform PUT request and verify invocation" {
+        runTest {
+            var invoked = false
+            val mockEngine = MockEngine { _ ->
+                invoked = true
+                respond("{}", HttpStatusCode.OK)
+            }
+            val apiClient = KtorApiClient(HttpClient(mockEngine))
+            val response = apiClient.put {}
+            response.status shouldBe HttpStatusCode.OK
+            invoked shouldBe true
+        }
+    }
+
+    "should perform DELETE request and return NoContent" {
+        runTest {
+            val mockEngine = MockEngine { _ ->
+                respond("", HttpStatusCode.NoContent)
+            }
+            val apiClient = KtorApiClient(HttpClient(mockEngine))
+            val response = apiClient.delete {}
+            response.status shouldBe HttpStatusCode.NoContent
+        }
+    }
+
+    "should propagate network exceptions during request" {
+        runTest {
+            val mockEngine = MockEngine { _ ->
+                throw ConnectTimeoutException("Network error")
+            }
+            val apiClient = KtorApiClient(HttpClient(mockEngine))
+            val exception = shouldThrow<ConnectTimeoutException> {
+                apiClient.get {}
+            }
+            exception.message shouldBe "Network error"
+        }
+    }
+})

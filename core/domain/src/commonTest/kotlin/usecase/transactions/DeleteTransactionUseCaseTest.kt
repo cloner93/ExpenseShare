@@ -1,47 +1,43 @@
 package usecase.transactions
 
+import fakes.FakeTransactionsRepository
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.mockative.coEvery
-import io.mockative.coVerify
-import io.mockative.mock
-import io.mockative.of
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
-import repository.TransactionsRepository
 
 class DeleteTransactionUseCaseTest : StringSpec({
-    val repo = mock(of<TransactionsRepository>())
+    val repo = FakeTransactionsRepository()
     val usecase = DeleteTransactionUseCase(repo)
 
     "should complete successfully when repository succeeds" {
+        repo.reset()
         val groupId = "123"
         val transactionId = "1"
 
-        coEvery { repo.deleteTransaction(groupId, transactionId) }
-            .returns(flowOf(Result.success(Unit)))
+        repo.deleteTransactionResult = Result.success("Success")
 
         val result = usecase(groupId, transactionId).first()
 
         result.isSuccess shouldBe true
-        result.getOrNull() shouldBe Unit
-        coVerify { repo.deleteTransaction(groupId, transactionId) }
-            .wasInvoked(exactly = 1)
+        result.getOrNull() shouldBe "Success"
+        repo.deleteTransactionCallCount shouldBe 1
+        repo.lastDeleteTransactionArgs shouldBe Pair(groupId, transactionId)
     }
 
     "should return failure when repository fails" {
+        repo.reset()
         val groupId = "123"
         val transactionId = "1"
         val error = RuntimeException("network error")
 
-        coEvery { repo.deleteTransaction(groupId, transactionId) }
-            .returns(flowOf(Result.failure(error)))
+        repo.deleteTransactionResult = Result.failure(error)
 
         val result = usecase(groupId, transactionId).first()
 
         result.isSuccess shouldBe false
         result.exceptionOrNull() shouldBe error
-        coVerify { repo.deleteTransaction(groupId, transactionId) }
-            .wasInvoked(exactly = 1)
+        repo.deleteTransactionCallCount shouldBe 1
+        repo.lastDeleteTransactionArgs shouldBe Pair(groupId, transactionId)
     }
 })
+

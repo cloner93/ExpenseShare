@@ -1,50 +1,55 @@
 package usecase.friends
 
+import fakes.FakeFriendsRepository
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.mockative.coEvery
-import io.mockative.coVerify
-import io.mockative.mock
-import io.mockative.of
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
+import model.FriendInfo
+import model.FriendRelationStatus
 import model.User
-import repository.FriendsRepository
 
 class GetFriendsUseCaseTest : StringSpec({
-
-    val repo = mock(of<FriendsRepository>())
-
+    val repo = FakeFriendsRepository()
     val useCase = GetAllFriendsUseCase(repo)
 
     "should return list of friend when successful" {
-        // Arrange
-        val users = listOf(
-            User(0, "milad", "09123456778"),
-            User(10, "mahdi", "09123456779")
+        repo.reset()
+        val friends = listOf(
+            FriendInfo(
+                user = User(0, "milad", "09123456778"),
+                status = FriendRelationStatus.ACCEPTED,
+                requestedBy = 0,
+                createdAt = 0L,
+                updatedAt = 0L
+            ),
+            FriendInfo(
+                user = User(10, "mahdi", "09123456779"),
+                status = FriendRelationStatus.ACCEPTED,
+                requestedBy = 10,
+                createdAt = 0L,
+                updatedAt = 0L
+            )
         )
 
-        coEvery { repo.getFriends() }
-            .returns(flowOf(Result.success(users)))
+        repo.getAllFriendsResult = Result.success(friends)
 
-        // Act
         val result = useCase().first()
 
-        // Assert
         result.isSuccess shouldBe true
-        result.getOrNull() shouldBe users
-        coVerify { repo.getFriends() }.wasInvoked(exactly = 1)
+        result.getOrNull() shouldBe friends
+        repo.getAllFriendsCallCount shouldBe 1
     }
 
     "should return failure when repository fails" {
+        repo.reset()
         val error = RuntimeException("network error")
-        coEvery { repo.getFriends() }
-            .returns(flowOf(Result.failure(error)))
+        repo.getAllFriendsResult = Result.failure(error)
 
         val result = useCase().first()
 
         result.isFailure shouldBe true
         result.exceptionOrNull() shouldBe error
-        coVerify { repo.getFriends() }.wasInvoked(exactly = 1)
+        repo.getAllFriendsCallCount shouldBe 1
     }
 })
+

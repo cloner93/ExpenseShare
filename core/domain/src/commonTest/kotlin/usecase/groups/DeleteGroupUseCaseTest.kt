@@ -1,50 +1,38 @@
 package usecase.groups
 
+import fakes.FakeGroupsRepository
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.mockative.coEvery
-import io.mockative.coVerify
-import io.mockative.mock
-import io.mockative.of
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
-import repository.GroupsRepository
 
 class DeleteGroupUseCaseTest : StringSpec({
-    val repo = mock(of<GroupsRepository>())
+    val repo = FakeGroupsRepository()
     val usecase = DeleteGroupUseCase(repo)
 
     "should complete successfully when repository succeeds" {
-        // Arrange
+        repo.reset()
         val groupId = "0"
+        repo.deleteGroupResult = Result.success("Success")
 
-        coEvery { repo.deleteGroup(groupId) }
-            .returns(flowOf(Result.success(Unit)))
-
-        // Act
         val result = usecase(groupId).first()
 
-        // Assert
         result.isSuccess shouldBe true
-        result.getOrNull() shouldBe Unit
-        coVerify { repo.deleteGroup(groupId) }
-            .wasInvoked(exactly = 1)
+        result.getOrNull() shouldBe "Success"
+        repo.deleteGroupCallCount shouldBe 1
+        repo.lastDeleteGroupId shouldBe groupId
     }
+
     "should return failure when repository fails" {
-        // Arrange
+        repo.reset()
         val groupId = "0"
         val error = RuntimeException("network error")
+        repo.deleteGroupResult = Result.failure(error)
 
-        coEvery { repo.deleteGroup(groupId) }
-            .returns(flowOf(Result.failure(error)))
-
-        // Act
         val result = usecase(groupId).first()
 
-        // Assert
         result.isSuccess shouldBe false
         result.exceptionOrNull() shouldBe error
-        coVerify { repo.deleteGroup(groupId) }
-            .wasInvoked(exactly = 1)
+        repo.deleteGroupCallCount shouldBe 1
+        repo.lastDeleteGroupId shouldBe groupId
     }
 })

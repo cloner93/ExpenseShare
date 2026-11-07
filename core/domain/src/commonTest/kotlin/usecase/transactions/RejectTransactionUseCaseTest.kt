@@ -1,47 +1,43 @@
 package usecase.transactions
 
+import fakes.FakeTransactionsRepository
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.mockative.coEvery
-import io.mockative.coVerify
-import io.mockative.mock
-import io.mockative.of
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
-import repository.TransactionsRepository
 
 class RejectTransactionUseCaseTest : StringSpec({
-    val repo = mock(of<TransactionsRepository>())
+    val repo = FakeTransactionsRepository()
     val usecase = RejectTransactionUseCase(repo)
 
     "should complete successfully when repository succeeds" {
+        repo.reset()
         val groupId = "123"
         val transactionId = "1"
 
-        coEvery { repo.rejectTransaction(groupId, transactionId) }
-            .returns(flowOf(Result.success(Unit)))
+        repo.rejectTransactionResult = Result.success("Success")
 
         val result = usecase(groupId, transactionId).first()
 
         result.isSuccess shouldBe true
-        result.getOrNull() shouldBe Unit
-        coVerify { repo.rejectTransaction(groupId, transactionId) }
-            .wasInvoked(exactly = 1)
+        result.getOrNull() shouldBe "Success"
+        repo.rejectTransactionCallCount shouldBe 1
+        repo.lastRejectTransactionArgs shouldBe Pair(groupId, transactionId)
     }
 
     "should return failure when repository fails" {
+        repo.reset()
         val groupId = "123"
         val transactionId = "1"
         val error = RuntimeException("network error")
 
-        coEvery { repo.rejectTransaction(groupId, transactionId) }
-            .returns(flowOf(Result.failure(error)))
+        repo.rejectTransactionResult = Result.failure(error)
 
         val result = usecase(groupId, transactionId).first()
 
         result.isSuccess shouldBe false
         result.exceptionOrNull() shouldBe error
-        coVerify { repo.rejectTransaction(groupId, transactionId) }
-            .wasInvoked(exactly = 1)
+        repo.rejectTransactionCallCount shouldBe 1
+        repo.lastRejectTransactionArgs shouldBe Pair(groupId, transactionId)
     }
 })
+

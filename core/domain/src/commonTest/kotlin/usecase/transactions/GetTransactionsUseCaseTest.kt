@@ -1,61 +1,61 @@
 package usecase.transactions
 
+import fakes.FakeTransactionsRepository
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.mockative.coEvery
-import io.mockative.coVerify
-import io.mockative.mock
-import io.mockative.of
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
+import model.ShareDetailsRequest
 import model.Transaction
 import model.TransactionStatus
-import repository.TransactionsRepository
+import org.milad.expense_share.Amount
 
 class GetTransactionsUseCaseTest : StringSpec({
-    val repo = mock(of<TransactionsRepository>())
+    val repo = FakeTransactionsRepository()
     val usecase = GetTransactionsUseCase(repo)
 
     "should return transactions when repository succeeds" {
+        repo.reset()
         val groupId = "1"
         val transactions = listOf(
             Transaction(
                 id = 1,
                 groupId = 100,
                 title = "Dinner at Restaurant",
-                amount = 250.0,
+                amount = Amount(250),
                 description = "Team dinner with colleagues",
                 createdBy = 42,
                 status = TransactionStatus.PENDING,
-                createdAt = 0,
-                transactionDate = 0,
-                approvedBy = null
+                createdAt = 0L,
+                transactionDate = 0L,
+                approvedBy = null,
+                payers = emptyList(),
+                shareDetails = ShareDetailsRequest("Equal", emptyList())
             )
         )
 
-        coEvery { repo.getTransactions(groupId) }
-            .returns(flowOf(Result.success(transactions)))
+        repo.getTransactionsResult = Result.success(transactions)
 
         val result = usecase(groupId).first()
 
         result.isSuccess shouldBe true
         result.getOrNull() shouldBe transactions
-        coVerify { repo.getTransactions(groupId) }
-            .wasInvoked(exactly = 1)
+        repo.getTransactionsCallCount shouldBe 1
+        repo.lastGetTransactionsGroupId shouldBe groupId
     }
 
     "should return failure when repository fails" {
+        repo.reset()
         val groupId = "123"
         val error = RuntimeException("network error")
 
-        coEvery { repo.getTransactions(groupId) }
-            .returns(flowOf(Result.failure(error)))
+        repo.getTransactionsResult = Result.failure(error)
 
         val result = usecase(groupId).first()
 
         result.isSuccess shouldBe false
         result.exceptionOrNull() shouldBe error
-        coVerify { repo.getTransactions(groupId) }
-            .wasInvoked(exactly = 1)
+        repo.getTransactionsCallCount shouldBe 1
+        repo.lastGetTransactionsGroupId shouldBe groupId
     }
 })
+

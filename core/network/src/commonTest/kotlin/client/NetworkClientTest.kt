@@ -81,9 +81,10 @@ class NetworkClientTest : DescribeSpec({
                 runTest {
                     val response = client.get("/test")
 
-                    response.request.url.host shouldBe "localhost"
-                    response.request.url.port shouldBe 8080
-                    response.request.url.protocol shouldBe URLProtocol.HTTPS
+                    response.request.url.host shouldBe "127.0.0.1"
+                    response.request.url.port shouldBe 8082
+                    response.request.url.protocol shouldBe URLProtocol.HTTP
+
 //                    response.request.headers[HttpHeaders.ContentType] shouldContain "application/json"
                 }
             }

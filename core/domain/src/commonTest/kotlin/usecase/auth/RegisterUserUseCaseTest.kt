@@ -1,64 +1,49 @@
 package usecase.auth
 
+import fakes.FakeAuthRepository
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.mockative.any
-import io.mockative.coEvery
-import io.mockative.coVerify
-import io.mockative.mock
-import io.mockative.of
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import model.User
-import repository.AuthRepository
 
 class RegisterUserUseCaseTest : StringSpec({
-
-    val repo = mock(of<AuthRepository>())
+    val repo = FakeAuthRepository()
     val useCase = RegisterUserUseCase(repo)
 
     "should return user on successful register" {
-        // Arrange
+        repo.reset()
         val expectedUser = User(1, "milad", "09123456789")
-        coEvery { repo.register("09123456789", "milad", "123456") }
-            .returns(flowOf(Result.success(expectedUser)))
+        repo.registerResult = Result.success(expectedUser)
 
-        // Act
         val result = useCase("09123456789", "milad", "123456").first()
 
-        // Assert
         result.isSuccess shouldBe true
         result.getOrNull() shouldBe expectedUser
-        coVerify { repo.register("09123456789", "milad", "123456") }
-            .wasInvoked(exactly = 1)
+        repo.registerCallCount shouldBe 1
+        repo.lastRegisterPhone shouldBe "09123456789"
+        repo.lastRegisterUsername shouldBe "milad"
+        repo.lastRegisterPassword shouldBe "123456"
     }
 
     "should return failure on error from repository" {
-        // Arrange
+        repo.reset()
         val expectedException = RuntimeException("Register failed")
-        coEvery { repo.register("09123456789", "milad", "123456") }
-            .returns(flowOf(Result.failure(expectedException)))
+        repo.registerResult = Result.failure(expectedException)
 
-        // Act
         val result = useCase("09123456789", "milad", "123456").first()
 
-        // Assert
         result.isFailure shouldBe true
         result.exceptionOrNull() shouldBe expectedException
+        repo.registerCallCount shouldBe 1
     }
 
     "should call repository with correct parameters" {
-        // Arrange
-        coEvery { repo.register(any(), any(), any()) } returns flowOf(
-            Result.success(User(1, "milad", "09123456789"))
-        )
+        repo.reset()
+        useCase("09123456789", "milad", "123456").first()
 
-        // Act
-        useCase("09123456789", "milad", "123456")
-
-        // Assert
-        coVerify { repo.register("09123456789", "milad", "123456") }
-            .wasInvoked(atLeast = 1)
+        repo.registerCallCount shouldBe 1
+        repo.lastRegisterPhone shouldBe "09123456789"
+        repo.lastRegisterUsername shouldBe "milad"
+        repo.lastRegisterPassword shouldBe "123456"
     }
-
 })

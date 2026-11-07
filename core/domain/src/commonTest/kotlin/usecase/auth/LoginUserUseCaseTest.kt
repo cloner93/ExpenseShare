@@ -1,64 +1,48 @@
 package usecase.auth
 
+import fakes.FakeAuthRepository
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.mockative.any
-import io.mockative.coEvery
-import io.mockative.coVerify
-import io.mockative.mock
-import io.mockative.of
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import model.User
-import repository.AuthRepository
 
 class LoginUserUseCaseTest : StringSpec({
-
-    val repo = mock(of<AuthRepository>())
+    val repo = FakeAuthRepository()
     val useCase = LoginUserUseCase(repo)
 
     "should return user on successful login" {
-        // Arrange
+        repo.reset()
         val expectedUser = User(1, "milad", "09123456789")
-        coEvery { repo.login("09123456789", "123456") }
-            .returns(flowOf(Result.success(expectedUser)))
+        repo.loginResult = Result.success(expectedUser)
 
-        // Act
         val result = useCase("09123456789", "123456").first()
 
-        // Assert
         result.isSuccess shouldBe true
         result.getOrNull() shouldBe expectedUser
-        coVerify { repo.login("09123456789", "123456") }
-            .wasInvoked(atLeast = 1)
+        repo.loginCallCount shouldBe 1
+        repo.lastLoginPhone shouldBe "09123456789"
+        repo.lastLoginPassword shouldBe "123456"
     }
 
     "should return failure on login error" {
-        // Arrange
+        repo.reset()
         val expectedException = RuntimeException("Login failed")
-        coEvery { repo.login("09123456789", "123456") }
-            .returns(flowOf(Result.failure(expectedException)))
+        repo.loginResult = Result.failure(expectedException)
 
-        // Act
         val result = useCase("09123456789", "123456").first()
 
-        // Assert
         result.isFailure shouldBe true
         result.exceptionOrNull() shouldBe expectedException
+        repo.loginCallCount shouldBe 1
     }
 
     "should call repository with correct parameters" {
-        // Arrange
-        coEvery { repo.login(any(), any()) } returns flow {
-            emit(Result.success(User(1, "milad", "09123456789")))
-        }
+        repo.reset()
+        useCase("09123456789", "123456").first()
 
-        // Act
-        useCase("09123456789", "123456")
-
-        // Assert
-        coVerify { repo.login("09123456789", "123456") }
-            .wasInvoked(atLeast = 1)
+        repo.loginCallCount shouldBe 1
+        repo.lastLoginPhone shouldBe "09123456789"
+        repo.lastLoginPassword shouldBe "123456"
     }
 })
+

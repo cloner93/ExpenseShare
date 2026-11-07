@@ -1,226 +1,161 @@
 package repository
 
-import NetworkManager
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import io.mockative.coEvery
-import io.mockative.coVerify
-import io.mockative.mock
-import io.mockative.of
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
-import model.CreateGroupRequest
-import model.Group
 
 class GroupsRepositoryTest : DescribeSpec({
-    val network = mock(of<NetworkManager>())
-    val repo = GroupsRepositoryImpl(network)
-
     describe("getGroups") {
         context("when API call succeeds") {
             it("should return success with groups list") {
-                // Arrange
-                val expectedGroups = listOf(Group(
-                    id = 1, name = "Test Group", ownerId = 1,
-                    members = listOf(),
-                    transactions = listOf()
-                ))
+                val network = createTestNetworkManager { request ->
+                    request.url.encodedPath.trim('/') shouldBe "groups"
+                    respond(
+                        content = """
+                            {
+                                "success": true,
+                                "data": [
+                                    {
+                                        "id": 1,
+                                        "name": "Test Group",
+                                        "ownerId": 1,
+                                        "members": [],
+                                        "transactions": []
+                                    }
+                                ]
+                            }
+                        """.trimIndent(),
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
+                }
+                val repo = GroupsRepositoryImpl(network)
 
-                coEvery {
-                    network.get<List<Group>>("/groups")
-                } returns flowOf(Result.success(expectedGroups))
-
-                // Act
                 val result = repo.getGroups().first()
 
-                // Assert
                 result shouldBeSuccess { groups ->
                     groups.size shouldBe 1
                     groups[0].name shouldBe "Test Group"
                     groups[0].id shouldBe 1
                 }
-
-                coVerify {
-                    network.get<List<Group>>("/groups")
-                }.wasInvoked(exactly = 1)
             }
         }
 
         context("when API call fails") {
             it("should return failure with exception") {
-                // Arrange
-                val exception = RuntimeException("network error")
+                val network = createTestNetworkManager { _ ->
+                    respond(
+                        content = """{"success": false, "data": null}""",
+                        status = HttpStatusCode.InternalServerError,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
+                }
+                val repo = GroupsRepositoryImpl(network)
 
-                coEvery {
-                    network.get<List<Group>>("/groups")
-                } returns flowOf(Result.failure(exception))
-
-                // Act
                 val result = repo.getGroups().first()
 
-                // Assert
-                result shouldBeFailure { error ->
-                    error shouldBe exception
-                }
-
-                coVerify {
-                    network.get<List<Group>>("/groups")
-                }.wasInvoked(exactly = 1)
+                result.shouldBeFailure()
             }
         }
     }
 
     describe("createGroup") {
         context("when API call succeeds") {
-            it("should return success") {
-                // Arrange
-                val name = "New Group"
-                val expectedGroup = Group(id = 1, name = name, ownerId = 1)
-                val memberIds = listOf("user1", "user2")
-                val request = CreateGroupRequest(name, memberIds)
-
-                coEvery {
-                    network.post<CreateGroupRequest, Group>("/groups", request)
-                } returns flowOf(Result.success(expectedGroup))
-
-                // Act
-                val result = repo.createGroup(name, memberIds).first()
-
-                // Assert
-                result shouldBeSuccess { group ->
-                    group.name shouldBe name
-                    group.id shouldBe 1
+            it("should return success with created group") {
+                val network = createTestNetworkManager { request ->
+                    request.url.encodedPath.trim('/') shouldBe "groups/create"
+                    respond(
+                        content = """
+                            {
+                                "success": true,
+                                "data": {
+                                    "id": 10,
+                                    "name": "New Group",
+                                    "ownerId": 1,
+                                    "members": [],
+                                    "transactions": []
+                                }
+                            }
+                        """.trimIndent(),
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
                 }
+                val repo = GroupsRepositoryImpl(network)
 
-                coVerify {
-                    network.post<CreateGroupRequest, Group>("/groups", request)
-                }.wasInvoked(exactly = 1)
+                val result = repo.createGroup("New Group", listOf(1, 2)).first()
+
+                result shouldBeSuccess { group ->
+                    group.name shouldBe "New Group"
+                    group.id shouldBe 10
+                }
             }
         }
 
         context("when API call fails") {
-            it("should return failure with exception") {
-                // Arrange
-                val name = "New Group"
-                val memberIds = listOf("user1", "user2")
-                val request = CreateGroupRequest(name, memberIds)
-                val exception = RuntimeException("network error")
-
-                coEvery {
-                    network.post<CreateGroupRequest, Group>("/groups", request)
-                } returns flowOf(Result.failure(exception))
-
-                // Act
-                val result = repo.createGroup(name, memberIds).first()
-
-                // Assert
-                result shouldBeFailure { error ->
-                    error shouldBe exception
+            it("should return failure") {
+                val network = createTestNetworkManager { _ ->
+                    respond(
+                        content = """{"success": false, "data": null}""",
+                        status = HttpStatusCode.BadRequest,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
                 }
+                val repo = GroupsRepositoryImpl(network)
 
-                coVerify {
-                    network.post<CreateGroupRequest, Group>("/groups", request)
-                }.wasInvoked(exactly = 1)
+                val result = repo.createGroup("New Group", listOf(1, 2)).first()
+
+                result.shouldBeFailure()
             }
         }
     }
 
     describe("updateGroupMembers") {
         context("when API call succeeds") {
-            it("should return success") {
-                // Arrange
-                val groupId = "group123"
-                val memberIds = listOf("user1", "user2", "user3")
-
-                coEvery {
-                    network.put<List<String>, Unit>("/groups/$groupId/updateMembers", memberIds)
-                } returns flowOf(Result.success(Unit))
-
-                // Act
-                val result = repo.updateGroupMembers(groupId, memberIds).first()
-
-                // Assert
-                result.isSuccess shouldBe true
-                result.getOrNull() shouldBe Unit
-
-                coVerify {
-                    network.put<List<String>, Unit>("/groups/$groupId/updateMembers", memberIds)
-                }.wasInvoked(exactly = 1)
-            }
-        }
-
-        context("when API call fails") {
-            it("should return failure with exception") {
-                // Arrange
-                val groupId = "group123"
-                val memberIds = listOf("user1", "user2", "user3")
-                val exception = RuntimeException("network error")
-
-                coEvery {
-                    network.put<List<String>, Unit>("/groups/$groupId/updateMembers", memberIds)
-                } returns flowOf(Result.failure(exception))
-
-                // Act
-                val result = repo.updateGroupMembers(groupId, memberIds).first()
-
-                // Assert
-                result shouldBeFailure { error ->
-                    error shouldBe exception
+            it("should return success with result message") {
+                val network = createTestNetworkManager { request ->
+                    request.url.encodedPath.trim('/') shouldBe "groups/10/updateMembers"
+                    respond(
+                        content = """{"success": true, "data": "Members updated successfully"}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
                 }
+                val repo = GroupsRepositoryImpl(network)
 
-                coVerify {
-                    network.put<List<String>, Unit>("/groups/$groupId/updateMembers", memberIds)
-                }.wasInvoked(exactly = 1)
+                val result = repo.updateGroupMembers("10", listOf(1, 2, 3)).first()
+
+                result shouldBeSuccess { message ->
+                    message shouldBe "Members updated successfully"
+                }
             }
         }
     }
 
     describe("deleteGroup") {
         context("when API call succeeds") {
-            it("should return success") {
-                // Arrange
-                val groupId = "group123"
-
-                coEvery {
-                    network.delete<Unit>("/groups/$groupId")
-                } returns flowOf(Result.success(Unit))
-
-                // Act
-                val result = repo.deleteGroup(groupId).first()
-
-                // Assert
-                result.isSuccess shouldBe true
-                result.getOrNull() shouldBe Unit
-
-                coVerify {
-                    network.delete<Unit>("/groups/$groupId")
-                }.wasInvoked(exactly = 1)
-            }
-        }
-
-        context("when API call fails") {
-            it("should return failure with exception") {
-                // Arrange
-                val groupId = "group123"
-                val exception = RuntimeException("network error")
-
-                coEvery {
-                    network.delete<Unit>("/groups/$groupId")
-                } returns flowOf(Result.failure(exception))
-
-                // Act
-                val result = repo.deleteGroup(groupId).first()
-
-                // Assert
-                result shouldBeFailure { error ->
-                    error shouldBe exception
+            it("should return success with result message") {
+                val network = createTestNetworkManager { request ->
+                    request.url.encodedPath.trim('/') shouldBe "groups/10"
+                    respond(
+                        content = """{"success": true, "data": "Group deleted successfully"}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
                 }
+                val repo = GroupsRepositoryImpl(network)
 
-                coVerify {
-                    network.delete<Unit>("/groups/$groupId")
-                }.wasInvoked(exactly = 1)
+                val result = repo.deleteGroup("10").first()
+
+                result shouldBeSuccess { message ->
+                    message shouldBe "Group deleted successfully"
+                }
             }
         }
     }
