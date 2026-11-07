@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import model.FriendRelationStatus
 import model.Group
 import model.Settlement
+import model.SettlementStatus
 import model.Transaction
 import model.TransactionStatus
 import model.User
@@ -16,7 +17,10 @@ import org.milad.expense_share.dashboard.group.components.GroupTab
 import usecase.friends.GetAllFriendsUseCase
 import usecase.groups.DeleteGroupUseCase
 import usecase.groups.UpdateGroupMembersUseCase
+import usecase.settlement.ConfirmSettlementUseCase
+import usecase.settlement.DisputeSettlementUseCase
 import usecase.settlement.GetSettlementUseCase
+import usecase.settlement.PaySettlementUseCase
 import usecase.transactions.ApproveTransactionUseCase
 import usecase.transactions.DeleteTransactionUseCase
 import usecase.transactions.RejectTransactionUseCase
@@ -34,6 +38,9 @@ class GroupDetailViewModel(
     private val updateGroupUseCase: UpdateGroupMembersUseCase,
     private val getAllFriendsUseCase: GetAllFriendsUseCase,
     private val getSettlementUseCase: GetSettlementUseCase,
+    private val paySettlementUseCase: PaySettlementUseCase,
+    private val confirmSettlementUseCase: ConfirmSettlementUseCase,
+    private val disputeSettlementUseCase: DisputeSettlementUseCase,
 ) : BaseViewModel<GroupDetailAction, GroupDetailState, GroupDetailEvent>(
     initialState = GroupDetailState(
         selectedGroup = initialGroup,
@@ -92,8 +99,15 @@ class GroupDetailViewModel(
                 setState { it.copy(selectedGroup = action.group) }
             }
 
-            is GroupDetailAction.ShowHelp -> TODO("Not yet implemented")
-            is GroupDetailAction.RenameGroup -> TODO("Not yet implemented")
+            is GroupDetailAction.PaySettlement -> paySettlement(action.settlement)
+            is GroupDetailAction.ConfirmSettlement -> confirmSettlement(action.settlement)
+            is GroupDetailAction.DisputeSettlement -> disputeSettlement(action.settlement)
+            is GroupDetailAction.ShowHelp -> {
+                // Safe no-op in v1.0 release; prevents NotImplementedError crash
+            }
+            is GroupDetailAction.RenameGroup -> {
+                // Rename group is disabled in v1.0 release; prevents NotImplementedError crash
+            }
         }
     }
 
@@ -302,6 +316,69 @@ class GroupDetailViewModel(
             }
         }
     }
+
+    private fun paySettlement(settlement: Settlement) {
+        viewModelScope.launch {
+            setState { it.copy(isLoading = true, error = null) }
+            paySettlementUseCase(viewState.value.selectedGroup.id, settlement.id).collect { result ->
+                result.onSuccess {
+                    setState { state ->
+                        state.copy(
+                            isLoading = false,
+                            settlement = state.settlement.map { item ->
+                                if (item.id == settlement.id) item.copy(status = SettlementStatus.PAID) else item
+                            }
+                        )
+                    }
+                    loadGroupSettlement(viewState.value.selectedGroup.id)
+                }.onFailure { e ->
+                    setState { it.copy(isLoading = false, error = e) }
+                }
+            }
+        }
+    }
+
+    private fun confirmSettlement(settlement: Settlement) {
+        viewModelScope.launch {
+            setState { it.copy(isLoading = true, error = null) }
+            confirmSettlementUseCase(viewState.value.selectedGroup.id, settlement.id).collect { result ->
+                result.onSuccess {
+                    setState { state ->
+                        state.copy(
+                            isLoading = false,
+                            settlement = state.settlement.map { item ->
+                                if (item.id == settlement.id) item.copy(status = SettlementStatus.CONFIRMED) else item
+                            }
+                        )
+                    }
+                    loadGroupSettlement(viewState.value.selectedGroup.id)
+                }.onFailure { e ->
+                    setState { it.copy(isLoading = false, error = e) }
+                }
+            }
+        }
+    }
+
+    private fun disputeSettlement(settlement: Settlement) {
+        viewModelScope.launch {
+            setState { it.copy(isLoading = true, error = null) }
+            disputeSettlementUseCase(viewState.value.selectedGroup.id, settlement.id).collect { result ->
+                result.onSuccess {
+                    setState { state ->
+                        state.copy(
+                            isLoading = false,
+                            settlement = state.settlement.map { item ->
+                                if (item.id == settlement.id) item.copy(status = SettlementStatus.PENDING) else item
+                            }
+                        )
+                    }
+                    loadGroupSettlement(viewState.value.selectedGroup.id)
+                }.onFailure { e ->
+                    setState { it.copy(isLoading = false, error = e) }
+                }
+            }
+        }
+    }
 }
 
 sealed interface GroupDetailAction : BaseViewAction {
@@ -313,6 +390,10 @@ sealed interface GroupDetailAction : BaseViewAction {
     data class RejectTransaction(val transactionId: String) : GroupDetailAction
     data class EditTransaction(val transactionId: String) : GroupDetailAction
     data class DeleteTransaction(val transactionId: String) : GroupDetailAction
+
+    data class PaySettlement(val settlement: Settlement) : GroupDetailAction
+    data class ConfirmSettlement(val settlement: Settlement) : GroupDetailAction
+    data class DisputeSettlement(val settlement: Settlement) : GroupDetailAction
 
     data object ShowMemberSheet : GroupDetailAction
     data object ShowDeleteGroupDialog : GroupDetailAction

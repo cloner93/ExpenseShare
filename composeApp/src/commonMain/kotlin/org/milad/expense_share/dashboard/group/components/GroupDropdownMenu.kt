@@ -62,7 +62,6 @@ fun GroupDropdownMenu(
                 leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
                 onClick = {
                     expanded = false
-                    // TODO: Implement rename
                 }
             )
 
@@ -81,7 +80,6 @@ fun GroupDropdownMenu(
             },
             onClick = {
                 expanded = false
-                // TODO: Implement help
             }
         )
     }

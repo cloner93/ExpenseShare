@@ -66,7 +66,13 @@ fun SettlementScreen(
                     )
                 }
                 items(state.settlement) { item ->
-                    SettlementListItem(item = item, currentUserId = state.currentUser.id)
+                    SettlementListItem(
+                        item = item,
+                        currentUserId = state.currentUser.id,
+                        onPayClick = { onAction(GroupDetailAction.PaySettlement(it)) },
+                        onApproveClick = { onAction(GroupDetailAction.ConfirmSettlement(it)) },
+                        onRejectClick = { onAction(GroupDetailAction.DisputeSettlement(it)) }
+                    )
                 }
             }
         } else {

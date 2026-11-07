@@ -28,7 +28,10 @@ import usecase.groups.CreateGroupUseCase
 import usecase.groups.DeleteGroupUseCase
 import usecase.groups.GetGroupsUseCase
 import usecase.groups.UpdateGroupMembersUseCase
+import usecase.settlement.ConfirmSettlementUseCase
+import usecase.settlement.DisputeSettlementUseCase
 import usecase.settlement.GetSettlementUseCase
+import usecase.settlement.PaySettlementUseCase
 import usecase.transactions.ApproveTransactionUseCase
 import usecase.transactions.CreateTransactionUseCase
 import usecase.transactions.DeleteTransactionUseCase
@@ -62,6 +65,9 @@ val domainModule = module {
     factory { DeleteGroupUseCase(get()) }
     factory { UpdateGroupMembersUseCase(get()) }
     factory { GetSettlementUseCase(get()) }
+    factory { PaySettlementUseCase(get()) }
+    factory { ConfirmSettlementUseCase(get()) }
+    factory { DisputeSettlementUseCase(get()) }
 
     includes(friendUseCasesModule)
 
@@ -85,6 +91,9 @@ val dashboardModule = module {
 
     viewModel {
         GroupDetailViewModel(
+            get(),
+            get(),
+            get(),
             get(),
             get(),
             get(),
