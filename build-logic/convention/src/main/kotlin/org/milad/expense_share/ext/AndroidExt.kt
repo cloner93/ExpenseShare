@@ -18,21 +18,23 @@ internal fun Project.configureAndroidCommon(
         }
 
         compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_21
-            targetCompatibility = JavaVersion.VERSION_21
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
         }
 
         lint {
             abortOnError = false
             checkReleaseBuilds = false
         }
+
+        // Release stability requirement (R4): isMinifyEnabled = false configured in application & library convention plugins
     }
 }
 
 internal fun Project.configureKotlinJvmTarget() {
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
+            jvmTarget.set(JvmTarget.JVM_17)
             freeCompilerArgs.addAll(
                 "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
                 "-opt-in=kotlinx.coroutines.FlowPreview",

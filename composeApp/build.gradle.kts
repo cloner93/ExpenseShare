@@ -34,6 +34,11 @@ kotlin {
             implementation(projects.core.navigation)
             implementation(projects.core.currency)
             implementation(projects.core.logger)
+            implementation(projects.core.network)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.auth)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

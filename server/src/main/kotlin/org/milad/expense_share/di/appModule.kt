@@ -18,5 +18,5 @@ val appModule = module {
     single { GroupService(get(), get(), get()) }
     single { SettlementService(get(), get(), get(), get()) }
     single { TransactionService(get(), get()) }
-
+    single { org.milad.expense_share.a2ui.ExpenseShareA2uiAgent() }
 }

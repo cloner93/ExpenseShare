@@ -17,6 +17,7 @@ androidx-activity = "1.10.1"
 androidx-lifecycle = "2.9.1"
 androidx-testExt = "1.2.1"
 androidx-espresso = "3.6.1"
+androidx-a2ui = "1.0.0-alpha01"
 
 # ── Compose ───────────────────────────────────────────────────────────────────
 composeMultiplatform = "1.9.1"
@@ -74,6 +75,11 @@ androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecyc
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-testExt-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-testExt" }
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-espresso" }
+androidx-a2ui-model = { module = "androidx.a2ui:a2ui-model", version.ref = "androidx-a2ui" }
+androidx-a2ui-engine = { module = "androidx.a2ui:a2ui-engine", version.ref = "androidx-a2ui" }
+androidx-a2ui-compose-ui = { module = "androidx.a2ui.compose:compose-ui", version.ref = "androidx-a2ui" }
+androidx-a2ui-compose-runtime = { module = "androidx.a2ui.compose:compose-runtime", version.ref = "androidx-a2ui" }
+androidx-compose-material3-a2ui = { module = "androidx.compose.material3:material3-a2ui", version.ref = "androidx-a2ui" }
 
 # ── Coroutines ────────────────────────────────────────────────────────────────
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
@@ -200,6 +206,15 @@ compose-adaptive = [
 kotlinx-coroutines = [
     "kotlinx-coroutines-core",
     "kotlinx-coroutines-test",
+]
+
+# ── Compose A2UI ─────────────────────────────────────────────────────────────
+a2ui = [
+    "androidx-a2ui-model",
+    "androidx-a2ui-engine",
+    "androidx-a2ui-compose-ui",
+    "androidx-a2ui-compose-runtime",
+    "androidx-compose-material3-a2ui",
 ]
 # ─────────────────────────────────────────────────────────────────────────────
 [plugins]

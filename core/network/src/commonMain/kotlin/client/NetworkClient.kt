@@ -1,5 +1,6 @@
 package client
 
+import getDefaultBaseUrl
 import getKtorEngine
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
@@ -19,11 +20,12 @@ import plugin.installErrorHandler
 import token.TokenProvider
 
 data class HttpConfig(
-    val baseUrl: String = "http://192.168.0.3:8082/",
+    val baseUrl: String = getDefaultBaseUrl(),
     val timeoutMillis: Long = 15000,
     val isDebug: Boolean = true,
     val refreshTokenEndpoint: String = "/auth/refresh", // FIXME
 )
+
 
 fun createHttpClient(
     tokenProvider: TokenProvider,

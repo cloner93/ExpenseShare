@@ -12,6 +12,8 @@ import org.milad.expense_share.presentation.auth.authRoutes
 import org.milad.expense_share.presentation.friends.friendRoutes
 import org.milad.expense_share.presentation.groups.groupsRoutes
 import org.milad.expense_share.presentation.settlement.settlementRoutes
+import org.milad.expense_share.a2ui.ExpenseShareA2uiAgent
+import org.milad.expense_share.a2ui.a2uiRoutes
 import org.milad.expense_share.presentation.transactions.transactionsRoutes
 
 internal fun Application.configureRouting() {
@@ -20,6 +22,7 @@ internal fun Application.configureRouting() {
     val settlementService by inject<SettlementService>()
     val transactionService by inject<TransactionService>()
     val friendsService by inject<FriendsService>()
+    val a2uiAgent by inject<ExpenseShareA2uiAgent>()
 
     routing {
         authRoutes(authService)
@@ -27,5 +30,6 @@ internal fun Application.configureRouting() {
         settlementRoutes(settlementService)
         transactionsRoutes(transactionService)
         friendRoutes(friendsService)
+        a2uiRoutes(a2uiAgent)
     }
 }
