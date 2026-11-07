@@ -15,4 +15,9 @@ application {
 
 dependencies {
     implementation(projects.core.currency)
+    testImplementation("io.mockk:mockk:1.13.12")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

@@ -5,17 +5,13 @@ import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.every
-import io.mockk.justRun
-import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
+import io.mockk.*
 import org.milad.expense_share.Amount
 import org.milad.expense_share.data.models.Settlement
 import org.milad.expense_share.data.models.Transaction
 import org.milad.expense_share.data.models.TransactionStatus
 import org.milad.expense_share.data.models.User
-import org.milad.expense_share.domain.model.SettlementStatus
+import org.milad.expense_share.data.models.SettlementStatus
 import org.milad.expense_share.domain.repository.GroupRepository
 import org.milad.expense_share.domain.repository.SettlementRepository
 import org.milad.expense_share.domain.repository.TransactionRepository
@@ -232,7 +228,7 @@ class SettlementServiceTest : DescribeSpec({
                 }
             }
             it("replaceAll should not be called") {
-                verify(exactly = 0) { settlementRepository.replaceAll(any(), any()) }
+                verify(exactly = 0) { settlementRepository.replaceAll(groupId, any()) }
             }
         }
     }
@@ -294,7 +290,7 @@ class SettlementServiceTest : DescribeSpec({
                 }
             }
             it("settlementRepository should not be called") {
-                verify(exactly = 0) { settlementRepository.getByGroup(any()) }
+                verify(exactly = 0) { settlementRepository.getByGroup(groupId) }
             }
         }
     }
