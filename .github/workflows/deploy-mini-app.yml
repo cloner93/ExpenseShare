@@ -35,6 +35,9 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Clean host-specific properties for CI
+        run: sed -i '/org.gradle.java.home/d' gradle.properties 2>/dev/null || true
+
       - name: Build Web / Wasm Distribution
         run: ./gradlew :composeApp:wasmJsBrowserDistribution --no-daemon
 
