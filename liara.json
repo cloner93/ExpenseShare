@@ -1,0 +1,5 @@
+{
+  "app": "expenseshare-server",
+  "port": 8082,
+  "platform": "docker"
+}

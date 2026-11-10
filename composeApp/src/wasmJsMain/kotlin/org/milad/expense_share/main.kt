@@ -14,8 +14,9 @@ fun main() {
         modules(appModules)
     }
 
-    ComposeViewport(document.body!!) {
+    document.getElementById("loading-container")?.remove()
 
+    ComposeViewport(document.body!!) {
         AppEntryPoint()
     }
 }

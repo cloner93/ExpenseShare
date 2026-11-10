@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: expenseshare-server
+    runtime: docker
+    dockerfilePath: server/Dockerfile
+    plan: free
+    region: frankfurt
+    envVars:
+      - key: PORT
+        value: 8082
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true

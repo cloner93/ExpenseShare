@@ -26,3 +26,5 @@ composeApp/src/commonMain/composeResources/files/kotzilla.key
 /graphify-out
 /.agents
 /test-results
+
+server-dist/

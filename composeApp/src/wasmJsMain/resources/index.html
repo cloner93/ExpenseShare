@@ -1,12 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
     <title>ExpenseShare</title>
     <link href="styles.css" rel="stylesheet" type="text/css">
+    <!-- Telegram Mini App Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        if (window.Telegram && window.Telegram.WebApp) {
+            try {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+            } catch (e) {
+                console.warn("Telegram WebApp init error:", e);
+            }
+        }
+    </script>
     <script src="composeApp.js" type="application/javascript"></script>
 </head>
 <body>
+    <div id="loading-container">
+        <div class="spinner"></div>
+        <div class="loading-text">ExpenseShare</div>
+    </div>
 </body>
 </html>

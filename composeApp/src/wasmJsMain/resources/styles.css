@@ -1,7 +1,66 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #1a1a1a;
+    --primary-color: #2481cc;
+    --secondary-text-color: #707579;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #17212b;
+        --text-color: #ffffff;
+        --secondary-text-color: #7f91a4;
+    }
+}
+
 html, body {
     width: 100%;
     height: 100%;
     margin: 0;
     padding: 0;
     overflow: hidden;
+    background-color: var(--tg-theme-bg-color, var(--bg-color));
+    color: var(--tg-theme-text-color, var(--text-color));
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    touch-action: pan-x pan-y;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#loading-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--tg-theme-bg-color, var(--bg-color));
+    z-index: 9999;
+    transition: opacity 0.3s ease;
+}
+
+.spinner {
+    width: 44px;
+    height: 44px;
+    border: 3px solid rgba(128, 128, 128, 0.2);
+    border-radius: 50%;
+    border-top-color: var(--tg-theme-button-color, var(--primary-color));
+    animation: spin 0.9s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+}
+
+.loading-text {
+    margin-top: 16px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--tg-theme-text-color, var(--text-color));
+    letter-spacing: 0.3px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

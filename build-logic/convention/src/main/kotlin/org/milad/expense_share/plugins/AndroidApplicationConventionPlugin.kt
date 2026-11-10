@@ -26,6 +26,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             buildTypes {
                 release {
                     isMinifyEnabled = false
+                    signingConfig = signingConfigs.getByName("debug")
                 }
             }
 

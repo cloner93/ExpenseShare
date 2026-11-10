@@ -1,0 +1,104 @@
+name: Build & Release Multiplatform Clients
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for release (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-android-and-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build Android Release APK
+        run: ./gradlew :composeApp:assembleRelease --no-daemon
+
+      - name: Build Linux DEB Package
+        run: ./gradlew :composeApp:packageDeb --no-daemon
+
+      - name: Prepare Artifacts
+        run: |
+          mkdir -p release-artifacts
+          TAG="${{ github.ref_name || github.event.inputs.tag_name }}"
+          cp composeApp/build/outputs/apk/release/composeApp-release.apk release-artifacts/ExpenseShare-${TAG}.apk
+          find composeApp/build/compose/binaries/main/deb -name "*.deb" -exec cp {} release-artifacts/ \; 2>/dev/null || true
+
+      - name: Upload Linux & Android Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-linux-packages
+          path: release-artifacts/*
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build macOS DMG Package
+        run: ./gradlew :composeApp:packageDmg --no-daemon
+
+      - name: Prepare macOS Artifacts
+        run: |
+          mkdir -p macos-artifacts
+          find composeApp/build/compose/binaries/main/dmg -name "*.dmg" -exec cp {} macos-artifacts/ \; 2>/dev/null || true
+
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-package
+          path: macos-artifacts/*
+
+  publish-release:
+    needs: [build-android-and-linux, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded-artifacts
+          merge-multiple: true
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: downloaded-artifacts/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          tag_name: ${{ github.ref_name || github.event.inputs.tag_name }}
