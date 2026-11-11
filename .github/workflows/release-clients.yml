@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag name for release (e.g. v1.0.0)'
+        description: 'Tag name for release (e.g. v1.0.1)'
         required: true
-        default: 'v1.0.0'
+        default: 'v1.0.1'
 
 permissions:
   contents: write
@@ -45,7 +45,7 @@ jobs:
       - name: Prepare Artifacts
         run: |
           mkdir -p release-artifacts
-          TAG="${{ github.ref_name || github.event.inputs.tag_name }}"
+          TAG="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name || github.ref_name }}"
           cp composeApp/build/outputs/apk/release/composeApp-release.apk release-artifacts/ExpenseShare-${TAG}.apk
           find composeApp/build/compose/binaries/main/deb -name "*.deb" -exec cp {} release-artifacts/ \; 2>/dev/null || true
 
@@ -87,8 +87,42 @@ jobs:
           name: macos-package
           path: macos-artifacts/*
 
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Clean host-specific properties for CI
+        shell: bash
+        run: sed -i '/org.gradle.java.home/d' gradle.properties 2>/dev/null || true
+
+      - name: Build Windows MSI Package
+        run: ./gradlew :composeApp:packageMsi --no-daemon
+
+      - name: Prepare Windows Artifacts
+        shell: bash
+        run: |
+          mkdir -p windows-artifacts
+          find composeApp/build/compose/binaries/main/msi -name "*.msi" -exec cp {} windows-artifacts/ \; 2>/dev/null || true
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-package
+          path: windows-artifacts/*
+
   publish-release:
-    needs: [build-android-and-linux, build-macos]
+    needs: [build-android-and-linux, build-macos, build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -107,4 +141,4 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-          tag_name: ${{ github.ref_name || github.event.inputs.tag_name }}
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name || github.ref_name }}
