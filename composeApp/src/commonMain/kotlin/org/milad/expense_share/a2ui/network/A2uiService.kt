@@ -43,6 +43,7 @@ class A2uiService {
     }
 
     private val candidateHosts = listOf(
+        "https://expenseshare-server.liara.run",
         "http://10.0.2.2:8082",
         "http://127.0.0.1:8082",
         "http://localhost:8082"
