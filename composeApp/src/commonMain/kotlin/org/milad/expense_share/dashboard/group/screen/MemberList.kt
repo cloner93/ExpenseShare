@@ -26,11 +26,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.pmb.common.theme.AppTheme
 import com.pmb.common.ui.emptyState.EmptyListState
-import expenseshare.composeapp.generated.resources.Res
-import expenseshare.composeapp.generated.resources.paris
 import model.Group
 import model.User
-import org.jetbrains.compose.resources.painterResource
+import org.milad.expense_share.components.UserAvatar
 import org.milad.expense_share.friends.friendsList.upperFirstChar
 
 @Composable
@@ -78,13 +76,10 @@ private fun MemberRow(
                 .padding(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(Res.drawable.paris),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CardDefaults.shape),
-                contentScale = ContentScale.Crop
+            UserAvatar(
+                name = user.username,
+                size = 40.dp,
+                shape = CardDefaults.shape,
             )
 
             Column(

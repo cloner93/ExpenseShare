@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.pmb.common.theme.AppTheme
 import expenseshare.composeapp.generated.resources.*
 import kotlinx.coroutines.launch
+import org.milad.expense_share.components.UserAvatar
 import model.User
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
@@ -251,13 +252,10 @@ private fun MemberRow(user: User, onDeleteClick: () -> Unit) {
                 .padding(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(Res.drawable.paris),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CardDefaults.shape),
-                contentScale = ContentScale.Crop
+            UserAvatar(
+                name = user.username,
+                size = 40.dp,
+                shape = CardDefaults.shape,
             )
 
             Column(
@@ -300,13 +298,10 @@ fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> Unit) {
                 .padding(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(Res.drawable.paris),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CardDefaults.shape),
-                contentScale = ContentScale.Crop
+            UserAvatar(
+                name = user.username,
+                size = 40.dp,
+                shape = CardDefaults.shape,
             )
 
             Column(

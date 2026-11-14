@@ -43,7 +43,6 @@ fun FriendBalanceHeader(
     friend: User,
     balance: FriendBalance,
     onSettleUp: () -> Unit,
-    onSendReminder: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -133,18 +132,6 @@ fun FriendBalanceHeader(
                             color = MaterialTheme.colorScheme.tertiary,
                             fontWeight = FontWeight.Bold
                         )
-                        
-                        Spacer(Modifier.height(16.dp))
-                        
-                        Button(
-                            onClick = onSendReminder,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                            )
-                        ) {
-                            Text("Send Reminder")
-                        }
                     }
                 }
                 balance.isOwing -> {
@@ -235,8 +222,7 @@ fun FriendBalanceHeaderPreview_Settled() {
                     totalOwe = Amount(0),
                     netBalance = Amount(0)
                 ),
-                onSettleUp = {},
-                onSendReminder = {}
+                onSettleUp = {}
             )
         }
     }
@@ -254,8 +240,7 @@ fun FriendBalanceHeaderPreview_Owed() {
                     totalOwe = Amount(200000),
                     netBalance = Amount(300000)
                 ),
-                onSettleUp = {},
-                onSendReminder = {}
+                onSettleUp = {}
             )
         }
     }
@@ -273,8 +258,7 @@ fun FriendBalanceHeaderPreview_Owing() {
                     totalOwe = Amount(400000),
                     netBalance = Amount(-250000)
                 ),
-                onSettleUp = {},
-                onSendReminder = {}
+                onSettleUp = {}
             )
         }
     }

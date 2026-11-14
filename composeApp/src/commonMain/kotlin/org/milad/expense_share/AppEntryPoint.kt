@@ -2,13 +2,18 @@ package org.milad.expense_share
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.milad.navigation.RootRoute
 import com.pmb.common.theme.AppTheme
+import com.pmb.common.theme.ThemeMode
+import com.pmb.common.theme.ThemeStateHolder
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 import org.koin.core.context.startKoin
@@ -22,12 +27,19 @@ import token.TokenProvider
 fun AppEntryPoint(
     tokenProvider: TokenProvider = koinInject(),
     userRepository: UserRepository = koinInject(),
+    themeStateHolder: ThemeStateHolder = koinInject(),
 ) {
     val isAuthenticated = remember { tokenProvider.getToken() != null }
     val startDestination = if (isAuthenticated) RootRoute.Main else RootRoute.Auth
     val navController = rememberNavController()
+    val themeMode by themeStateHolder.themeMode.collectAsState()
+    val darkTheme = when (themeMode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
 
-    AppTheme {
+    AppTheme(darkTheme = darkTheme) {
         NavHost(
             navController = navController,
             startDestination = startDestination,

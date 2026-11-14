@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "org.milad.expense_share"
-version = "1.0.0"
+version = "1.0.2"
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")

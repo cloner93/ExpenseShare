@@ -664,12 +664,10 @@ private fun FriendSelectionRow(user: User, isSelected: Boolean, onToggle: () -> 
             modifier = Modifier.fillMaxWidth().padding(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(Res.drawable.paris),
-                contentDescription = null,
-                modifier = Modifier.size(40.dp)
-                    .clip(CardDefaults.shape),
-                contentScale = ContentScale.Crop
+            org.milad.expense_share.components.UserAvatar(
+                name = user.username,
+                size = 40.dp,
+                shape = CardDefaults.shape,
             )
 
             Column(

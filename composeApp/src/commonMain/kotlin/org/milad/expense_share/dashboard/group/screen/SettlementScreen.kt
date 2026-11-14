@@ -92,22 +92,6 @@ private fun List<Settlement>.calculateTotalBalance(userId: Int): Amount {
     return Amount(total)
 }
 
-/*@Preview
-@Composable
-fun PreviewSettlementScreen() {
-    AppTheme(content = {
-        Surface(color = AppTheme.colors.background) {
-            SettlementScreen(
-                state = GroupDetailState(
-                    currentUser = FakeDate.userMilad,
-                    selectedGroup = FakeDate.selectedGroup
-                ),
-                onAction = {}
-            )
-        }
-    })
-}*/
-
 @Composable
 fun BalanceSummaryRow(
     modifier: Modifier = Modifier,

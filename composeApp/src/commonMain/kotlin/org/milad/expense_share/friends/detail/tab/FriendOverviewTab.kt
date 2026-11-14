@@ -46,10 +46,6 @@ import model.User
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
 import org.milad.expense_share.friends.detail.FriendBalanceHeader
-import org.milad.expense_share.friends.detail.tab.MockData.mockGroup1
-import org.milad.expense_share.friends.detail.tab.MockData.mockGroups
-import org.milad.expense_share.friends.detail.tab.MockData.mockTransactions
-import org.milad.expense_share.friends.detail.tab.MockData.mockUser1
 import org.milad.expense_share.friends.model.FriendBalance
 import org.milad.expense_share.friends.model.TransactionWithGroup
 import org.milad.expense_share.showSeparate
@@ -61,7 +57,6 @@ fun FriendOverviewTab(
     friend: User,
     balance: FriendBalance,
     onSettleUp: () -> Unit,
-    onSendReminder: () -> Unit,
     onGroupClick: (Group) -> Unit,
 ) {
     if (sharedGroups.isEmpty() && recentTransactions.isEmpty()) {
@@ -78,8 +73,7 @@ fun FriendOverviewTab(
             FriendBalanceHeader(
                 friend = friend,
                 balance = balance,
-                onSettleUp = onSettleUp,
-                onSendReminder = onSendReminder
+                onSettleUp = onSettleUp
             )
         }
 
@@ -269,107 +263,6 @@ private fun RecentTransactionCard(transactionWithGroup: TransactionWithGroup) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
-    }
-}
-
-private object MockData {
-    val mockUser1 = User(1, "Ali", "09121234567")
-    val mockUser2 = User(2, "Sara", "09129876543")
-    val mockFriend = FriendInfo(
-        user = mockUser1,
-        status = FriendRelationStatus.ACCEPTED,
-        requestedBy = 0,
-        createdAt = 0,
-        updatedAt = 0
-    )
-    val mockGroup1 = Group(
-        id = 1,
-        name = "Trip to Dubai",
-        ownerId = 1,
-        members = listOf(mockUser1, mockUser2),
-        transactions = listOf()
-    )
-    val mockGroup2 = Group(
-        id = 2,
-        name = "Dinner Friends",
-        ownerId = 1,
-        members = listOf(mockUser1, mockUser2),
-        transactions = listOf()
-    )
-    val mockGroups = listOf(
-        mockGroup1, mockGroup2
-    )
-
-    val mockTransaction = Transaction(
-        id = 1,
-        groupId = 1,
-        title = "Hotel Booking",
-        amount = Amount(500000),
-        description = "3 nights",
-        createdBy = 1,
-        status = TransactionStatus.APPROVED,
-        approvedBy = 1,
-        createdAt = 123456789,
-        transactionDate = 123456789,
-        payers = listOf(
-            PayerDto(mockUser1, Amount(500000))
-        ),
-        shareDetails = ShareDetailsRequest(
-            type = "Equal",
-            members = listOf(
-                MemberShareDto(mockUser1, Amount(250000)),
-                MemberShareDto(mockUser2, Amount(250000))
-            )
-        )
-    )
-
-    val mockTransactions = listOf(
-        TransactionWithGroup(
-            transaction = mockTransaction,
-            group = mockGroups[0],
-            myShare = Amount(250000),
-            friendShare = Amount(250000)
-        )
-    )
-}
-
-@Preview
-@Composable
-fun FriendOverviewTabPreview() {
-    AppTheme {
-        Surface {
-            FriendOverviewTab(
-                sharedGroups = mockGroups,
-                recentTransactions = mockTransactions,
-                friend = mockUser1,
-                balance = FriendBalance(
-
-                ),
-                onSettleUp = {},
-                onSendReminder = {},
-                onGroupClick = {},
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun SharedGroupCardPreview() {
-    AppTheme {
-        Column(modifier = Modifier.background(AppTheme.colors.background)) {
-            SharedGroupCard(mockGroup1) {}
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun RecentTransactionCardPreview() {
-    AppTheme {
-        Column(modifier = Modifier.background(AppTheme.colors.background)) {
-            RecentTransactionCard(mockTransactions[0])
         }
     }
 }

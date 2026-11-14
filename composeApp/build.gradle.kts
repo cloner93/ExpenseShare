@@ -23,6 +23,7 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.kotzilla.sdk.compose)
+            implementation(libs.androidx.core.splashscreen)
         }
         iosMain.dependencies {
             implementation(libs.kotzilla.sdk.compose)
@@ -58,7 +59,17 @@ compose.desktop {
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb,
             )
             packageName = "org.milad.expense_share"
-            packageVersion = "1.0.0"
+            packageVersion = "1.0.2"
+
+            macOS {
+                iconFile.set(project.file("icons/icon.icns"))
+            }
+            windows {
+                iconFile.set(project.file("icons/icon.ico"))
+            }
+            linux {
+                iconFile.set(project.file("icons/icon.png"))
+            }
         }
     }
 }

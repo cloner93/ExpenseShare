@@ -54,6 +54,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.Amount
+import org.milad.expense_share.components.GroupAvatar
 import org.milad.expense_share.showSeparate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -239,13 +240,10 @@ private fun GroupItem(
                 .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(Res.drawable.paris),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CardDefaults.shape),
-                contentScale = ContentScale.Crop
+            GroupAvatar(
+                name = group.name,
+                size = 56.dp,
+                shape = CardDefaults.shape,
             )
 
             Spacer(modifier = Modifier.width(12.dp))

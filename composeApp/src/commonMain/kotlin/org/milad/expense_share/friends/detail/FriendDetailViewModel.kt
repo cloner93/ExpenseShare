@@ -38,7 +38,6 @@ class FriendDetailViewModel(
             is FriendDetailAction.NavigateBack -> postEvent(FriendDetailEvent.NavigateBack)
             is FriendDetailAction.OpenGroup -> postEvent(FriendDetailEvent.OpenGroup(action.group))
             is FriendDetailAction.SettleUp -> handleSettleUp()
-            is FriendDetailAction.SendReminder -> handleSendReminder()
             is FriendDetailAction.UpdateFriend -> setState { it.copy(friend = action.friend) }
         }
     }
@@ -161,10 +160,6 @@ class FriendDetailViewModel(
     private fun handleSettleUp() {
         postEvent(FriendDetailEvent.ShowSettleUpDialog(viewState.value.balance))
     }
-
-    private fun handleSendReminder() {
-        postEvent(FriendDetailEvent.ShowToast("Reminder sent to ${friend.user.username}"))
-    }
 }
 
 data class FriendDetailState(
@@ -186,7 +181,6 @@ sealed interface FriendDetailAction : BaseViewAction {
     data class OpenGroup(val group: Group) : FriendDetailAction
     data class UpdateFriend(val friend: FriendInfo) : FriendDetailAction
     data object SettleUp : FriendDetailAction
-    data object SendReminder : FriendDetailAction
 }
 
 sealed interface FriendDetailEvent : BaseViewEvent {

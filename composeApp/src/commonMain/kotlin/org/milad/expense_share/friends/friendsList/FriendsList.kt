@@ -48,11 +48,10 @@ import com.pmb.common.ui.emptyState.EmptyListState
 import expenseshare.composeapp.generated.resources.Res
 import expenseshare.composeapp.generated.resources.add_friend_button
 import expenseshare.composeapp.generated.resources.friends_title
-import expenseshare.composeapp.generated.resources.paris
 import model.FriendInfo
 import model.FriendRelationStatus
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.milad.expense_share.components.UserAvatar
 import org.milad.expense_share.dashboard.AppExtendedButton
 import org.milad.expense_share.expenses.AnimatedLoadingButton
 import org.milad.expense_share.friends.FriendsAction
@@ -143,11 +142,10 @@ fun FriendRow(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(Res.drawable.paris),
-                contentDescription = null,
-                modifier = Modifier.size(40.dp).clip(CardDefaults.shape),
-                contentScale = ContentScale.Crop
+            UserAvatar(
+                name = user.user.username,
+                size = 40.dp,
+                shape = CardDefaults.shape,
             )
 
             Column(
@@ -222,46 +220,6 @@ fun FriendRow(
         }
     }
 }
-
-/*@Composable
-@Preview
-fun FriendRowPreview() {
-    val user = FriendInfo(
-        user = FakeDate.userSaeid,
-        status = FriendRelationStatus.ACCEPTED,
-        requestedBy = FakeDate.userMilad.id,
-        createdAt = 1,
-        updatedAt = 1,
-    )
-    AppTheme {
-        Column(
-            modifier = Modifier
-                .background(color = AppTheme.colors.background),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            FriendRow(
-                user = user
-            ) {}
-            FriendRow(
-                user = user.copy(status = FriendRelationStatus.PENDING)
-            ) {}
-            FriendRow(
-                user = user.copy(
-                    status = FriendRelationStatus.PENDING,
-                    user = FakeDate.userHamid,
-                    requestedBy = FakeDate.userHamid.id
-                ),
-                currentUserRequested = true
-            ) {}
-            FriendRow(
-                user = user.copy(status = FriendRelationStatus.REJECTED)
-            ) {}
-            FriendRow(
-                user = user.copy(status = FriendRelationStatus.BLOCKED)
-            ) {}
-        }
-    }
-}*/
 
 fun String.phoneMapToView(): String {
     if (this.length != 11)

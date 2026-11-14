@@ -3,7 +3,7 @@ package com.pmb.common.ui.scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
@@ -17,7 +17,7 @@ import androidx.window.core.layout.WindowWidthSizeClass
 enum class NavItem(val title: String, val icon: ImageVector) {
     Dashboard("Dashboard", Icons.Default.Dashboard),
     Friends("Friends", Icons.Default.People),
-    Profile("Profile", Icons.Default.Settings)
+    Profile("Profile", Icons.Default.Person)
 }
 
 @Composable

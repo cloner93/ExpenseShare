@@ -35,7 +35,7 @@ class RegisterViewModel(
                 password = viewState.value.password
             ).collect { result ->
                 result.onSuccess {
-                    setState { it.copy() }
+                    setState { it.copy(isLoading = false) }
                     postEvent(RegisterEvent.RegisterSuccess)
                 }.onFailure {e->
                     setState { it.copy(isLoading = false, error = e) }
@@ -57,7 +57,7 @@ class RegisterViewModel(
             setState { it.copy(nameNameError = "Name is required") }
             isValid = false
         }
-        if (currentState.password.length < 5) {
+        if (currentState.password.length < 6) {
             setState { it.copy(passwordError = "Password must be at least 6 characters") }
             isValid = false
         }
@@ -75,11 +75,11 @@ sealed interface RegisterAction : BaseViewAction {
 }
 
 data class RegisterState(
-    val userName: String = "test",
+    val userName: String = "",
     val nameNameError: String? = null,
-    val phone: String = "09137511005",
+    val phone: String = "",
     val phoneError: String? = null,
-    val password: String = "milad",
+    val password: String = "",
     val passwordError: String? = null,
     val isLoading: Boolean = false,
     val error: Throwable? = null,

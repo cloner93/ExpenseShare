@@ -146,6 +146,23 @@ class NetworkClientTest : DescribeSpec({
                         status = HttpStatusCode.InternalServerError
                     )
 
+                    request.url.encodedPath == "/html-405" -> respond(
+                        content = "<html><head><title>405 Not Allowed</title></head><body><center><h1>405 Not Allowed</h1></center><hr><center>nginx</center></body></html>",
+                        status = HttpStatusCode.MethodNotAllowed,
+                        headers = headersOf(HttpHeaders.ContentType, "text/html")
+                    )
+
+                    request.url.encodedPath == "/html-404" -> respond(
+                        content = "<!DOCTYPE html><html><body><h1>404 Page Not Found</h1></body></html>",
+                        status = HttpStatusCode.NotFound,
+                    )
+
+                    request.url.encodedPath == "/json-error" -> respond(
+                        content = """{"message":"Phone number already registered","code":"REGISTER_FAILED"}""",
+                        status = HttpStatusCode.BadRequest,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
+
                     else -> respond(
                         content = "Not Found: ${request.url.encodedPath}",
                         status = HttpStatusCode.NotFound
@@ -240,6 +257,29 @@ class NetworkClientTest : DescribeSpec({
                     client.get("/timeout")
                 }
                 exception.message shouldBe "Connection timeout"
+            }
+
+            it("should strip HTML from 405 Method Not Allowed error bodies") {
+                val exception = shouldThrow<GenericApiException> {
+                    client.post("/html-405")
+                }
+                exception.code shouldBe 405
+                exception.message shouldBe "HTTP Error: 405 - Method not allowed"
+            }
+
+            it("should strip HTML from 404 error bodies even without html content-type") {
+                val exception = shouldThrow<NotFoundException> {
+                    client.get("/html-404")
+                }
+                exception.message shouldBe "Resource not found"
+            }
+
+            it("should extract clean message from JSON ErrorResponse bodies") {
+                val exception = shouldThrow<GenericApiException> {
+                    client.post("/json-error")
+                }
+                exception.code shouldBe 400
+                exception.message shouldBe "HTTP Error: 400 - Phone number already registered"
             }
         }
     }

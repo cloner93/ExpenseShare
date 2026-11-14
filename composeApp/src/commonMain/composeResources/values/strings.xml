@@ -71,4 +71,23 @@
     <!-- Settlement -->
     <string name="total_group_spend">Total Group Spend</string>
     <string name="your_total_balance">Your Total Balance</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_account_section">Account</string>
+    <string name="profile_phone_label">Phone Number</string>
+    <string name="profile_username_label">Username</string>
+    <string name="profile_member_id">Member #%d</string>
+    <string name="profile_phone_copied">Phone number copied</string>
+    <string name="profile_copy_phone_desc">Copy phone number</string>
+    <string name="profile_appearance_section">Appearance</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="profile_about_section">About</string>
+    <string name="app_name_display">ExpenseShare</string>
+    <string name="app_version_label">Version 1.0.2</string>
+    <string name="logout_confirm_title">Sign out of ExpenseShare?</string>
+    <string name="logout_confirm_message">You will need to sign in again with your phone number to access your shared expenses.</string>
+    <string name="profile_guest">Account</string>
 </resources>

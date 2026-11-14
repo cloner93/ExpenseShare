@@ -181,7 +181,7 @@ class DashboardViewModel(
 
                 setState {
                     it.copy(
-                        friends = it.friends + allAcceptedFriend,
+                        friends = allAcceptedFriend,
                         listPaneLoading = false
                     )
                 }

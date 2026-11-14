@@ -1,15 +1,18 @@
 :root {
-    --bg-color: #ffffff;
-    --text-color: #1a1a1a;
-    --primary-color: #2481cc;
-    --secondary-text-color: #707579;
+    --bg-color: #FFF9EE;
+    --text-color: #1E1B13;
+    --primary-color: #6D5E0F;
+    --secondary-text-color: #4B4739;
+    --track-color: rgba(109, 94, 15, 0.16);
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg-color: #17212b;
-        --text-color: #ffffff;
-        --secondary-text-color: #7f91a4;
+        --bg-color: #15130B;
+        --text-color: #E8E2D4;
+        --primary-color: #DBC66E;
+        --secondary-text-color: #CDC6B4;
+        --track-color: rgba(219, 198, 110, 0.18);
     }
 }
 
@@ -43,24 +46,45 @@ html, body {
     transition: opacity 0.3s ease;
 }
 
+.splash-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 22px;
+    box-shadow: 0 10px 28px rgba(30, 27, 19, 0.16);
+    animation: pulse-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.loading-text {
+    margin-top: 18px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--tg-theme-text-color, var(--text-color));
+    letter-spacing: 0.4px;
+}
+
 .spinner {
-    width: 44px;
-    height: 44px;
-    border: 3px solid rgba(128, 128, 128, 0.2);
+    margin-top: 18px;
+    width: 26px;
+    height: 26px;
+    border: 2.5px solid var(--track-color);
     border-radius: 50%;
     border-top-color: var(--tg-theme-button-color, var(--primary-color));
     animation: spin 0.9s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
 }
 
-.loading-text {
-    margin-top: 16px;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--tg-theme-text-color, var(--text-color));
-    letter-spacing: 0.3px;
-}
-
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }

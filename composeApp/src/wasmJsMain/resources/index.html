@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#FFF9EE" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#15130B" media="(prefers-color-scheme: dark)">
     <title>ExpenseShare</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <link href="styles.css" rel="stylesheet" type="text/css">
     <!-- Telegram Mini App Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -22,8 +27,16 @@
 </head>
 <body>
     <div id="loading-container">
-        <div class="spinner"></div>
+        <div class="splash-logo" aria-hidden="true">
+            <svg viewBox="0 0 108 108" width="84" height="84">
+                <rect width="108" height="108" rx="26" fill="#1E1B13"/>
+                <path d="M 34.06 63.30 A 22 22 0 0 1 63.30 34.06" fill="none" stroke="#DBC66E" stroke-width="8.2" stroke-linecap="round"/>
+                <path d="M 73.94 44.70 A 22 22 0 0 1 44.70 73.94" fill="none" stroke="#98D4A4" stroke-width="8.2" stroke-linecap="round"/>
+                <path d="M 46.8 61.2 L 61.2 46.8" fill="none" stroke="#FFF9EE" stroke-width="7.2" stroke-linecap="round"/>
+            </svg>
+        </div>
         <div class="loading-text">ExpenseShare</div>
+        <div class="spinner"></div>
     </div>
 </body>
 </html>

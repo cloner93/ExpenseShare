@@ -39,11 +39,6 @@ fun FriendDetailScreen(
                                 Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                             }
                         }
-                    },
-                    actions = {
-                        IconButton(onClick = { /* منوی تنظیمات */ }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "More")
-                        }
                     }
                 )
             }
@@ -66,7 +61,6 @@ fun FriendDetailScreen(
                             friend = state.friend.user,
                             balance = state.balance,
                             onSettleUp = { onAction(FriendDetailAction.SettleUp) },
-                            onSendReminder = { onAction(FriendDetailAction.SendReminder) },
                             onGroupClick = { onAction(FriendDetailAction.OpenGroup(it)) }
                         )
                     }

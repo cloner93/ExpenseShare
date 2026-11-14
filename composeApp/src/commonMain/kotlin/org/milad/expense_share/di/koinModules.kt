@@ -141,10 +141,19 @@ val loginModule = module {
         )
     }
 }
+val profileModule = module {
+    single { com.pmb.common.theme.ThemeStateHolder() }
+    viewModel {
+        org.milad.expense_share.profile.ProfileViewModel(
+            getUserInfoUseCase = get(),
+            themeStateHolder = get(),
+        )
+    }
+}
 
 val appModules = module {
     includes(domainModule)
     includes(dataAggregator)
     // feature modules
-    includes(dashboardModule, registerModule, loginModule, friendsModule)
+    includes(dashboardModule, registerModule, loginModule, friendsModule, profileModule)
 }

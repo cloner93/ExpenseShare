@@ -4,6 +4,9 @@ import EmptySelectionPlaceholder
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -14,8 +17,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.pmb.common.loading.FullScreenLoading
 import com.pmb.common.theme.AppTheme
 import kotlinx.coroutines.launch
@@ -39,11 +45,13 @@ fun DashboardScreen(
 
     val navigator = rememberListDetailPaneScaffoldNavigator<Nothing>()
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         dashboardViewModel.viewEvent.collect { event ->
             when (event) {
                 is DashboardEvent.ShowToast -> {
+                    scope.launch { snackbarHostState.showSnackbar(event.message) }
                 }
 
                 DashboardEvent.ExtraPaneSuccessful -> {
@@ -73,8 +81,9 @@ fun DashboardScreen(
     val isDetailVisible =
         state.isDetailVisible || navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded
 
-    ListDetailPaneScaffold(
-        modifier = Modifier.background(color = AppTheme.colors.background),
+    Box(modifier = Modifier.fillMaxSize()) {
+        ListDetailPaneScaffold(
+            modifier = Modifier.background(color = AppTheme.colors.background),
         directive = navigator.scaffoldDirective,
         value = navigator.scaffoldValue,
         listPane = {
@@ -171,5 +180,12 @@ fun DashboardScreen(
                 dashboardViewModel.handle(DashboardAction.ShowExtraPane(ExtraPaneContentState.None))
             }
         },
-    )
+        )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
+    }
 }
