@@ -24,7 +24,8 @@ captures
 composeApp/src/commonMain/composeResources/files/kotzilla.key
 
 /graphify-out
-/.agents
+/.agents/*
+!/.agents/skills/
 /test-results
 
 server-dist/
