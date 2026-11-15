@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import com.milad.navigation.MainRoute
 import com.pmb.common.ui.scaffold.AppScaffold
 import com.pmb.common.ui.scaffold.NavItem
+import org.milad.expense_share.ai.ui.AgentChatScreen
 import org.milad.expense_share.dashboard.DashboardScreen
 import org.milad.expense_share.friends.FriendsScreen
 import org.milad.expense_share.profile.ProfileScreen
@@ -24,7 +25,7 @@ import org.milad.expense_share.profile.ProfileScreen
 fun ResponsiveApp(
     onLogout: () -> Unit,
 ) {
-    var selectedItem by rememberSaveable { mutableStateOf(NavItem.Dashboard) }
+    var selectedItem by rememberSaveable { mutableStateOf(NavItem.Agent) }
     val navController = rememberNavController()
     var triggerAddGroup by remember { mutableStateOf(false) }
 
@@ -33,6 +34,12 @@ fun ResponsiveApp(
         onItemSelected = { item ->
             selectedItem = item
             when (item) {
+                NavItem.Agent -> navController.navigate(MainRoute.Agent) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+
                 NavItem.Dashboard -> navController.navigate(MainRoute.Dashboard) {
                     popUpTo(navController.graph.startDestinationId) { saveState = true }
                     launchSingleTop = true
@@ -70,12 +77,25 @@ fun ResponsiveApp(
     ) { navLayoutType ->
         NavHost(
             navController = navController,
-            startDestination = MainRoute.Dashboard,
+            startDestination = MainRoute.Agent,
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None },
         ) {
+            composable<MainRoute.Agent> {
+                AgentChatScreen(
+                    onNavigateToDashboard = {
+                        selectedItem = NavItem.Dashboard
+                        navController.navigate(MainRoute.Dashboard) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+
             composable<MainRoute.Dashboard> {
                 DashboardScreen(
                     navLayoutType = navLayoutType,

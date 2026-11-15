@@ -25,6 +25,8 @@ object DatabaseFactory {
                 TransactionShares,
                 TransactionShareMembers,
                 Settlements,
+                ConversationSessions,
+                ConversationMessages,
             )
         }
     }

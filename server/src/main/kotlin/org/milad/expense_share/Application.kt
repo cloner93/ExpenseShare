@@ -10,6 +10,7 @@ import org.milad.expense_share.application.configureKoin
 import org.milad.expense_share.application.configureRouting
 import org.milad.expense_share.application.configureSecurity
 import org.milad.expense_share.application.configureStatusPages
+import org.milad.expense_share.application.configureWebSockets
 import org.milad.expense_share.data.db.DatabaseFactory
 import org.slf4j.event.Level
 
@@ -25,6 +26,7 @@ fun Application.main() {
     DatabaseFactory.init()
 
     configureCORS()
+    configureWebSockets()
     configureStatusPages()
     configureSecurity()
     configureKoin()

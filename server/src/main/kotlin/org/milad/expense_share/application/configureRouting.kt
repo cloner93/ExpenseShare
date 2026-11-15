@@ -3,11 +3,14 @@ package org.milad.expense_share.application
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
+import org.milad.expense_share.ai.agent.AgentOrchestrator
+import org.milad.expense_share.domain.repository.ConversationRepository
 import org.milad.expense_share.domain.service.AuthService
 import org.milad.expense_share.domain.service.FriendsService
 import org.milad.expense_share.domain.service.GroupService
 import org.milad.expense_share.domain.service.SettlementService
 import org.milad.expense_share.domain.service.TransactionService
+import org.milad.expense_share.presentation.agent.agentRoutes
 import org.milad.expense_share.presentation.auth.authRoutes
 import org.milad.expense_share.presentation.friends.friendRoutes
 import org.milad.expense_share.presentation.groups.groupsRoutes
@@ -20,6 +23,8 @@ internal fun Application.configureRouting() {
     val settlementService by inject<SettlementService>()
     val transactionService by inject<TransactionService>()
     val friendsService by inject<FriendsService>()
+    val agentOrchestrator by inject<AgentOrchestrator>()
+    val conversationRepository by inject<ConversationRepository>()
 
     routing {
         authRoutes(authService)
@@ -27,5 +32,6 @@ internal fun Application.configureRouting() {
         settlementRoutes(settlementService)
         transactionsRoutes(transactionService)
         friendRoutes(friendsService)
+        agentRoutes(agentOrchestrator, conversationRepository)
     }
 }

@@ -3,6 +3,9 @@ import kotlinx.serialization.Serializable
 
 sealed interface MainRoute {
     @Serializable
+    data object Agent : MainRoute
+
+    @Serializable
     data object Dashboard : MainRoute
 
     @Serializable

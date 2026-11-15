@@ -102,6 +102,7 @@ ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", versio
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets-jvm", version.ref = "ktor" }
 ktor-server-tests = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
 
 
@@ -171,6 +172,7 @@ ktor-server = [
     "ktor-server-cors",
     "ktor-server-auth",
     "ktor-server-auth-jwt",
+    "ktor-server-websockets",
     "ktor-serialization-kotlinx-json",
 ]
 

@@ -1,0 +1,17 @@
+@baseUrl = http://localhost:8082
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBdXRoZW50aWNhdGlvbiIsImlzcyI6Imh0dHA6Ly8wLjAuMC4wOjgwODIvIiwiaWQiOjEsInVzZXJuYW1lIjoibWlsYWQiLCJwaG9uZSI6IjA5MTM3NTExMDA1IiwiZXhwIjoxNzc2NjI5MzU4fQ.jCvRuO82YtaEhCHnY06LFtTe6-iKIjwsiaHRtCDl6qM
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+{
+  "phone": "09137511005",
+  "password": "milad"
+}
+
+###
+GET {{baseUrl}}/groups
+Authorization: Bearer {{token}}
+
+###
+GET {{baseUrl}}/groups/10/settlement
+Authorization: Bearer {{token}}

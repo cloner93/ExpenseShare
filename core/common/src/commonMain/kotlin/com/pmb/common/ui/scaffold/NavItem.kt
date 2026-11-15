@@ -1,6 +1,7 @@
 package com.pmb.common.ui.scaffold
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
@@ -15,6 +16,7 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 
 enum class NavItem(val title: String, val icon: ImageVector) {
+    Agent("هوش مصنوعی", Icons.Default.AutoAwesome),
     Dashboard("Dashboard", Icons.Default.Dashboard),
     Friends("Friends", Icons.Default.People),
     Profile("Profile", Icons.Default.Person)
