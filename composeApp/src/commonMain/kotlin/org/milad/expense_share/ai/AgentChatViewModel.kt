@@ -52,17 +52,18 @@ class AgentChatViewModel(
     initialState = AgentChatState()
 ) {
     init {
-        connectSocket()
-    }
+        socketClient.start()
 
-    private fun connectSocket() {
         viewModelScope.launch {
-            socketClient.connect(
-                onMessage = { serverMsg -> handleServerMessage(serverMsg) },
-                onConnectionChanged = { isConnected ->
-                    setState { it.copy(isOffline = !isConnected) }
-                }
-            )
+            socketClient.isConnected.collect { connected ->
+                setState { it.copy(isOffline = !connected) }
+            }
+        }
+
+        viewModelScope.launch {
+            socketClient.serverMessages.collect { msg ->
+                handleServerMessage(msg)
+            }
         }
     }
 
@@ -81,7 +82,10 @@ class AgentChatViewModel(
             is AgentChatAction.SetRecordingVoice -> {
                 setState { it.copy(isRecordingVoice = action.isRecording) }
             }
-            AgentChatAction.Reconnect -> connectSocket()
+            AgentChatAction.Reconnect -> {
+                socketClient.stop()
+                socketClient.start()
+            }
         }
     }
 
@@ -107,17 +111,12 @@ class AgentChatViewModel(
 
         viewModelScope.launch {
             try {
-                if (!viewState.value.isOffline) {
-                    socketClient.sendUserMessage(
-                        sessionId = viewState.value.activeSessionId,
-                        text = trimmed
-                    )
-                } else {
-                    // Local fallback heuristic when offline
-                    delay(800)
-                    handleOfflineFallback(trimmed)
-                }
+                socketClient.sendUserMessage(
+                    sessionId = viewState.value.activeSessionId,
+                    text = trimmed
+                )
             } catch (e: Exception) {
+                // Network or socket send failed -> graceful fallback
                 handleOfflineFallback(trimmed)
             }
         }
@@ -141,40 +140,36 @@ class AgentChatViewModel(
 
         viewModelScope.launch {
             try {
-                if (!viewState.value.isOffline) {
-                    socketClient.sendUserMessage(
-                        sessionId = viewState.value.activeSessionId,
-                        text = summary,
-                        imageBase64 = imageBase64
-                    )
-                } else {
-                    delay(1200)
-                    val draftData = buildJsonObject {
-                        put("actionType", "CREATE_TRANSACTION")
-                        put("summary", "فاکتور رستوران - ۳ قلم غذا")
-                        put("payload", buildJsonObject {
-                            put("title", "شام رستوران البرز")
-                            put("amount", 850000L)
-                            put("groupId", 1)
-                        })
-                    }
-                    setState {
-                        it.copy(
-                            isThinking = false,
-                            messages = it.messages + ChatUiMessage(
-                                id = "bot-receipt-${System.currentTimeMillis()}",
-                                role = "assistant",
-                                content = "اقلام فاکتور با موفقیت استخراج شد. لطفاً پیش‌نویس زیر را تایید کنید:",
-                                cardType = "ACTION_DRAFT",
-                                draftId = "draft-receipt-local",
-                                cardData = draftData
-                            )
-                        )
-                    }
-                    postEvent(AgentChatEvent.ScrollToBottom)
-                }
+                socketClient.sendUserMessage(
+                    sessionId = viewState.value.activeSessionId,
+                    text = summary,
+                    imageBase64 = imageBase64
+                )
             } catch (e: Exception) {
-                setState { it.copy(isThinking = false) }
+                delay(1000)
+                val draftData = buildJsonObject {
+                    put("actionType", "CREATE_TRANSACTION")
+                    put("summary", "فاکتور رستوران - ۳ قلم غذا")
+                    put("payload", buildJsonObject {
+                        put("title", "شام رستوران البرز")
+                        put("amount", 850000L)
+                        put("groupId", 1)
+                    })
+                }
+                setState {
+                    it.copy(
+                        isThinking = false,
+                        messages = it.messages + ChatUiMessage(
+                            id = "bot-receipt-${System.currentTimeMillis()}",
+                            role = "assistant",
+                            content = "اقلام فاکتور با موفقیت استخراج شد. لطفاً پیش‌نویس زیر را تایید کنید:",
+                            cardType = "ACTION_DRAFT",
+                            draftId = "draft-receipt-local",
+                            cardData = draftData
+                        )
+                    )
+                }
+                postEvent(AgentChatEvent.ScrollToBottom)
             }
         }
     }
@@ -182,25 +177,12 @@ class AgentChatViewModel(
     private fun confirmDraft(draftId: String, actionType: String, payload: JsonObject) {
         viewModelScope.launch {
             try {
-                if (!viewState.value.isOffline) {
-                    socketClient.confirmDraft(
-                        sessionId = viewState.value.activeSessionId,
-                        draftId = draftId,
-                        actionType = actionType,
-                        payload = payload
-                    )
-                } else {
-                    setState {
-                        it.copy(
-                            messages = it.messages + ChatUiMessage(
-                                id = "confirm-${System.currentTimeMillis()}",
-                                role = "assistant",
-                                content = "اقدام با موفقیت در سیستم ثبت گردید."
-                            )
-                        )
-                    }
-                    postEvent(AgentChatEvent.ScrollToBottom)
-                }
+                socketClient.confirmDraft(
+                    sessionId = viewState.value.activeSessionId,
+                    draftId = draftId,
+                    actionType = actionType,
+                    payload = payload
+                )
             } catch (e: Exception) {
                 postEvent(AgentChatEvent.ShowToast("خطا در تایید اقدام: ${e.message}"))
             }
@@ -210,23 +192,10 @@ class AgentChatViewModel(
     private fun cancelDraft(draftId: String) {
         viewModelScope.launch {
             try {
-                if (!viewState.value.isOffline) {
-                    socketClient.cancelDraft(
-                        sessionId = viewState.value.activeSessionId,
-                        draftId = draftId
-                    )
-                } else {
-                    setState {
-                        it.copy(
-                            messages = it.messages + ChatUiMessage(
-                                id = "cancel-${System.currentTimeMillis()}",
-                                role = "assistant",
-                                content = "پیش‌نویس اقدام لغو شد."
-                            )
-                        )
-                    }
-                    postEvent(AgentChatEvent.ScrollToBottom)
-                }
+                socketClient.cancelDraft(
+                    sessionId = viewState.value.activeSessionId,
+                    draftId = draftId
+                )
             } catch (e: Exception) {
                 postEvent(AgentChatEvent.ShowToast("خطا در لغو اقدام: ${e.message}"))
             }
@@ -252,7 +221,7 @@ class AgentChatViewModel(
                     newMessages[newMessages.lastIndex] = lastMsg.copy(
                         content = lastMsg.content + message.text
                     )
-                } else {
+                } else if (message.text.isNotBlank()) {
                     newMessages.add(
                         ChatUiMessage(
                             id = "bot-${System.currentTimeMillis()}",
@@ -307,8 +276,7 @@ class AgentChatViewModel(
             is AgentServerMessage.Error -> {
                 setState {
                     it.copy(
-                        isThinking = false,
-                        isOffline = true
+                        isThinking = false
                     )
                 }
                 postEvent(AgentChatEvent.ShowToast(message.message))
@@ -317,13 +285,22 @@ class AgentChatViewModel(
     }
 
     private fun handleOfflineFallback(text: String) {
-        val response = if (text.contains("خرج") || text.contains("شام") || text.contains("هزینه") || text.contains("پول")) {
+        val trimmed = text.trim()
+        val lower = trimmed.lowercase()
+
+        val response = if (lower.contains("خرج") || lower.contains("شام") || lower.contains("هزینه") || lower.contains("پول") || lower.contains("دنگ") || lower.contains("تاکسی") || lower.contains("پیتزا")) {
+            val numberRegex = "(\\d+)".toRegex()
+            val amount = numberRegex.find(
+                trimmed.replace('۰', '0').replace('۱', '1').replace('۲', '2').replace('۳', '3').replace('۴', '4')
+                    .replace('۵', '5').replace('۶', '6').replace('۷', '7').replace('۸', '8').replace('۹', '9')
+            )?.value?.toLongOrNull() ?: 250000L
+
             val draftData = buildJsonObject {
                 put("actionType", "CREATE_TRANSACTION")
-                put("summary", "هزینه ثبت شده از متن پیام")
+                put("summary", "هزینه ثبت شده در حالت آفلاین")
                 put("payload", buildJsonObject {
-                    put("title", text)
-                    put("amount", 250000L)
+                    put("title", trimmed)
+                    put("amount", amount)
                     put("groupId", 1)
                 })
             }
@@ -335,11 +312,17 @@ class AgentChatViewModel(
                 draftId = "draft-${System.currentTimeMillis()}",
                 cardData = draftData
             )
+        } else if (lower.contains("سلام") || lower.contains("درود") || lower.contains("hi") || lower.contains("hello")) {
+            ChatUiMessage(
+                id = "bot-${System.currentTimeMillis()}",
+                role = "assistant",
+                content = "سلام! من دستیار هوشمند شما در ExpenseShare هستم. چطور می‌توانم در مدیریت هزینه‌ها و دنگ‌ها کمکتان کنم؟"
+            )
         } else {
             ChatUiMessage(
                 id = "bot-${System.currentTimeMillis()}",
                 role = "assistant",
-                content = "درخواست شما بررسی شد. در حالت آفلاین می‌توانید از فرم‌های سنتی استفاده کنید."
+                content = "پیام شما دریافت شد. در صورت قطع موقت اتصال می‌توانید از فرم‌های سنتی استفاده کنید یا دکمه تلاش مجدد را بزنید."
             )
         }
 
@@ -354,8 +337,6 @@ class AgentChatViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        viewModelScope.launch {
-            socketClient.disconnect()
-        }
+        socketClient.stop()
     }
 }

@@ -33,6 +33,35 @@ class ConversationRepositoryImpl : ConversationRepository {
         )
     }
 
+    override fun ensureSession(sessionId: String, userId: Int, title: String): ConversationSession = transaction {
+        val existing = ConversationSessions
+            .selectAll()
+            .where { (ConversationSessions.id eq sessionId) and (ConversationSessions.userId eq userId) }
+            .map { toSession(it) }
+            .firstOrNull()
+
+        if (existing != null) {
+            existing
+        } else {
+            val now = System.currentTimeMillis()
+            ConversationSessions.insert {
+                it[ConversationSessions.id] = sessionId
+                it[ConversationSessions.userId] = userId
+                it[ConversationSessions.title] = title
+                it[ConversationSessions.createdAt] = now
+                it[ConversationSessions.updatedAt] = now
+            }
+
+            ConversationSession(
+                id = sessionId,
+                userId = userId,
+                title = title,
+                createdAt = now,
+                updatedAt = now
+            )
+        }
+    }
+
     override fun getUserSessions(userId: Int): List<ConversationSession> = transaction {
         ConversationSessions
             .selectAll()

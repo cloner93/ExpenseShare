@@ -91,7 +91,6 @@ class McpServerImpl(
                     })
                 })
                 put("required", buildJsonArray {
-                    add("groupId")
                     add("title")
                     add("amount")
                 })
@@ -317,11 +316,9 @@ class McpServerImpl(
     }
 
     private fun handleProposeExpense(arguments: JsonObject, context: AgentSecurityContext): McpToolResult {
-        val userGroups = groupService.getUserGroups(context.userId).getOrNull() ?: emptyList()
         val requestedGroupId = arguments["groupId"]?.jsonPrimitive?.intOrNull
-        val groupId = if (requestedGroupId != null && userGroups.any { it.id == requestedGroupId }) {
-            requestedGroupId
-        } else {
+        val groupId = requestedGroupId ?: run {
+            val userGroups = groupService.getUserGroups(context.userId).getOrNull() ?: emptyList()
             userGroups.firstOrNull()?.id ?: return McpToolResult.error("شما عضو هیچ گروهی نیستید. لطفاً ابتدا یک گروه ایجاد کنید.")
         }
         val title = arguments["title"]?.jsonPrimitive?.contentOrNull

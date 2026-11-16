@@ -150,7 +150,6 @@ class GeminiAgentClient(
                         id = UUID.randomUUID().toString(),
                         name = "propose_expense",
                         arguments = buildJsonObject {
-                            put("groupId", 1) // default group fallback
                             put("title", "هزینه ثبت شده توسط ایجنت")
                             put("amount", amount)
                         }

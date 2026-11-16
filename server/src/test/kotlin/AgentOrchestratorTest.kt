@@ -26,6 +26,7 @@ class AgentOrchestratorTest : DescribeSpec({
 
     beforeEach {
         clearMocks(mcpServer, agentClient, conversationRepository)
+        every { conversationRepository.ensureSession(any(), any(), any()) } returns mockk()
     }
 
     describe("Agent Conversational Flow") {

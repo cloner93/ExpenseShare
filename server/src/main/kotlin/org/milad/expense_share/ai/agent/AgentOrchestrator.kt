@@ -19,6 +19,7 @@ class AgentOrchestrator(
         context: AgentSecurityContext,
         onEvent: suspend (AgentServerEvent) -> Unit
     ) {
+        conversationRepository.ensureSession(sessionId, context.userId)
         conversationRepository.saveMessage(sessionId, "user", userText)
 
         onEvent(AgentServerEvent.Thinking("در حال تحلیل پیام..."))
@@ -111,6 +112,7 @@ class AgentOrchestrator(
 
         onEvent(AgentServerEvent.ActionExecuted(draftId, success = success, message = message))
 
+        conversationRepository.ensureSession(sessionId, context.userId)
         conversationRepository.saveMessage(
             sessionId = sessionId,
             role = "assistant",

@@ -3,7 +3,6 @@ package org.milad.expense_share.ai.client
 import client.HttpConfig
 import getDefaultBaseUrl
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.timeout
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.webSocketSession
@@ -23,6 +22,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -43,88 +48,102 @@ class AgentSocketClient(
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
+    private val _isConnected = MutableStateFlow(false)
+    val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
+
+    private val _serverMessages = MutableSharedFlow<AgentServerMessage>(extraBufferCapacity = 64)
+    val serverMessages: SharedFlow<AgentServerMessage> = _serverMessages.asSharedFlow()
+
     private var session: DefaultClientWebSocketSession? = null
-    private var listenJob: Job? = null
-    private var isAutoReconnectEnabled = true
+    private var connectionJob: Job? = null
+    private var isRunning = false
 
-    suspend fun connect(
-        onMessage: (AgentServerMessage) -> Unit,
-        onConnectionChanged: (isConnected: Boolean) -> Unit
-    ) {
-        cleanSession()
-        isAutoReconnectEnabled = true
+    fun start() {
+        if (isRunning && connectionJob?.isActive == true) return
+        isRunning = true
 
-        val token = tokenProvider.getToken()?.accessToken
-        if (token.isNullOrBlank()) {
-            onConnectionChanged(false)
-            onMessage(AgentServerMessage.Error("کاربر احراز هویت نشده است"))
-            return
-        }
-
-        try {
-            val base = if (httpConfig.baseUrl.isNotBlank()) httpConfig.baseUrl else getDefaultBaseUrl()
-            val urlBuilder = URLBuilder(base)
-            val isHttps = urlBuilder.protocol.isSecure()
-
-            session = httpClient.webSocketSession {
-                timeout {
-                    requestTimeoutMillis = Long.MAX_VALUE
-                    socketTimeoutMillis = Long.MAX_VALUE
+        connectionJob = scope.launch {
+            while (isActive && isRunning) {
+                val token = tokenProvider.getToken()?.accessToken
+                if (token.isNullOrBlank()) {
+                    _isConnected.value = false
+                    delay(2000)
+                    continue
                 }
-                url {
-                    takeFrom(base.trimEnd('/'))
-                    protocol = if (isHttps) URLProtocol.WSS else URLProtocol.WS
-                    pathSegments = listOf("api", "agent", "chat")
-                    parameters.append("token", token)
-                }
-                header(HttpHeaders.Authorization, "Bearer $token")
-            }
 
-            onConnectionChanged(true)
-
-            listenJob = scope.launch {
                 try {
-                    val activeSession = session ?: return@launch
-                    for (frame in activeSession.incoming) {
+                    val base = if (httpConfig.baseUrl.isNotBlank()) httpConfig.baseUrl else getDefaultBaseUrl()
+                    val isHttps = URLBuilder(base).protocol.isSecure()
+
+                    val wsSession = httpClient.webSocketSession {
+                        timeout {
+                            requestTimeoutMillis = Long.MAX_VALUE
+                            socketTimeoutMillis = Long.MAX_VALUE
+                        }
+                        url {
+                            takeFrom(base.trimEnd('/'))
+                            protocol = if (isHttps) URLProtocol.WSS else URLProtocol.WS
+                            pathSegments = listOf("api", "agent", "chat")
+                            parameters.append("token", token)
+                        }
+                        header(HttpHeaders.Authorization, "Bearer $token")
+                    }
+
+                    session = wsSession
+                    _isConnected.value = true
+
+                    for (frame in wsSession.incoming) {
                         if (frame is Frame.Text) {
                             val text = frame.readText()
                             val parsed = parseServerMessage(text)
                             if (parsed != null) {
-                                onMessage(parsed)
+                                _serverMessages.emit(parsed)
                             }
                         }
                     }
                 } catch (e: CancellationException) {
-                    // Normal coroutine cancellation
+                    break
                 } catch (e: Exception) {
-                    onMessage(AgentServerMessage.Error(e.message ?: "خطای ارتباط با سرور"))
+                    _serverMessages.emit(AgentServerMessage.Error(e.message ?: "خطای ارتباط با سرور"))
                 } finally {
-                    onConnectionChanged(false)
-                    if (isAutoReconnectEnabled && scope.isActive) {
-                        delay(3000)
-                        connect(onMessage, onConnectionChanged)
-                    }
+                    _isConnected.value = false
+                    session = null
                 }
-            }
-        } catch (e: Exception) {
-            onConnectionChanged(false)
-            if (isAutoReconnectEnabled && scope.isActive) {
-                scope.launch {
+
+                if (isActive && isRunning) {
                     delay(3000)
-                    connect(onMessage, onConnectionChanged)
                 }
             }
         }
     }
 
+    fun stop() {
+        isRunning = false
+        connectionJob?.cancel()
+        connectionJob = null
+        _isConnected.value = false
+        val s = session
+        session = null
+        scope.launch {
+            try {
+                s?.close(CloseReason(CloseReason.Codes.NORMAL, "Client stopped"))
+            } catch (_: Exception) {}
+        }
+    }
+
     suspend fun sendUserMessage(sessionId: String, text: String, imageBase64: String? = null) {
-        val payload = AgentClientMessage.SendMessage(
-            sessionId = sessionId,
-            text = text,
-            imageBase64 = imageBase64
-        )
-        val payloadText = json.encodeToString(AgentClientMessage.SendMessage.serializer(), payload)
-        sendTextFrame(payloadText)
+        val s = session
+        if (s != null && s.isActive) {
+            val payload = AgentClientMessage.SendMessage(
+                sessionId = sessionId,
+                text = text,
+                imageBase64 = imageBase64
+            )
+            val payloadText = json.encodeToString(AgentClientMessage.SendMessage.serializer(), payload)
+            s.send(Frame.Text(payloadText))
+        } else {
+            throw IllegalStateException("اتصال سوکت برقرار نیست")
+        }
     }
 
     suspend fun confirmDraft(
@@ -133,46 +152,33 @@ class AgentSocketClient(
         actionType: String,
         payload: JsonObject
     ) {
-        val message = AgentClientMessage.ConfirmDraft(
-            sessionId = sessionId,
-            draftId = draftId,
-            actionType = actionType,
-            payload = payload
-        )
-        val payloadText = json.encodeToString(AgentClientMessage.ConfirmDraft.serializer(), message)
-        sendTextFrame(payloadText)
-    }
-
-    suspend fun cancelDraft(sessionId: String, draftId: String) {
-        val message = AgentClientMessage.CancelDraft(
-            sessionId = sessionId,
-            draftId = draftId
-        )
-        val payloadText = json.encodeToString(AgentClientMessage.CancelDraft.serializer(), message)
-        sendTextFrame(payloadText)
-    }
-
-    private suspend fun sendTextFrame(text: String) {
-        val currentSession = session
-        if (currentSession != null && currentSession.isActive) {
-            currentSession.send(Frame.Text(text))
+        val s = session
+        if (s != null && s.isActive) {
+            val message = AgentClientMessage.ConfirmDraft(
+                sessionId = sessionId,
+                draftId = draftId,
+                actionType = actionType,
+                payload = payload
+            )
+            val payloadText = json.encodeToString(AgentClientMessage.ConfirmDraft.serializer(), message)
+            s.send(Frame.Text(payloadText))
         } else {
             throw IllegalStateException("اتصال سوکت برقرار نیست")
         }
     }
 
-    private suspend fun cleanSession() {
-        listenJob?.cancel()
-        listenJob = null
-        try {
-            session?.close(CloseReason(CloseReason.Codes.NORMAL, "Client closed connection"))
-        } catch (_: Exception) {}
-        session = null
-    }
-
-    suspend fun disconnect() {
-        isAutoReconnectEnabled = false
-        cleanSession()
+    suspend fun cancelDraft(sessionId: String, draftId: String) {
+        val s = session
+        if (s != null && s.isActive) {
+            val message = AgentClientMessage.CancelDraft(
+                sessionId = sessionId,
+                draftId = draftId
+            )
+            val payloadText = json.encodeToString(AgentClientMessage.CancelDraft.serializer(), message)
+            s.send(Frame.Text(payloadText))
+        } else {
+            throw IllegalStateException("اتصال سوکت برقرار نیست")
+        }
     }
 
     private fun parseServerMessage(rawText: String): AgentServerMessage? {
