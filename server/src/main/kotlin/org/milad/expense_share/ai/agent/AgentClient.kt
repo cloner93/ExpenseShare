@@ -24,7 +24,7 @@ interface AgentClient {
 
 class GeminiAgentClient(
     private val apiKey: String = System.getenv("GEMINI_API_KEY") ?: "",
-    private val model: String = System.getenv("GEMINI_MODEL") ?: "gemini-2.5-flash"
+    private val model: String = System.getenv("GEMINI_MODEL") ?: "gemini-3.1-flash-lite"
 ) : AgentClient {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -33,9 +33,9 @@ class GeminiAgentClient(
             json(json)
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = 6000
-            connectTimeoutMillis = 4000
-            socketTimeoutMillis = 6000
+            requestTimeoutMillis = 15000
+            connectTimeoutMillis = 8000
+            socketTimeoutMillis = 15000
         }
     }
 
@@ -65,6 +65,14 @@ class GeminiAgentClient(
     ): AgentResponse {
         val endpoint = "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey"
 
+        val systemInstruction = buildJsonObject {
+            put("parts", buildJsonArray {
+                add(buildJsonObject {
+                    put("text", "شما دستیار هوشمند، حرفه‌ای و صمیمی مدیریت مالی و دنگ‌ها در پلتفرم ExpenseShare هستید. با کاربران به زبان فارسی طبیعی و روان صحبت کنید. در صورتی که کاربر اعلام هزینه یا خرج کرد، از ابزار propose_expense استفاده کنید. در صورتی که از بدهی‌ها، طلب‌ها یا وضعیت مالی سوال کرد، از ابزار get_user_overview استفاده کنید. در مکالمات عمومی و احوالپرسی پاسخ‌های دلگرم‌کننده و خلاصه بدهید.")
+                })
+            })
+        }
+
         val contentsJson = messages.map { msg ->
             val role = if (msg.role == "assistant") "model" else "user"
             buildJsonObject {
@@ -75,8 +83,28 @@ class GeminiAgentClient(
             }
         }
 
+        val toolsJson = if (tools.isNotEmpty()) {
+            buildJsonArray {
+                add(buildJsonObject {
+                    put("functionDeclarations", buildJsonArray {
+                        for (tool in tools) {
+                            add(buildJsonObject {
+                                put("name", tool.name)
+                                put("description", tool.description)
+                                put("parameters", tool.inputSchema)
+                            })
+                        }
+                    })
+                })
+            }
+        } else null
+
         val requestBody = buildJsonObject {
+            put("systemInstruction", systemInstruction)
             put("contents", JsonArray(contentsJson))
+            if (toolsJson != null) {
+                put("tools", toolsJson)
+            }
         }
 
         val responseString = client.post(endpoint) {
@@ -86,10 +114,25 @@ class GeminiAgentClient(
 
         val root = json.parseToJsonElement(responseString).jsonObject
         val candidate = root["candidates"]?.jsonArray?.firstOrNull()?.jsonObject
-        val text = candidate?.get("content")?.jsonObject?.get("parts")?.jsonArray?.firstOrNull()
-            ?.jsonObject?.get("text")?.jsonPrimitive?.contentOrNull ?: ""
+        val parts = candidate?.get("content")?.jsonObject?.get("parts")?.jsonArray ?: emptyList()
 
-        return AgentResponse(text = text)
+        val textBuilder = StringBuilder()
+        val toolCalls = mutableListOf<AgentToolCall>()
+
+        for (part in parts) {
+            val partObj = part.jsonObject
+            partObj["text"]?.jsonPrimitive?.contentOrNull?.let { textBuilder.append(it) }
+            partObj["functionCall"]?.jsonObject?.let { fc ->
+                val name = fc["name"]?.jsonPrimitive?.contentOrNull ?: ""
+                val args = fc["args"]?.jsonObject ?: buildJsonObject {}
+                val callId = fc["id"]?.jsonPrimitive?.contentOrNull ?: UUID.randomUUID().toString()
+                if (name.isNotBlank()) {
+                    toolCalls.add(AgentToolCall(id = callId, name = name, arguments = args))
+                }
+            }
+        }
+
+        return AgentResponse(text = textBuilder.toString().trim(), toolCalls = toolCalls)
     }
 
     /**

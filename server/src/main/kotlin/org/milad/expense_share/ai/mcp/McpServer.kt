@@ -230,23 +230,21 @@ class McpServerImpl(
         val groups = groupsResult.getOrNull() ?: emptyList()
         val friends = friendsResult.getOrNull() ?: emptyList()
 
-        val groupSummaries = groups.map { group ->
-            buildJsonObject {
-                put("id", group.id)
-                put("name", group.name)
-                put("memberCount", group.members.size)
-                put("transactionCount", group.transactions.size)
+        val summaryText = buildString {
+            append("📊 خلاصه وضعیت مالی و گروه‌های شما:\n\n")
+            append("• تعداد گروه‌ها: ${groups.size}\n")
+            append("• تعداد دوستان: ${friends.size}\n")
+            if (groups.isNotEmpty()) {
+                append("\nفهرست گروه‌های فعال شما:\n")
+                groups.forEach { g ->
+                    append("🔹 گروه «${g.name}» (شناسه #${g.id}) | ${g.members.size} عضو | ${g.transactions.size} هزینه ثبت‌شده\n")
+                }
+            } else {
+                append("\nشما هنوز در گروهی عضو نیستید. می‌توانید با فرمان صوتی یا متنی بگویید «گروه جدید بساز» تا یک گروه جدید ایجاد کنم.\n")
             }
         }
 
-        val responseJson = buildJsonObject {
-            put("userId", context.userId)
-            put("totalGroups", groups.size)
-            put("totalFriends", friends.size)
-            put("groups", JsonArray(groupSummaries))
-        }
-
-        return McpToolResult.success(responseJson.toString())
+        return McpToolResult.success(summaryText.trim())
     }
 
     private fun handleGetGroupDetails(arguments: JsonObject, context: AgentSecurityContext): McpToolResult {
@@ -302,17 +300,18 @@ class McpServerImpl(
         val friendsResult = friendsService.getAcceptedFriends(context.userId)
         val friends = friendsResult.getOrNull() ?: emptyList()
 
-        val friendsJson = friends.map { f ->
-            buildJsonObject {
-                put("id", f.user.id)
-                put("username", f.user.username)
-                put("phone", f.user.phone)
+        if (friends.isEmpty()) {
+            return McpToolResult.success("فهرست دوستان شما در حال حاضر خالی است. برای تقسیم دنگ‌ها می‌توانید دوستانتان را از بخش مخاطبین اضافه نمایید.")
+        }
+
+        val summaryText = buildString {
+            append("👥 فهرست دوستان و مخاطبین شما:\n\n")
+            friends.forEach { f ->
+                append("• ${f.user.username} (شماره تماس: ${f.user.phone})\n")
             }
         }
 
-        return McpToolResult.success(buildJsonObject {
-            put("friends", JsonArray(friendsJson))
-        }.toString())
+        return McpToolResult.success(summaryText.trim())
     }
 
     private fun handleProposeExpense(arguments: JsonObject, context: AgentSecurityContext): McpToolResult {
