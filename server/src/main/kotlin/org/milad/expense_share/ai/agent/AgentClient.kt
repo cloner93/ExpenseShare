@@ -104,10 +104,10 @@ class GeminiAgentClient(
         val lastUserMessage = messages.lastOrNull { it.role == "user" }?.content?.trim() ?: ""
         val lower = lastUserMessage.lowercase()
 
-        // 1. Overview intent
-        if (lower.contains("خلاصه") || lower.contains("گروه") && (lower.contains("چی دارم") || lower.contains("وضعیت"))) {
+        // 1. Debt, Settlement, or Overview intent
+        if (lower.contains("بدهی") || lower.contains("طلب") || lower.contains("تسویه") || lower.contains("حساب") || lower.contains("خلاصه") || lower.contains("وضعیت") || lower.contains("گزارش")) {
             return AgentResponse(
-                text = "در حال دریافت خلاصه گروه‌ها و وضعیت مالی شما...",
+                text = "در حال دریافت خلاصه بدهی‌ها، طلب‌ها و وضعیت مالی گروه‌های شما...",
                 toolCalls = listOf(
                     AgentToolCall(
                         id = UUID.randomUUID().toString(),
@@ -119,7 +119,7 @@ class GeminiAgentClient(
         }
 
         // 2. Friends intent
-        if (lower.contains("دوست") || lower.contains("مخاطب")) {
+        if (lower.contains("دوست") || lower.contains("مخاطب") || lower.contains("دوستان")) {
             return AgentResponse(
                 text = "در حال بارگذاری فهرست دوستان شما...",
                 toolCalls = listOf(
@@ -132,7 +132,24 @@ class GeminiAgentClient(
             )
         }
 
-        // 3. Propose expense intent (detect numbers or keywords like خرج, هزینه, تومان, پول)
+        // 3. Receipt image intent
+        if (lower.contains("تصویر") || lower.contains("رسید") || lower.contains("فاکتور")) {
+            return AgentResponse(
+                text = "اطلاعات فاکتور تحلیل شد. پیش‌نویس ثبت هزینه آماده تایید است:",
+                toolCalls = listOf(
+                    AgentToolCall(
+                        id = UUID.randomUUID().toString(),
+                        name = "propose_expense",
+                        arguments = buildJsonObject {
+                            put("title", "فاکتور خرید / رستوران")
+                            put("amount", 850000L)
+                        }
+                    )
+                )
+            )
+        }
+
+        // 4. Propose expense intent (detect numbers)
         val normalizedMessage = lastUserMessage
             .replace('۰', '0').replace('۱', '1').replace('۲', '2').replace('۳', '3').replace('۴', '4')
             .replace('۵', '5').replace('۶', '6').replace('۷', '7').replace('۸', '8').replace('۹', '9')
@@ -141,8 +158,12 @@ class GeminiAgentClient(
         val numberRegex = "(\\d+)".toRegex()
         val numbers = numberRegex.findAll(normalizedMessage).mapNotNull { it.value.toLongOrNull() }.toList()
 
-        if ((lower.contains("خرج") || lower.contains("هزینه") || lower.contains("پول") || lower.contains("دنگ")) && numbers.isNotEmpty()) {
+        if (numbers.isNotEmpty()) {
             val amount = numbers.first()
+            val candidateTitle = lastUserMessage.split(numberRegex).firstOrNull()?.trim()
+                ?.removeSuffix("شد")?.removeSuffix("تومان")?.trim()
+                ?.takeIf { it.isNotBlank() } ?: "هزینه ثبت شده توسط ایجنت"
+
             return AgentResponse(
                 text = "پیش‌نویس هزینه بر اساس پیام شما ایجاد شد. لطفاً مشخصات را بازبینی کرده و دکمه تایید را لمس نمایید.",
                 toolCalls = listOf(
@@ -150,7 +171,7 @@ class GeminiAgentClient(
                         id = UUID.randomUUID().toString(),
                         name = "propose_expense",
                         arguments = buildJsonObject {
-                            put("title", "هزینه ثبت شده توسط ایجنت")
+                            put("title", candidateTitle.take(40))
                             put("amount", amount)
                         }
                     )
@@ -158,8 +179,27 @@ class GeminiAgentClient(
             )
         }
 
+        // 5. Conversational chit-chat
+        if (lower.contains("خوبی") || lower.contains("چطوری") || lower.contains("حال شما")) {
+            return AgentResponse(
+                text = "سلام! ممنون، من خوبم و به صورت برخط آماده‌ام تا در ثبت هزینه‌ها، دنگ‌ها، استخراج فاکتور و بررسی بدهی‌ها کمکتان کنم. چه کاری برایتان انجام دهم؟"
+            )
+        }
+
+        if (lower.contains("سلام") || lower.contains("درود") || lower.contains("hi") || lower.contains("hello")) {
+            return AgentResponse(
+                text = "سلام! من دستیار هوشمند مالی شما در ExpenseShare هستم. می‌توانید هر هزینه‌ای مثل «شام ۳۵۰ هزار تومان» را بگویید، عکس فاکتور بفرستید، یا بگویید «وضعیت بدهی‌های من را بگو»."
+            )
+        }
+
+        if (lower.contains("مرسی") || lower.contains("ممنون") || lower.contains("تشکر") || lower.contains("دستت درد نکنه")) {
+            return AgentResponse(
+                text = "خواهش می‌کنم! خوشحالم که تونستم کمکتون کنم. هر زمان هزینه یا تسویه‌ای داشتید در خدمتم."
+            )
+        }
+
         return AgentResponse(
-            text = "سلام! من دستیار هوشمند شما در مدیریت هزینه‌ها هستم. می‌توانید مواردی مانند «وضعیت هزینه‌ها»، «ثبت هزینه ناهار ۵۰۰۰۰ در گروه سفر» یا «تسویه‌حساب با علی» را به زبان محاوره‌ای بفرمایید."
+            text = "پیام شما را دریافت کردم. برای مدیریت بهتر می‌توانید بگویید «هزینه شام ۳۰۰۰۰۰»، «عکس فاکتور بفرستید»، «بدهی‌های من را نشان بده» یا نام گروه مورد نظرتان را ذکر کنید."
         )
     }
 }
