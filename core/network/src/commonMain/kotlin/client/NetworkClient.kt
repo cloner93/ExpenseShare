@@ -55,7 +55,7 @@ fun createHttpClient(
         socketTimeoutMillis = config.timeoutMillis
     }
     install(WebSockets) {
-        pingIntervalMillis = 20_000
+        pingIntervalMillis = 10_000
     }
     install(Logging) {
         logger = object : Logger {

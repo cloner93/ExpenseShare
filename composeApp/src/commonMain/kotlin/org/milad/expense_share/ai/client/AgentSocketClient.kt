@@ -3,6 +3,8 @@ package org.milad.expense_share.ai.client
 import client.HttpConfig
 import getDefaultBaseUrl
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.timeout
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.header
@@ -10,7 +12,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.isSecure
-import io.ktor.http.path
 import io.ktor.http.takeFrom
 import io.ktor.websocket.CloseReason
 import io.ktor.websocket.Frame
@@ -21,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -43,12 +45,14 @@ class AgentSocketClient(
 
     private var session: DefaultClientWebSocketSession? = null
     private var listenJob: Job? = null
+    private var isAutoReconnectEnabled = true
 
     suspend fun connect(
         onMessage: (AgentServerMessage) -> Unit,
         onConnectionChanged: (isConnected: Boolean) -> Unit
     ) {
-        disconnect()
+        cleanSession()
+        isAutoReconnectEnabled = true
 
         val token = tokenProvider.getToken()?.accessToken
         if (token.isNullOrBlank()) {
@@ -61,14 +65,16 @@ class AgentSocketClient(
             val base = if (httpConfig.baseUrl.isNotBlank()) httpConfig.baseUrl else getDefaultBaseUrl()
             val urlBuilder = URLBuilder(base)
             val isHttps = urlBuilder.protocol.isSecure()
-            val targetHost = urlBuilder.host
-            val targetPort = urlBuilder.port
 
             session = httpClient.webSocketSession {
+                timeout {
+                    requestTimeoutMillis = Long.MAX_VALUE
+                    socketTimeoutMillis = Long.MAX_VALUE
+                }
                 url {
-                    takeFrom(base)
+                    takeFrom(base.trimEnd('/'))
                     protocol = if (isHttps) URLProtocol.WSS else URLProtocol.WS
-                    path("api", "agent", "chat")
+                    pathSegments = listOf("api", "agent", "chat")
                     parameters.append("token", token)
                 }
                 header(HttpHeaders.Authorization, "Bearer $token")
@@ -94,11 +100,20 @@ class AgentSocketClient(
                     onMessage(AgentServerMessage.Error(e.message ?: "خطای ارتباط با سرور"))
                 } finally {
                     onConnectionChanged(false)
+                    if (isAutoReconnectEnabled && scope.isActive) {
+                        delay(3000)
+                        connect(onMessage, onConnectionChanged)
+                    }
                 }
             }
         } catch (e: Exception) {
             onConnectionChanged(false)
-            onMessage(AgentServerMessage.Error("امکان برقراری ارتباط با دستیار هوشمند وجود ندارد"))
+            if (isAutoReconnectEnabled && scope.isActive) {
+                scope.launch {
+                    delay(3000)
+                    connect(onMessage, onConnectionChanged)
+                }
+            }
         }
     }
 
@@ -146,13 +161,18 @@ class AgentSocketClient(
         }
     }
 
-    suspend fun disconnect() {
+    private suspend fun cleanSession() {
         listenJob?.cancel()
         listenJob = null
         try {
             session?.close(CloseReason(CloseReason.Codes.NORMAL, "Client closed connection"))
         } catch (_: Exception) {}
         session = null
+    }
+
+    suspend fun disconnect() {
+        isAutoReconnectEnabled = false
+        cleanSession()
     }
 
     private fun parseServerMessage(rawText: String): AgentServerMessage? {
