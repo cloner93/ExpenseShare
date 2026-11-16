@@ -72,13 +72,7 @@ fun Route.agentRoutes(
                 val context = AgentSecurityContext(userId = userId)
 
                 suspend fun emitEvent(event: AgentServerEvent) {
-                    val messageJson = when (event) {
-                        is AgentServerEvent.Thinking -> json.encodeToString(AgentServerEvent.Thinking.serializer(), event)
-                        is AgentServerEvent.MessageChunk -> json.encodeToString(AgentServerEvent.MessageChunk.serializer(), event)
-                        is AgentServerEvent.GenerativeCard -> json.encodeToString(AgentServerEvent.GenerativeCard.serializer(), event)
-                        is AgentServerEvent.ActionExecuted -> json.encodeToString(AgentServerEvent.ActionExecuted.serializer(), event)
-                        is AgentServerEvent.Error -> json.encodeToString(AgentServerEvent.Error.serializer(), event)
-                    }
+                    val messageJson = json.encodeToString(AgentServerEvent.serializer(), event)
                     send(Frame.Text(messageJson))
                 }
 

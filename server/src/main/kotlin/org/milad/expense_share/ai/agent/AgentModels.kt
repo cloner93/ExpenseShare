@@ -1,5 +1,6 @@
 package org.milad.expense_share.ai.agent
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 
@@ -27,6 +28,7 @@ data class AgentResponse(
 @Serializable
 sealed class AgentClientEvent {
     @Serializable
+    @SerialName("SendMessage")
     data class SendMessage(
         val sessionId: String,
         val text: String,
@@ -34,6 +36,7 @@ sealed class AgentClientEvent {
     ) : AgentClientEvent()
 
     @Serializable
+    @SerialName("ConfirmDraft")
     data class ConfirmDraft(
         val sessionId: String,
         val draftId: String,
@@ -42,6 +45,7 @@ sealed class AgentClientEvent {
     ) : AgentClientEvent()
 
     @Serializable
+    @SerialName("CancelDraft")
     data class CancelDraft(
         val sessionId: String,
         val draftId: String
@@ -51,12 +55,15 @@ sealed class AgentClientEvent {
 @Serializable
 sealed class AgentServerEvent {
     @Serializable
+    @SerialName("Thinking")
     data class Thinking(val status: String) : AgentServerEvent()
 
     @Serializable
+    @SerialName("MessageChunk")
     data class MessageChunk(val text: String, val isFinal: Boolean = false) : AgentServerEvent()
 
     @Serializable
+    @SerialName("GenerativeCard")
     data class GenerativeCard(
         val cardType: String,
         val draftId: String?,
@@ -64,6 +71,7 @@ sealed class AgentServerEvent {
     ) : AgentServerEvent()
 
     @Serializable
+    @SerialName("ActionExecuted")
     data class ActionExecuted(
         val draftId: String,
         val success: Boolean,
@@ -71,5 +79,6 @@ sealed class AgentServerEvent {
     ) : AgentServerEvent()
 
     @Serializable
+    @SerialName("Error")
     data class Error(val message: String) : AgentServerEvent()
 }

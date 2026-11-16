@@ -1,11 +1,13 @@
 package org.milad.expense_share.ai.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 
 @Serializable
 sealed class AgentClientMessage {
     @Serializable
+    @SerialName("SendMessage")
     data class SendMessage(
         val sessionId: String,
         val text: String,
@@ -13,6 +15,7 @@ sealed class AgentClientMessage {
     ) : AgentClientMessage()
 
     @Serializable
+    @SerialName("ConfirmDraft")
     data class ConfirmDraft(
         val sessionId: String,
         val draftId: String,
@@ -21,6 +24,7 @@ sealed class AgentClientMessage {
     ) : AgentClientMessage()
 
     @Serializable
+    @SerialName("CancelDraft")
     data class CancelDraft(
         val sessionId: String,
         val draftId: String

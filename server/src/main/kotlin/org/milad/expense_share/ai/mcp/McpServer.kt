@@ -317,8 +317,13 @@ class McpServerImpl(
     }
 
     private fun handleProposeExpense(arguments: JsonObject, context: AgentSecurityContext): McpToolResult {
-        val groupId = arguments["groupId"]?.jsonPrimitive?.intOrNull
-            ?: return McpToolResult.error("Missing 'groupId'")
+        val userGroups = groupService.getUserGroups(context.userId).getOrNull() ?: emptyList()
+        val requestedGroupId = arguments["groupId"]?.jsonPrimitive?.intOrNull
+        val groupId = if (requestedGroupId != null && userGroups.any { it.id == requestedGroupId }) {
+            requestedGroupId
+        } else {
+            userGroups.firstOrNull()?.id ?: return McpToolResult.error("شما عضو هیچ گروهی نیستید. لطفاً ابتدا یک گروه ایجاد کنید.")
+        }
         val title = arguments["title"]?.jsonPrimitive?.contentOrNull
             ?: return McpToolResult.error("Missing 'title'")
         val amountValue = arguments["amount"]?.jsonPrimitive?.longOrNull

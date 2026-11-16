@@ -3,6 +3,7 @@ package org.milad.expense_share.ai.agent
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -23,13 +24,18 @@ interface AgentClient {
 
 class GeminiAgentClient(
     private val apiKey: String = System.getenv("GEMINI_API_KEY") ?: "",
-    private val model: String = System.getenv("GEMINI_MODEL") ?: "gemini-1.5-flash"
+    private val model: String = System.getenv("GEMINI_MODEL") ?: "gemini-2.5-flash"
 ) : AgentClient {
 
     private val json = Json { ignoreUnknownKeys = true }
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json(json)
+        }
+        install(HttpTimeout) {
+            requestTimeoutMillis = 6000
+            connectTimeoutMillis = 4000
+            socketTimeoutMillis = 6000
         }
     }
 
@@ -42,7 +48,12 @@ class GeminiAgentClient(
         }
 
         return try {
-            callGeminiApi(messages, tools)
+            val res = callGeminiApi(messages, tools)
+            if (res.text.isBlank() && res.toolCalls.isEmpty()) {
+                fallbackIntentAgent(messages, tools)
+            } else {
+                res
+            }
         } catch (e: Exception) {
             fallbackIntentAgent(messages, tools, errorNote = "Gemini API unavailable: ${e.message}")
         }
@@ -122,8 +133,13 @@ class GeminiAgentClient(
         }
 
         // 3. Propose expense intent (detect numbers or keywords like خرج, هزینه, تومان, پول)
-        val numberRegex = "\\b(\\d+)\\b".toRegex()
-        val numbers = numberRegex.findAll(lastUserMessage).map { it.value.toLong() }.toList()
+        val normalizedMessage = lastUserMessage
+            .replace('۰', '0').replace('۱', '1').replace('۲', '2').replace('۳', '3').replace('۴', '4')
+            .replace('۵', '5').replace('۶', '6').replace('۷', '7').replace('۸', '8').replace('۹', '9')
+            .replace('٠', '0').replace('١', '1').replace('٢', '2').replace('٣', '3').replace('٤', '4')
+            .replace('٥', '5').replace('٦', '6').replace('٧', '7').replace('٨', '8').replace('٩', '9')
+        val numberRegex = "(\\d+)".toRegex()
+        val numbers = numberRegex.findAll(normalizedMessage).mapNotNull { it.value.toLongOrNull() }.toList()
 
         if ((lower.contains("خرج") || lower.contains("هزینه") || lower.contains("پول") || lower.contains("دنگ")) && numbers.isNotEmpty()) {
             val amount = numbers.first()
