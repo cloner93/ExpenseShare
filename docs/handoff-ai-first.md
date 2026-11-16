@@ -46,8 +46,13 @@ All key decisions and domain models are documented directly in the repository:
 - `core/navigation/src/commonMain/kotlin/com/milad/navigation/MainRoute.kt`: Added `MainRoute.Agent`.
 - `core/common/src/commonMain/kotlin/com/pmb/common/ui/scaffold/NavItem.kt`: Added `NavItem.Agent`.
 
+## Verification & Status
+1. **Server & Database:** Server runs on port 8082, auto-creates conversation sessions in PostgreSQL, verifies group memberships in MCP tools, and streams thinking and cards over WebSocket.
+2. **Client Reactive WebSocket:** Ktor client connects to `/api/agent/chat` over WebSocket, serializes events with base polymorphic serializer, and handles both physical Enter key and Send button on Desktop.
+3. **End-to-End Live Verification:** Verified live message delivery and conversational responses between ComposeApp Desktop and Ktor server.
+
 ## Next Immediate Steps
-1. Run server locally via `./gradlew :server:run` for local verification.
+1. Test action draft confirmation flow in ComposeApp desktop UI.
 2. Provide `GEMINI_API_KEY` on production/Liara server (optional: local fallback heuristics are supported).
 3. Trigger the release workflow via `expense-share-release` skill.
 
