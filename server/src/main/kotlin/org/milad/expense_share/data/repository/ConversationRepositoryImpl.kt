@@ -35,14 +35,16 @@ class ConversationRepositoryImpl : ConversationRepository {
 
     override fun getUserSessions(userId: Int): List<ConversationSession> = transaction {
         ConversationSessions
-            .select { ConversationSessions.userId eq userId }
+            .selectAll()
+            .where { ConversationSessions.userId eq userId }
             .orderBy(ConversationSessions.updatedAt to SortOrder.DESC)
             .map { toSession(it) }
     }
 
     override fun getSession(sessionId: String, userId: Int): ConversationSession? = transaction {
         ConversationSessions
-            .select { (ConversationSessions.id eq sessionId) and (ConversationSessions.userId eq userId) }
+            .selectAll()
+            .where { (ConversationSessions.id eq sessionId) and (ConversationSessions.userId eq userId) }
             .map { toSession(it) }
             .firstOrNull()
     }
@@ -79,7 +81,8 @@ class ConversationRepositoryImpl : ConversationRepository {
 
     override fun getMessages(sessionId: String): List<ConversationMessage> = transaction {
         ConversationMessages
-            .select { ConversationMessages.sessionId eq sessionId }
+            .selectAll()
+            .where { ConversationMessages.sessionId eq sessionId }
             .orderBy(ConversationMessages.createdAt to SortOrder.ASC)
             .map { toMessage(it) }
     }

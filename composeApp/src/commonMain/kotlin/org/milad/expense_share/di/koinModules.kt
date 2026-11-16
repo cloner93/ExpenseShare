@@ -151,9 +151,24 @@ val profileModule = module {
     }
 }
 
+val agentModule = module {
+    single {
+        org.milad.expense_share.ai.client.AgentSocketClient(
+            httpClient = get(),
+            tokenProvider = get(),
+            httpConfig = getOrNull() ?: client.HttpConfig()
+        )
+    }
+    viewModel {
+        org.milad.expense_share.ai.AgentChatViewModel(
+            socketClient = get()
+        )
+    }
+}
+
 val appModules = module {
     includes(domainModule)
     includes(dataAggregator)
     // feature modules
-    includes(dashboardModule, registerModule, loginModule, friendsModule, profileModule)
+    includes(dashboardModule, registerModule, loginModule, friendsModule, profileModule, agentModule)
 }

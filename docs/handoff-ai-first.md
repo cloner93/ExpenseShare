@@ -40,15 +40,16 @@ All key decisions and domain models are documented directly in the repository:
 
 ### 4. Conversational Home Screen & Navigation
 - `composeApp/src/commonMain/kotlin/org/milad/expense_share/ai/ui/AgentChatScreen.kt`: Conversational primary view featuring STT voice input, multimodal receipt parsing, thinking animations, and offline fallback banner.
+- `composeApp/src/commonMain/kotlin/org/milad/expense_share/ai/client/AgentSocketClient.kt`: Live Ktor WebSocket client connecting to `/api/agent/chat` with JWT bearer authentication and auto-reconnect.
+- `composeApp/src/commonMain/kotlin/org/milad/expense_share/ai/AgentChatViewModel.kt`: MVI ViewModel handling message streaming, Action Draft lifecycle, thinking states, and offline heuristic fallbacks.
 - `composeApp/src/commonMain/kotlin/org/milad/expense_share/ResponsiveApp.kt`: Set `Agent` as the default landing route in navigation.
 - `core/navigation/src/commonMain/kotlin/com/milad/navigation/MainRoute.kt`: Added `MainRoute.Agent`.
 - `core/common/src/commonMain/kotlin/com/pmb/common/ui/scaffold/NavItem.kt`: Added `NavItem.Agent`.
 
 ## Next Immediate Steps
-1. Commit the pending changes into Git with an appropriate conventional commit message.
-2. Hook up `AgentChatScreen` to live Ktor WebSocket client (`/api/agent/chat`) using `TokenProvider.getToken()`.
-3. Provide `GEMINI_API_KEY` on production/Liara server.
-4. Trigger the release workflow.
+1. Run server locally via `./gradlew :server:run` for local verification.
+2. Provide `GEMINI_API_KEY` on production/Liara server (optional: local fallback heuristics are supported).
+3. Trigger the release workflow via `expense-share-release` skill.
 
 ## Suggested Skills
 For the next agent picking up this workspace:

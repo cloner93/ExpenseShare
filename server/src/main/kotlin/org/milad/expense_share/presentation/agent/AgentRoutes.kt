@@ -9,7 +9,9 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.webSocket
+import io.ktor.websocket.CloseReason
 import io.ktor.websocket.Frame
+import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import kotlinx.serialization.Serializable
@@ -65,7 +67,7 @@ fun Route.agentRoutes(
 
             webSocket("/chat") {
                 val userId = call.principal<JWTPrincipal>().getUserId()
-                    ?: return@webSocket close()
+                    ?: return@webSocket close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Unauthorized"))
 
                 val context = AgentSecurityContext(userId = userId)
 

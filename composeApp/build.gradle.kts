@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.expenseshare.android.application)
     alias(libs.plugins.expenseshare.kotlin.multiplatform)
     alias(libs.plugins.expenseshare.compose.multiplatform)
+    alias(libs.plugins.expenseshare.kotlin.serialization)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.jacoco)
     alias(libs.plugins.kotzilla)

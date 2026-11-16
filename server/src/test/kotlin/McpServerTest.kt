@@ -5,6 +5,7 @@ import io.mockk.*
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.JsonPrimitive
 import org.milad.expense_share.Amount
 import org.milad.expense_share.ai.mcp.McpServerImpl
 import org.milad.expense_share.ai.mcp.model.AgentSecurityContext
@@ -97,7 +98,7 @@ class McpServerTest : DescribeSpec({
                 put("title", "Dinner")
                 put("amount", 200000L)
                 put("payerId", 1)
-                put("participantIds", buildJsonArray { add(1); add(2) })
+                put("participantIds", buildJsonArray { add(JsonPrimitive(1)); add(JsonPrimitive(2)) })
             }
 
             val result = mcpServer.executeTool("propose_expense", args, AgentSecurityContext(userId = 1))
@@ -123,7 +124,7 @@ class McpServerTest : DescribeSpec({
                 payers = emptyList(),
                 shareDetails = mockk(),
                 status = TransactionStatus.APPROVED,
-                creatorId = 1
+                createdBy = 1
             )
 
             every {
@@ -144,7 +145,7 @@ class McpServerTest : DescribeSpec({
                 put("title", "Dinner")
                 put("amount", 200000L)
                 put("payerId", 1)
-                put("participantIds", buildJsonArray { add(1); add(2) })
+                put("participantIds", buildJsonArray { add(JsonPrimitive(1)); add(JsonPrimitive(2)) })
             }
 
             val result = mcpServer.executeTool("execute_expense_draft", args, AgentSecurityContext(userId = 1))

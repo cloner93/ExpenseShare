@@ -15,6 +15,8 @@ application {
 
 dependencies {
     implementation(projects.core.currency)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
     testImplementation("io.mockk:mockk:1.13.12")
 }
 

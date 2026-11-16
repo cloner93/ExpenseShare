@@ -271,8 +271,8 @@ class McpServerImpl(
         val settlementsJson = settlements.map { s ->
             buildJsonObject {
                 put("id", s.id)
-                put("debtorId", s.debtorId)
-                put("creditorId", s.creditorId)
+                put("debtorId", s.debtor.id)
+                put("creditorId", s.creditor.id)
                 put("amount", s.amount.value)
                 put("status", s.status.name)
             }
@@ -305,9 +305,9 @@ class McpServerImpl(
 
         val friendsJson = friends.map { f ->
             buildJsonObject {
-                put("id", f.id)
-                put("username", f.username)
-                put("phone", f.phone)
+                put("id", f.user.id)
+                put("username", f.user.username)
+                put("phone", f.user.phone)
             }
         }
 
@@ -426,13 +426,13 @@ class McpServerImpl(
         val draft = ActionDraftPayload(
             draftId = draftId,
             actionType = "PAY_SETTLEMENT",
-            summary = "Pay settlement #${target.id} of ${target.amount.value} to user #${target.creditorId}",
+            summary = "Pay settlement #${target.id} of ${target.amount.value} to user #${target.creditor.id}",
             requiresConfirmation = true,
             payload = buildJsonObject {
                 put("settlementId", settlementId)
                 put("groupId", groupId)
                 put("amount", target.amount.value)
-                put("creditorId", target.creditorId)
+                put("creditorId", target.creditor.id)
             }
         )
 

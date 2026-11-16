@@ -1,31 +1,58 @@
 package org.milad.expense_share.ai.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+import org.koin.compose.viewmodel.koinViewModel
+import org.milad.expense_share.ai.AgentChatAction
+import org.milad.expense_share.ai.AgentChatEvent
+import org.milad.expense_share.ai.AgentChatViewModel
 
 data class ChatUiMessage(
     val id: String,
@@ -41,31 +68,28 @@ data class ChatUiMessage(
 @Composable
 fun AgentChatScreen(
     onNavigateToDashboard: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: AgentChatViewModel = koinViewModel()
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    val state by viewModel.viewState.collectAsState()
     val listState = rememberLazyListState()
 
-    var isOffline by remember { mutableStateOf(false) }
-    var isThinking by remember { mutableStateOf(false) }
-    var thinkingText by remember { mutableStateOf("در حال تحلیل...") }
-    var isRecordingVoice by remember { mutableStateOf(false) }
-    var inputText by remember { mutableStateOf("") }
-
-    val messages = remember {
-        mutableStateListOf(
-            ChatUiMessage(
-                id = "welcome",
-                role = "assistant",
-                content = "سلام! من ایجنت هوشمند شما در ExpenseShare هستم.\nمی‌توانید به زبان محاوره‌ای هزینه‌ها را بگویید، فاکتور بفرستید، یا وضعیت بدهی‌ها را بپرسید."
-            )
-        )
+    LaunchedEffect(state.messages.size, state.isThinking) {
+        if (state.messages.isNotEmpty()) {
+            listState.animateScrollToItem(state.messages.size - 1)
+        }
     }
 
-    // Scroll to bottom when new messages arrive
-    LaunchedEffect(messages.size, isThinking) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
+    LaunchedEffect(Unit) {
+        viewModel.viewEvent.collect { event ->
+            when (event) {
+                is AgentChatEvent.ScrollToBottom -> {
+                    if (state.messages.isNotEmpty()) {
+                        listState.animateScrollToItem(state.messages.size - 1)
+                    }
+                }
+                is AgentChatEvent.ShowToast -> {}
+            }
         }
     }
 
@@ -97,15 +121,14 @@ fun AgentChatScreen(
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = if (isOffline) "حالت آفلاین" else "برخط و آماده پاسخگویی",
+                                    text = if (state.isOffline) "حالت آفلاین (استفاده از پایگاه محلی)" else "برخط و متصل به سرور",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if (isOffline) MaterialTheme.colorScheme.error else Color(0xFF2E7D32)
+                                    color = if (state.isOffline) MaterialTheme.colorScheme.error else Color(0xFF2E7D32)
                                 )
                             }
                         }
                     },
                     actions = {
-                        // Quick switch to manual dashboard button
                         IconButton(onClick = onNavigateToDashboard) {
                             Icon(
                                 imageVector = Icons.Default.Dashboard,
@@ -116,7 +139,7 @@ fun AgentChatScreen(
                 )
 
                 // Offline fallback banner with one-tap navigation to traditional dashboard
-                AnimatedVisibility(visible = isOffline) {
+                AnimatedVisibility(visible = state.isOffline) {
                     Surface(
                         color = MaterialTheme.colorScheme.errorContainer,
                         modifier = Modifier.fillMaxWidth()
@@ -140,13 +163,18 @@ fun AgentChatScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "اتصال به سرور قطع است. می‌توانید از فرم‌های سنتی استفاده کنید.",
+                                    text = "اتصال وب‌سوکت قطع است. دستیار به حالت آفلاین منتقل شد.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
                             }
-                            TextButton(onClick = onNavigateToDashboard) {
-                                Text(text = "داشبورد دستی")
+                            Row {
+                                TextButton(onClick = { viewModel.handle(AgentChatAction.Reconnect) }) {
+                                    Text(text = "تلاش مجدد")
+                                }
+                                TextButton(onClick = onNavigateToDashboard) {
+                                    Text(text = "داشبورد دستی")
+                                }
                             }
                         }
                     }
@@ -160,7 +188,7 @@ fun AgentChatScreen(
             ) {
                 Column {
                     // Voice recording status indicator
-                    AnimatedVisibility(visible = isRecordingVoice) {
+                    AnimatedVisibility(visible = state.isRecordingVoice) {
                         Surface(
                             color = MaterialTheme.colorScheme.primaryContainer,
                             modifier = Modifier.fillMaxWidth()
@@ -186,8 +214,8 @@ fun AgentChatScreen(
                                     )
                                 }
                                 TextButton(onClick = {
-                                    isRecordingVoice = false
-                                    inputText = "۳۵۰ هزار تومان پول شام با علی و رضا"
+                                    viewModel.handle(AgentChatAction.SetRecordingVoice(false))
+                                    viewModel.handle(AgentChatAction.UpdateInputText("۳۵۰ هزار تومان پول شام با علی و رضا"))
                                 }) {
                                     Text(text = "اتمام ضبط")
                                 }
@@ -205,44 +233,16 @@ fun AgentChatScreen(
                         // Multimodal receipt scan button
                         IconButton(
                             onClick = {
-                                coroutineScope.launch {
-                                    messages.add(
-                                        ChatUiMessage(
-                                            id = "img-${messages.size}",
-                                            role = "user",
-                                            content = "[تصویر رسید رستوران پیوست شد]"
-                                        )
+                                viewModel.handle(
+                                    AgentChatAction.SendReceiptImage(
+                                        imageBase64 = "base64-receipt-stub",
+                                        summary = "[تصویر فاکتور رستوران پیوست شد]"
                                     )
-                                    isThinking = true
-                                    thinkingText = "در حال تحلیل تصویر فاکتور با هوش مصنوعی..."
-                                    delay(1200)
-                                    isThinking = false
-
-                                    val draftData = buildJsonObject {
-                                        put("actionType", "CREATE_TRANSACTION")
-                                        put("summary", "فاکتور رستوران - ۳ قلم غذا")
-                                        put("payload", buildJsonObject {
-                                            put("title", "شام رستوران البرز")
-                                            put("amount", 850000L)
-                                            put("groupId", 1)
-                                        })
-                                    }
-
-                                    messages.add(
-                                        ChatUiMessage(
-                                            id = "bot-${messages.size}",
-                                            role = "assistant",
-                                            content = "اقلام فاکتور با موفقیت استخراج شد. لطفاً پیش‌نویس زیر را تایید کنید:",
-                                            cardType = "ACTION_DRAFT",
-                                            draftId = "draft-receipt-1",
-                                            cardData = draftData
-                                        )
-                                    )
-                                }
+                                )
                             }
                         ) {
                             Icon(
-                                imageVector = Icons.Default.ReceiptLong,
+                                imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
                                 contentDescription = "اسکن رسید",
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -250,19 +250,21 @@ fun AgentChatScreen(
 
                         // Voice recording button
                         IconButton(
-                            onClick = { isRecordingVoice = !isRecordingVoice }
+                            onClick = {
+                                viewModel.handle(AgentChatAction.SetRecordingVoice(!state.isRecordingVoice))
+                            }
                         ) {
                             Icon(
-                                imageVector = if (isRecordingVoice) Icons.Default.MicOff else Icons.Default.Mic,
+                                imageVector = if (state.isRecordingVoice) Icons.Default.MicOff else Icons.Default.Mic,
                                 contentDescription = "ورودی صوتی",
-                                tint = if (isRecordingVoice) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                tint = if (state.isRecordingVoice) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                             )
                         }
 
                         // Text Field
                         TextField(
-                            value = inputText,
-                            onValueChange = { inputText = it },
+                            value = state.inputText,
+                            onValueChange = { viewModel.handle(AgentChatAction.UpdateInputText(it)) },
                             placeholder = { Text(text = "پیام یا دستور مالی خود را بنویسید...") },
                             modifier = Modifier
                                 .weight(1f)
@@ -278,80 +280,14 @@ fun AgentChatScreen(
                         // Send Button
                         IconButton(
                             onClick = {
-                                val text = inputText.trim()
-                                if (text.isNotBlank()) {
-                                    messages.add(
-                                        ChatUiMessage(
-                                            id = "msg-${messages.size}",
-                                            role = "user",
-                                            content = text
-                                        )
-                                    )
-                                    inputText = ""
-
-                                    coroutineScope.launch {
-                                        isThinking = true
-                                        thinkingText = "در حال برنامه‌ریزی و اجرای ابزار..."
-                                        delay(1000)
-                                        isThinking = false
-
-                                        // Simulate intelligent agent response & draft creation
-                                        if (text.contains("خرج") || text.contains("شام") || text.contains("هزینه") || text.contains("پول")) {
-                                            val draftData = buildJsonObject {
-                                                put("actionType", "CREATE_TRANSACTION")
-                                                put("summary", "هزینه ثبت شده از متن پیام")
-                                                put("payload", buildJsonObject {
-                                                    put("title", text)
-                                                    put("amount", 250000L)
-                                                    put("groupId", 1)
-                                                })
-                                            }
-                                            messages.add(
-                                                ChatUiMessage(
-                                                    id = "bot-${messages.size}",
-                                                    role = "assistant",
-                                                    content = "پیش‌نویس هزینه بر اساس درخواست شما تهیه شد. آیا مایل به ثبت نهایی هستید؟",
-                                                    cardType = "ACTION_DRAFT",
-                                                    draftId = "draft-${messages.size}",
-                                                    cardData = draftData
-                                                )
-                                            )
-                                        } else if (text.contains("علی")) {
-                                            // Trigger Disambiguation card
-                                            val disambigData = buildJsonObject {
-                                                put("prompt", "چند مخاطب با نام علی یافت شد. کدام مد نظرتان است؟")
-                                                put("options", kotlinx.serialization.json.buildJsonArray {
-                                                    add(kotlinx.serialization.json.JsonPrimitive("علی حسینی (گروه سفر)"))
-                                                    add(kotlinx.serialization.json.JsonPrimitive("علی رضوانی (هم‌خانه)"))
-                                                })
-                                            }
-                                            messages.add(
-                                                ChatUiMessage(
-                                                    id = "bot-${messages.size}",
-                                                    role = "assistant",
-                                                    content = "لطفاً مخاطب دقیق را مشخص فرمایید:",
-                                                    cardType = "DISAMBIGUATION",
-                                                    cardData = disambigData
-                                                )
-                                            )
-                                        } else {
-                                            messages.add(
-                                                ChatUiMessage(
-                                                    id = "bot-${messages.size}",
-                                                    role = "assistant",
-                                                    content = "درخواست شما بررسی شد. در صورت نیاز به ثبت هزینه، تسویه یا ایجاد گروه، کافیست جزئیات را بفرمایید."
-                                                )
-                                            )
-                                        }
-                                    }
-                                }
+                                viewModel.handle(AgentChatAction.SendTextMessage(state.inputText))
                             },
-                            enabled = inputText.isNotBlank()
+                            enabled = state.inputText.isNotBlank()
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Send,
+                                imageVector = Icons.AutoMirrored.Filled.Send,
                                 contentDescription = "ارسال",
-                                tint = if (inputText.isNotBlank()) MaterialTheme.colorScheme.primary else Color.Gray
+                                tint = if (state.inputText.isNotBlank()) MaterialTheme.colorScheme.primary else Color.Gray
                             )
                         }
                     }
@@ -370,30 +306,32 @@ fun AgentChatScreen(
         ) {
             item { Spacer(modifier = Modifier.height(6.dp)) }
 
-            items(messages, key = { it.id }) { msg ->
+            items(state.messages, key = { it.id }) { msg ->
                 val isUser = msg.role == "user"
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
                 ) {
-                    // Chat bubble
-                    Surface(
-                        shape = RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 16.dp,
-                            bottomStart = if (isUser) 16.dp else 4.dp,
-                            bottomEnd = if (isUser) 4.dp else 16.dp
-                        ),
-                        color = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                        tonalElevation = 1.dp
-                    ) {
-                        Text(
-                            text = msg.content,
-                            modifier = Modifier.padding(12.dp),
-                            color = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                    if (msg.content.isNotBlank()) {
+                        // Chat bubble
+                        Surface(
+                            shape = RoundedCornerShape(
+                                topStart = 16.dp,
+                                topEnd = 16.dp,
+                                bottomStart = if (isUser) 16.dp else 4.dp,
+                                bottomEnd = if (isUser) 4.dp else 16.dp
+                            ),
+                            color = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                            tonalElevation = 1.dp
+                        ) {
+                            Text(
+                                text = msg.content,
+                                modifier = Modifier.padding(12.dp),
+                                color = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
 
                     // Inline A2UI Generative Card (if any)
@@ -404,25 +342,13 @@ fun AgentChatScreen(
                             draftId = msg.draftId,
                             data = msg.cardData,
                             onConfirmDraft = { draftId, actionType, payload ->
-                                messages.add(
-                                    ChatUiMessage(
-                                        id = "confirm-${messages.size}",
-                                        role = "assistant",
-                                        content = "اقدام با موفقیت در سیستم ثبت گردید."
-                                    )
-                                )
+                                viewModel.handle(AgentChatAction.ConfirmDraft(draftId, actionType, payload))
                             },
                             onCancelDraft = { draftId ->
-                                messages.add(
-                                    ChatUiMessage(
-                                        id = "cancel-${messages.size}",
-                                        role = "assistant",
-                                        content = "پیش‌نویس اقدام لغو شد."
-                                    )
-                                )
+                                viewModel.handle(AgentChatAction.CancelDraft(draftId))
                             },
                             onSelectOption = { selectedOption ->
-                                inputText = selectedOption
+                                viewModel.handle(AgentChatAction.SelectOption(selectedOption))
                             },
                             modifier = Modifier.fillMaxWidth(0.95f)
                         )
@@ -431,7 +357,7 @@ fun AgentChatScreen(
             }
 
             // Thinking pulsating bubble
-            if (isThinking) {
+            if (state.isThinking) {
                 item {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -444,7 +370,7 @@ fun AgentChatScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = thinkingText,
+                            text = state.thinkingText,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -456,3 +382,5 @@ fun AgentChatScreen(
         }
     }
 }
+
+
