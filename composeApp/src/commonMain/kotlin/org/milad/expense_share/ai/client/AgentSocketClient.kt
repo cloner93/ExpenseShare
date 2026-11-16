@@ -141,12 +141,12 @@ class AgentSocketClient(
         val s = session
         println("[AgentSocketClient] sendUserMessage: session=$s, isActive=${s?.isActive}")
         if (s != null && s.isActive) {
-            val payload = AgentClientMessage.SendMessage(
+            val payload: AgentClientMessage = AgentClientMessage.SendMessage(
                 sessionId = sessionId,
                 text = text,
                 imageBase64 = imageBase64
             )
-            val payloadText = json.encodeToString(AgentClientMessage.SendMessage.serializer(), payload)
+            val payloadText = json.encodeToString(AgentClientMessage.serializer(), payload)
             println("[AgentSocketClient] Sending payload: $payloadText")
             s.send(Frame.Text(payloadText))
             println("[AgentSocketClient] Frame sent successfully")
@@ -164,13 +164,13 @@ class AgentSocketClient(
     ) {
         val s = session
         if (s != null && s.isActive) {
-            val message = AgentClientMessage.ConfirmDraft(
+            val message: AgentClientMessage = AgentClientMessage.ConfirmDraft(
                 sessionId = sessionId,
                 draftId = draftId,
                 actionType = actionType,
                 payload = payload
             )
-            val payloadText = json.encodeToString(AgentClientMessage.ConfirmDraft.serializer(), message)
+            val payloadText = json.encodeToString(AgentClientMessage.serializer(), message)
             s.send(Frame.Text(payloadText))
         } else {
             throw IllegalStateException("اتصال سوکت برقرار نیست")
@@ -180,11 +180,11 @@ class AgentSocketClient(
     suspend fun cancelDraft(sessionId: String, draftId: String) {
         val s = session
         if (s != null && s.isActive) {
-            val message = AgentClientMessage.CancelDraft(
+            val message: AgentClientMessage = AgentClientMessage.CancelDraft(
                 sessionId = sessionId,
                 draftId = draftId
             )
-            val payloadText = json.encodeToString(AgentClientMessage.CancelDraft.serializer(), message)
+            val payloadText = json.encodeToString(AgentClientMessage.serializer(), message)
             s.send(Frame.Text(payloadText))
         } else {
             throw IllegalStateException("اتصال سوکت برقرار نیست")
@@ -194,30 +194,31 @@ class AgentSocketClient(
     private fun parseServerMessage(rawText: String): AgentServerMessage? {
         return try {
             val jsonElement = json.parseToJsonElement(rawText).jsonObject
+            val type = jsonElement["type"]?.jsonPrimitive?.contentOrNull
 
             when {
-                jsonElement.containsKey("cardType") -> {
+                type == "Thinking" || jsonElement.containsKey("status") -> {
+                    val status = jsonElement["status"]?.jsonPrimitive?.contentOrNull ?: "در حال پردازش..."
+                    AgentServerMessage.Thinking(status)
+                }
+                type == "MessageChunk" || (jsonElement.containsKey("text") && !jsonElement.containsKey("cardType")) -> {
+                    val text = jsonElement["text"]?.jsonPrimitive?.contentOrNull ?: ""
+                    val isFinal = jsonElement["isFinal"]?.jsonPrimitive?.booleanOrNull ?: false
+                    AgentServerMessage.MessageChunk(text, isFinal)
+                }
+                type == "GenerativeCard" || jsonElement.containsKey("cardType") -> {
                     val cardType = jsonElement["cardType"]?.jsonPrimitive?.contentOrNull ?: "ACTION_DRAFT"
                     val draftId = jsonElement["draftId"]?.jsonPrimitive?.contentOrNull
                     val data = jsonElement["data"]?.jsonObject ?: JsonObject(emptyMap())
                     AgentServerMessage.GenerativeCard(cardType, draftId, data)
                 }
-                jsonElement.containsKey("status") -> {
-                    val status = jsonElement["status"]?.jsonPrimitive?.contentOrNull ?: "در حال پردازش..."
-                    AgentServerMessage.Thinking(status)
-                }
-                jsonElement.containsKey("text") -> {
-                    val text = jsonElement["text"]?.jsonPrimitive?.contentOrNull ?: ""
-                    val isFinal = jsonElement["isFinal"]?.jsonPrimitive?.booleanOrNull ?: false
-                    AgentServerMessage.MessageChunk(text, isFinal)
-                }
-                jsonElement.containsKey("success") && jsonElement.containsKey("draftId") -> {
+                type == "ActionExecuted" || (jsonElement.containsKey("success") && jsonElement.containsKey("draftId")) -> {
                     val draftId = jsonElement["draftId"]?.jsonPrimitive?.contentOrNull ?: ""
                     val success = jsonElement["success"]?.jsonPrimitive?.booleanOrNull ?: true
                     val message = jsonElement["message"]?.jsonPrimitive?.contentOrNull ?: ""
                     AgentServerMessage.ActionExecuted(draftId, success, message)
                 }
-                jsonElement.containsKey("message") -> {
+                type == "Error" || jsonElement.containsKey("message") -> {
                     val message = jsonElement["message"]?.jsonPrimitive?.contentOrNull ?: ""
                     AgentServerMessage.Error(message)
                 }

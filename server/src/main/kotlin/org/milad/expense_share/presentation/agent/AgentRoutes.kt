@@ -83,7 +83,11 @@ fun Route.agentRoutes(
                         val text = frame.readText()
                         println("[AgentRoutes] Received text frame from client: $text")
                         try {
-                            val clientEvent = json.decodeFromString<AgentClientEvent>(text)
+                            val clientEvent = try {
+                                json.decodeFromString<AgentClientEvent>(text)
+                            } catch (e: Exception) {
+                                json.decodeFromString<AgentClientEvent.SendMessage>(text)
+                            }
                             println("[AgentRoutes] Decoded clientEvent: $clientEvent")
                             when (clientEvent) {
                                 is AgentClientEvent.SendMessage -> {
