@@ -42,6 +42,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -261,6 +270,13 @@ fun AgentChatScreen(
                             )
                         }
 
+                        val submitMessage: () -> Unit = {
+                            if (state.inputText.isNotBlank()) {
+                                println("[AgentChatScreen] Submitting message: ${state.inputText}")
+                                viewModel.handle(AgentChatAction.SendTextMessage(state.inputText))
+                            }
+                        }
+
                         // Text Field
                         TextField(
                             value = state.inputText,
@@ -268,7 +284,17 @@ fun AgentChatScreen(
                             placeholder = { Text(text = "پیام یا دستور مالی خود را بنویسید...") },
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(horizontal = 4.dp),
+                                .padding(horizontal = 4.dp)
+                                .onKeyEvent { keyEvent ->
+                                    if (keyEvent.type == KeyEventType.KeyDown && keyEvent.key == Key.Enter && !keyEvent.isShiftPressed) {
+                                        submitMessage()
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                            keyboardActions = KeyboardActions(onSend = { submitMessage() }),
                             shape = RoundedCornerShape(24.dp),
                             colors = TextFieldDefaults.colors(
                                 focusedIndicatorColor = Color.Transparent,
@@ -279,9 +305,7 @@ fun AgentChatScreen(
 
                         // Send Button
                         IconButton(
-                            onClick = {
-                                viewModel.handle(AgentChatAction.SendTextMessage(state.inputText))
-                            },
+                            onClick = { submitMessage() },
                             enabled = state.inputText.isNotBlank()
                         ) {
                             Icon(

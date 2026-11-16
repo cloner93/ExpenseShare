@@ -69,18 +69,22 @@ fun Route.agentRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@webSocket close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Unauthorized"))
 
+                println("[AgentRoutes] WebSocket client connected. userId=$userId")
                 val context = AgentSecurityContext(userId = userId)
 
                 suspend fun emitEvent(event: AgentServerEvent) {
                     val messageJson = json.encodeToString(AgentServerEvent.serializer(), event)
+                    println("[AgentRoutes] Emitting event to client: $messageJson")
                     send(Frame.Text(messageJson))
                 }
 
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
                         val text = frame.readText()
+                        println("[AgentRoutes] Received text frame from client: $text")
                         try {
                             val clientEvent = json.decodeFromString<AgentClientEvent>(text)
+                            println("[AgentRoutes] Decoded clientEvent: $clientEvent")
                             when (clientEvent) {
                                 is AgentClientEvent.SendMessage -> {
                                     orchestrator.handleUserMessage(

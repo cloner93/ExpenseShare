@@ -111,11 +111,14 @@ class AgentChatViewModel(
 
         viewModelScope.launch {
             try {
+                println("[AgentChatViewModel] Sending message via socketClient: '$trimmed'")
                 socketClient.sendUserMessage(
                     sessionId = viewState.value.activeSessionId,
                     text = trimmed
                 )
+                println("[AgentChatViewModel] Message sent to socketClient")
             } catch (e: Exception) {
+                println("[AgentChatViewModel] Error sending to socket: ${e.message}, falling back")
                 // Network or socket send failed -> graceful fallback
                 handleOfflineFallback(trimmed)
             }

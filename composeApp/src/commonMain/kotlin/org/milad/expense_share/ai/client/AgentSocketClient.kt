@@ -91,21 +91,27 @@ class AgentSocketClient(
 
                     session = wsSession
                     _isConnected.value = true
+                    println("[AgentSocketClient] Connected to WebSocket at $base")
 
                     for (frame in wsSession.incoming) {
                         if (frame is Frame.Text) {
                             val text = frame.readText()
+                            println("[AgentSocketClient] Received frame: $text")
                             val parsed = parseServerMessage(text)
+                            println("[AgentSocketClient] Parsed server message: $parsed")
                             if (parsed != null) {
                                 _serverMessages.emit(parsed)
                             }
                         }
                     }
                 } catch (e: CancellationException) {
+                    println("[AgentSocketClient] WebSocket cancelled")
                     break
                 } catch (e: Exception) {
+                    println("[AgentSocketClient] WebSocket exception: ${e.message}")
                     _serverMessages.emit(AgentServerMessage.Error(e.message ?: "خطای ارتباط با سرور"))
                 } finally {
+                    println("[AgentSocketClient] WebSocket connection closed, cleaning session")
                     _isConnected.value = false
                     session = null
                 }
@@ -133,6 +139,7 @@ class AgentSocketClient(
 
     suspend fun sendUserMessage(sessionId: String, text: String, imageBase64: String? = null) {
         val s = session
+        println("[AgentSocketClient] sendUserMessage: session=$s, isActive=${s?.isActive}")
         if (s != null && s.isActive) {
             val payload = AgentClientMessage.SendMessage(
                 sessionId = sessionId,
@@ -140,8 +147,11 @@ class AgentSocketClient(
                 imageBase64 = imageBase64
             )
             val payloadText = json.encodeToString(AgentClientMessage.SendMessage.serializer(), payload)
+            println("[AgentSocketClient] Sending payload: $payloadText")
             s.send(Frame.Text(payloadText))
+            println("[AgentSocketClient] Frame sent successfully")
         } else {
+            println("[AgentSocketClient] Socket not connected! Cannot send message.")
             throw IllegalStateException("اتصال سوکت برقرار نیست")
         }
     }
