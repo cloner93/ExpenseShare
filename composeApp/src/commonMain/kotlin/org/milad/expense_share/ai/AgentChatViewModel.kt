@@ -90,12 +90,15 @@ class AgentChatViewModel(
         }
     }
 
+    private var messageIdCounter = 0L
+    private fun nextId(prefix: String): String = "$prefix-${++messageIdCounter}-${kotlin.random.Random.nextInt(10000, 99999)}"
+
     private fun sendMessage(text: String) {
         val trimmed = text.trim()
         if (trimmed.isBlank()) return
 
         val userMessage = ChatUiMessage(
-            id = "user-${System.currentTimeMillis()}",
+            id = nextId("user"),
             role = "user",
             content = trimmed
         )
@@ -128,7 +131,7 @@ class AgentChatViewModel(
 
     private fun sendReceipt(imageBase64: String, summary: String) {
         val userMessage = ChatUiMessage(
-            id = "img-${System.currentTimeMillis()}",
+            id = nextId("img"),
             role = "user",
             content = summary
         )
@@ -154,7 +157,7 @@ class AgentChatViewModel(
                     it.copy(
                         isThinking = false,
                         messages = it.messages + ChatUiMessage(
-                            id = "agent-error-${System.currentTimeMillis()}",
+                            id = nextId("agent-error"),
                             role = "agent",
                             content = "ارسال تصویر فاکتور با خطا مواجه شد. لطفاً اتصال اینترنت را بررسی کنید."
                         )
@@ -215,7 +218,7 @@ class AgentChatViewModel(
                 } else if (message.text.isNotBlank()) {
                     newMessages.add(
                         ChatUiMessage(
-                            id = "agent-${System.currentTimeMillis()}",
+                            id = nextId("agent"),
                             role = "agent",
                             content = message.text
                         )
@@ -233,7 +236,7 @@ class AgentChatViewModel(
 
             is AgentServerMessage.GenerativeCard -> {
                 val cardMessage = ChatUiMessage(
-                    id = "card-${System.currentTimeMillis()}",
+                    id = nextId("card"),
                     role = "agent",
                     content = "",
                     cardType = message.cardType,
@@ -251,7 +254,7 @@ class AgentChatViewModel(
 
             is AgentServerMessage.ActionExecuted -> {
                 val statusMessage = ChatUiMessage(
-                    id = "exec-${System.currentTimeMillis()}",
+                    id = nextId("exec"),
                     role = "agent",
                     content = message.message
                 )
@@ -280,7 +283,7 @@ class AgentChatViewModel(
             it.copy(
                 isThinking = false,
                 messages = it.messages + ChatUiMessage(
-                    id = "agent-${System.currentTimeMillis()}",
+                    id = nextId("agent"),
                     role = "agent",
                     content = "ارتباط با سرور برقرار نیست. در حالت آفلاین می‌توانید از فرم‌های سنتی در داشبورد استفاده کنید یا دکمه تلاش مجدد را بزنید."
                 )
