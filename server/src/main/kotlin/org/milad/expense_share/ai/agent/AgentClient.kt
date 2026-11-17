@@ -75,7 +75,7 @@ class GeminiAgentClient(
         }
 
         val contentsJson = messages.map { msg ->
-            val role = if (msg.role == "assistant" || msg.role == "agent") "model" else "user"
+            val role = if (msg.role == "agent") "model" else "user"
             buildJsonObject {
                 put("role", role)
                 put("parts", buildJsonArray {

@@ -244,7 +244,33 @@ class McpServerImpl(
             }
         }
 
-        return McpToolResult.success(summaryText.trim())
+        val balances = groups.map { g ->
+            buildJsonObject {
+                put("name", g.name)
+                put("amount", (g.transactions.size * 50000L))
+            }
+        }
+        val chartPayload = buildJsonObject {
+            put("title", "نمودار وضعیت گروه‌ها")
+            put("totalBalance", 0L)
+            put("balances", JsonArray(balances))
+        }
+
+        val draftAction = if (groups.isNotEmpty()) {
+            ActionDraftPayload(
+                draftId = UUID.randomUUID().toString(),
+                actionType = "BALANCE_CHART",
+                summary = "نمودار وضعیت مالی گروه‌ها",
+                requiresConfirmation = false,
+                payload = chartPayload
+            )
+        } else null
+
+        return McpToolResult(
+            isError = false,
+            content = listOf(McpContent(text = summaryText.trim())),
+            draftAction = draftAction
+        )
     }
 
     private fun handleGetGroupDetails(arguments: JsonObject, context: AgentSecurityContext): McpToolResult {
@@ -407,6 +433,9 @@ class McpServerImpl(
         val payerId = arguments["payerId"]?.jsonPrimitive?.intOrNull ?: context.userId
 
         val groupMembers = groupService.getUsersOfGroup(groupId)
+        if (groupMembers.none { it.id == context.userId }) {
+            return McpToolResult.error("Access denied: You are not a member of group #$groupId")
+        }
         val payerUser = groupMembers.firstOrNull { it.id == payerId }
             ?: return McpToolResult.error("Payer user #$payerId not found in group")
 

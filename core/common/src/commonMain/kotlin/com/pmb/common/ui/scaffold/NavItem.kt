@@ -16,7 +16,7 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 
 enum class NavItem(val title: String, val icon: ImageVector) {
-    Agent("هوش مصنوعی", Icons.Default.AutoAwesome),
+    Agent("Agent", Icons.Default.AutoAwesome),
     Dashboard("Dashboard", Icons.Default.Dashboard),
     Friends("Friends", Icons.Default.People),
     Profile("Profile", Icons.Default.Person)

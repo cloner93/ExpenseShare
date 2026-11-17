@@ -75,7 +75,7 @@ class AgentChatViewModel(
             is AgentChatAction.ConfirmDraft -> confirmDraft(action.draftId, action.actionType, action.payload)
             is AgentChatAction.CancelDraft -> cancelDraft(action.draftId)
             is AgentChatAction.SelectOption -> {
-                setState { it.copy(inputText = action.option) }
+                sendMessage(action.option)
             }
             is AgentChatAction.UpdateInputText -> {
                 setState { it.copy(inputText = action.text) }
@@ -150,26 +150,13 @@ class AgentChatViewModel(
                     imageBase64 = imageBase64
                 )
             } catch (e: Exception) {
-                delay(1000)
-                val draftData = buildJsonObject {
-                    put("actionType", "CREATE_TRANSACTION")
-                    put("summary", "فاکتور رستوران - ۳ قلم غذا")
-                    put("payload", buildJsonObject {
-                        put("title", "شام رستوران البرز")
-                        put("amount", 850000L)
-                        put("groupId", 1)
-                    })
-                }
                 setState {
                     it.copy(
                         isThinking = false,
                         messages = it.messages + ChatUiMessage(
-                            id = "agent-receipt-${System.currentTimeMillis()}",
+                            id = "agent-error-${System.currentTimeMillis()}",
                             role = "agent",
-                            content = "اقلام فاکتور با موفقیت استخراج شد. لطفاً پیش‌نویس زیر را تایید کنید:",
-                            cardType = "ACTION_DRAFT",
-                            draftId = "draft-receipt-local",
-                            cardData = draftData
+                            content = "ارسال تصویر فاکتور با خطا مواجه شد. لطفاً اتصال اینترنت را بررسی کنید."
                         )
                     )
                 }
@@ -221,7 +208,7 @@ class AgentChatViewModel(
                 val newMessages = viewState.value.messages.toMutableList()
                 val lastMsg = newMessages.lastOrNull()
 
-                if (lastMsg != null && (lastMsg.role == "agent" || lastMsg.role == "assistant") && lastMsg.cardType == null && !lastMsg.isThinking) {
+                if (lastMsg != null && lastMsg.role == "agent" && lastMsg.cardType == null && !lastMsg.isThinking) {
                     newMessages[newMessages.lastIndex] = lastMsg.copy(
                         content = lastMsg.content + message.text
                     )
@@ -289,48 +276,14 @@ class AgentChatViewModel(
     }
 
     private fun handleOfflineFallback(text: String) {
-        val trimmed = text.trim()
-        val lower = trimmed.lowercase()
-
-        val response = if (lower.contains("خرج") || lower.contains("شام") || lower.contains("هزینه") || lower.contains("پول") || lower.contains("دنگ") || lower.contains("تاکسی") || lower.contains("پیتزا")) {
-            val numberRegex = "(\\d+)".toRegex()
-            val amount = numberRegex.find(trimmed.normalizePersianDigits())?.value?.toLongOrNull() ?: 250000L
-
-            val draftData = buildJsonObject {
-                put("actionType", "CREATE_TRANSACTION")
-                put("summary", "هزینه ثبت شده در حالت آفلاین")
-                put("payload", buildJsonObject {
-                    put("title", trimmed)
-                    put("amount", amount)
-                    put("groupId", 1)
-                })
-            }
-            ChatUiMessage(
-                id = "agent-${System.currentTimeMillis()}",
-                role = "agent",
-                content = "پیش‌نویس هزینه بر اساس درخواست شما تهیه شد. آیا مایل به ثبت نهایی هستید؟",
-                cardType = "ACTION_DRAFT",
-                draftId = "draft-${System.currentTimeMillis()}",
-                cardData = draftData
-            )
-        } else if (lower.contains("سلام") || lower.contains("درود") || lower.contains("hi") || lower.contains("hello")) {
-            ChatUiMessage(
-                id = "agent-${System.currentTimeMillis()}",
-                role = "agent",
-                content = "سلام! من ایجنت هوشمند ExpenseShare هستم. چطور می‌توانم در مدیریت هزینه‌ها و دنگ‌ها کمکتان کنم؟"
-            )
-        } else {
-            ChatUiMessage(
-                id = "agent-${System.currentTimeMillis()}",
-                role = "agent",
-                content = "پیام شما دریافت شد. در صورت قطع موقت اتصال می‌توانید از فرم‌های سنتی استفاده کنید یا دکمه تلاش مجدد را بزنید."
-            )
-        }
-
         setState {
             it.copy(
                 isThinking = false,
-                messages = it.messages + response
+                messages = it.messages + ChatUiMessage(
+                    id = "agent-${System.currentTimeMillis()}",
+                    role = "agent",
+                    content = "ارتباط با سرور برقرار نیست. در حالت آفلاین می‌توانید از فرم‌های سنتی در داشبورد استفاده کنید یا دکمه تلاش مجدد را بزنید."
+                )
             )
         }
         postEvent(AgentChatEvent.ScrollToBottom)
