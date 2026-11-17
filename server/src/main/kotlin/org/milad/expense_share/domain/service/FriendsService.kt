@@ -4,6 +4,7 @@ import org.milad.expense_share.data.models.FriendInfo
 import org.milad.expense_share.data.models.FriendRelationStatus
 import org.milad.expense_share.domain.repository.FriendRepository
 import org.milad.expense_share.domain.repository.UserRepository
+import org.milad.expense_share.normalizePersianDigits
 
 class FriendsService(
     private val friendRepository: FriendRepository,
@@ -65,13 +66,22 @@ class FriendsService(
 
     fun sendFriendRequest(fromUserId: Int, toUserPhone: String): Result<String> {
         return try {
+            val normalizedPhone = toUserPhone.normalizePersianDigits().trim()
             val user = userRepository.findById(fromUserId)
-            user?.let {
-                if (it.id == fromUserId)
-                    return Result.failure(Exception("You are always your own friend."))
+            if (user != null && user.phone == normalizedPhone) {
+                return Result.failure(Exception("Cannot send friend request to yourself: You are always your own friend."))
             }
 
-            val existingStatus = friendRepository.getFriendshipStatus(fromUserId, toUserPhone)
+            val targetUser = userRepository.findByPhone(normalizedPhone)
+            if (targetUser == null) {
+                return Result.failure(Exception("User not found with phone $normalizedPhone"))
+            }
+
+            if (targetUser.id == fromUserId) {
+                return Result.failure(Exception("Cannot send friend request to yourself: You are always your own friend."))
+            }
+
+            val existingStatus = friendRepository.getFriendshipStatus(fromUserId, normalizedPhone)
 
             if (existingStatus != null) {
                 return Result.failure(
@@ -91,11 +101,11 @@ class FriendsService(
                 )
             }
 
-            val success = friendRepository.sendFriendRequest(fromUserId, toUserPhone)
+            val success = friendRepository.sendFriendRequest(fromUserId, normalizedPhone)
             if (success) {
                 Result.success("Friend request sent successfully")
             } else {
-                Result.failure(Exception("User not found or request failed"))
+                Result.failure(Exception("Failed to send friend request"))
             }
         } catch (e: Exception) {
             Result.failure(Exception("Failed to send friend request: ${e.message}", e))
@@ -196,7 +206,7 @@ class FriendsService(
                 return Result.failure(Exception("User is not blocked"))
             }
 
-            val success = friendRepository.blockFriend(userId, targetPhone)
+            val success = friendRepository.unblockFriend(userId, targetPhone)
             if (success) {
                 Result.success("User unblocked successfully")
             } else {

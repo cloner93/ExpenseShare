@@ -28,6 +28,7 @@ import com.pmb.common.theme.AppTheme
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.milad.expense_share.expenses.ConfirmButton
+import org.milad.expense_share.normalizePersianDigits
 
 @Preview
 @Composable
@@ -80,7 +81,7 @@ private fun SendNewRequestContent(
             modifier = Modifier.fillMaxWidth(),
             value = phone,
             onValueChange = { input ->
-                val filtered = input.filter { it.isDigit() }.take(11)
+                val filtered = input.normalizePersianDigits().filter { it in '0'..'9' }.take(11)
                 phone = filtered
                 touched = true
             },
