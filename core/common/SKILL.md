@@ -88,12 +88,12 @@ AppTheme.colors.onSuccessContainer
 
 ### Typography & Shapes
 ```kotlin
-AppTheme.typography.titleMedium    // custom font (Adlam Display)
+AppTheme.typography.titleMedium    // custom font (Vazirmatn)
 AppTheme.typography.bodyLarge
 AppTheme.shapes.medium
 ```
 
-Custom font: **Adlam Display Regular** — loaded from resources, applied to all typography styles.
+Custom font: **Vazirmatn** (Regular, Medium, SemiBold, Bold) — loaded from resources, applied to all typography styles for complete Persian/Arabic and Latin support across all platforms.
 
 ---
 

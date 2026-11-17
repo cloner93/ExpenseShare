@@ -19,8 +19,8 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
 
             defaultConfig {
                 targetSdk = libs.findVersion("android-targetSdk").get().requiredVersion.toInt()
-                versionCode = 3
-                versionName = "1.0.3"
+                versionCode = 4
+                versionName = "1.0.4"
             }
 
             buildTypes {

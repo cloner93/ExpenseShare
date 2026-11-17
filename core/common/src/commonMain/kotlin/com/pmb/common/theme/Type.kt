@@ -6,16 +6,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import expenseshare.core.common.generated.resources.Res
-import expenseshare.core.common.generated.resources.adlam_display_regular
+import expenseshare.core.common.generated.resources.vazirmatn_regular
+import expenseshare.core.common.generated.resources.vazirmatn_medium
+import expenseshare.core.common.generated.resources.vazirmatn_semibold
+import expenseshare.core.common.generated.resources.vazirmatn_bold
 import org.jetbrains.compose.resources.Font
 
 @Composable
 fun appTypography(): Typography {
     val appFontFamily = FontFamily(
-
-        Font(resource = Res.font.adlam_display_regular, weight = FontWeight.Normal),
-        Font(resource = Res.font.adlam_display_regular, weight = FontWeight.Medium),
-        Font(resource = Res.font.adlam_display_regular, weight = FontWeight.Bold)
+        Font(resource = Res.font.vazirmatn_regular, weight = FontWeight.Normal),
+        Font(resource = Res.font.vazirmatn_medium, weight = FontWeight.Medium),
+        Font(resource = Res.font.vazirmatn_semibold, weight = FontWeight.SemiBold),
+        Font(resource = Res.font.vazirmatn_bold, weight = FontWeight.Bold)
     )
 
     return remember(appFontFamily) {
@@ -39,7 +42,7 @@ fun appTypography(): Typography {
             bodySmall = base.bodySmall.copy(fontFamily = appFontFamily),
 
             labelLarge = base.labelLarge.copy(fontFamily = appFontFamily),
-            labelMedium = base.labelLarge.copy(fontFamily = appFontFamily),
+            labelMedium = base.labelMedium.copy(fontFamily = appFontFamily),
             labelSmall = base.labelSmall.copy(fontFamily = appFontFamily),
         )
     }

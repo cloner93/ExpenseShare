@@ -60,7 +60,7 @@ compose.desktop {
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb,
             )
             packageName = "org.milad.expense_share"
-            packageVersion = "1.0.3"
+            packageVersion = "1.0.4"
 
             macOS {
                 iconFile.set(project.file("icons/icon.icns"))
