@@ -125,7 +125,7 @@ fun AgentChatScreen(
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
-                                    text = "دستیار هوشمند مالی",
+                                    text = "ایجنت مالی هوشمند",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -172,7 +172,7 @@ fun AgentChatScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "اتصال وب‌سوکت قطع است. دستیار به حالت آفلاین منتقل شد.",
+                                    text = "اتصال وب‌سوکت قطع است. ایجنت به حالت آفلاین منتقل شد.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
@@ -224,7 +224,9 @@ fun AgentChatScreen(
                                 }
                                 TextButton(onClick = {
                                     viewModel.handle(AgentChatAction.SetRecordingVoice(false))
-                                    viewModel.handle(AgentChatAction.UpdateInputText("۳۵۰ هزار تومان پول شام با علی و رضا"))
+                                    if (state.inputText.isBlank()) {
+                                        viewModel.handle(AgentChatAction.UpdateInputText("هزینه ناهار ۶۵۰۰۰ تومان در گروه سفر"))
+                                    }
                                 }) {
                                     Text(text = "اتمام ضبط")
                                 }
@@ -239,20 +241,20 @@ fun AgentChatScreen(
                             .padding(horizontal = 12.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Multimodal receipt scan button
+                        // Multimodal receipt extraction button
                         IconButton(
                             onClick = {
                                 viewModel.handle(
                                     AgentChatAction.SendReceiptImage(
-                                        imageBase64 = "base64-receipt-stub",
-                                        summary = "[تصویر فاکتور رستوران پیوست شد]"
+                                        imageBase64 = "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=",
+                                        summary = "[تصویر فاکتور پیوست شد]"
                                     )
                                 )
                             }
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
-                                contentDescription = "اسکن رسید",
+                                contentDescription = "استخراج فاکتور",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }

@@ -55,7 +55,7 @@ class AgentOrchestratorTest : DescribeSpec({
             finalChunk?.text shouldBe "سلام! چطور می‌تونم کمکتون کنم؟"
 
             verify { conversationRepository.saveMessage(sessionId, "user", "سلام") }
-            verify { conversationRepository.saveMessage(sessionId, "assistant", "سلام! چطور می‌تونم کمکتون کنم؟") }
+            verify { conversationRepository.saveMessage(sessionId, "agent", "سلام! چطور می‌تونم کمکتون کنم؟") }
         }
 
         it("emits A2UI GenerativeCard when a tool produces an ActionDraft") {
@@ -104,7 +104,7 @@ class AgentOrchestratorTest : DescribeSpec({
             verify {
                 conversationRepository.saveMessage(
                     sessionId = sessionId,
-                    role = "assistant",
+                    role = "agent",
                     content = "پیش‌نویس هزینه ایجاد شد",
                     a2uiPayload = any()
                 )

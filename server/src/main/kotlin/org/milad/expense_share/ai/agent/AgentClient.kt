@@ -13,6 +13,7 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.*
 import org.milad.expense_share.ai.mcp.model.McpTool
+import org.milad.expense_share.normalizePersianDigits
 import java.util.UUID
 
 interface AgentClient {
@@ -68,16 +69,24 @@ class GeminiAgentClient(
         val systemInstruction = buildJsonObject {
             put("parts", buildJsonArray {
                 add(buildJsonObject {
-                    put("text", "شما دستیار هوشمند، حرفه‌ای و صمیمی مدیریت مالی و دنگ‌ها در پلتفرم ExpenseShare هستید. با کاربران به زبان فارسی طبیعی و روان صحبت کنید. در صورتی که کاربر اعلام هزینه یا خرج کرد، از ابزار propose_expense استفاده کنید. در صورتی که از بدهی‌ها، طلب‌ها یا وضعیت مالی سوال کرد، از ابزار get_user_overview استفاده کنید. در مکالمات عمومی و احوالپرسی پاسخ‌های دلگرم‌کننده و خلاصه بدهید.")
+                    put("text", "شما ایجنت مالی هوشمند، حرفه‌ای و صمیمی مدیریت هزینه‌ها و دنگ‌ها در پلتفرم ExpenseShare هستید. با کاربران به زبان فارسی طبیعی و روان صحبت کنید. در صورتی که کاربر اعلام هزینه، فاکتور یا خرج کرد، از ابزار propose_expense استفاده کنید. در صورتی که از بدهی‌ها، طلب‌ها یا وضعیت مالی سوال کرد، از ابزار get_user_overview استفاده کنید. در مکالمات عمومی و احوالپرسی پاسخ‌های دلگرم‌کننده و خلاصه بدهید.")
                 })
             })
         }
 
         val contentsJson = messages.map { msg ->
-            val role = if (msg.role == "assistant") "model" else "user"
+            val role = if (msg.role == "assistant" || msg.role == "agent") "model" else "user"
             buildJsonObject {
                 put("role", role)
                 put("parts", buildJsonArray {
+                    if (!msg.imageBase64.isNullOrBlank()) {
+                        add(buildJsonObject {
+                            put("inlineData", buildJsonObject {
+                                put("mimeType", "image/jpeg")
+                                put("data", msg.imageBase64)
+                            })
+                        })
+                    }
                     add(buildJsonObject { put("text", msg.content) })
                 })
             }
@@ -144,7 +153,9 @@ class GeminiAgentClient(
         tools: List<McpTool>,
         errorNote: String? = null
     ): AgentResponse {
-        val lastUserMessage = messages.lastOrNull { it.role == "user" }?.content?.trim() ?: ""
+        val lastUserMsg = messages.lastOrNull { it.role == "user" }
+        val lastUserMessage = lastUserMsg?.content?.trim() ?: ""
+        val lastImage = lastUserMsg?.imageBase64
         val lower = lastUserMessage.lowercase()
 
         // 1. Debt, Settlement, or Overview intent
@@ -176,7 +187,7 @@ class GeminiAgentClient(
         }
 
         // 3. Receipt image intent
-        if (lower.contains("تصویر") || lower.contains("رسید") || lower.contains("فاکتور")) {
+        if (!lastImage.isNullOrBlank() || lower.contains("تصویر") || lower.contains("رسید") || lower.contains("فاکتور")) {
             return AgentResponse(
                 text = "اطلاعات فاکتور تحلیل شد. پیش‌نویس ثبت هزینه آماده تایید است:",
                 toolCalls = listOf(
@@ -193,11 +204,7 @@ class GeminiAgentClient(
         }
 
         // 4. Propose expense intent (detect numbers)
-        val normalizedMessage = lastUserMessage
-            .replace('۰', '0').replace('۱', '1').replace('۲', '2').replace('۳', '3').replace('۴', '4')
-            .replace('۵', '5').replace('۶', '6').replace('۷', '7').replace('۸', '8').replace('۹', '9')
-            .replace('٠', '0').replace('١', '1').replace('٢', '2').replace('٣', '3').replace('٤', '4')
-            .replace('٥', '5').replace('٦', '6').replace('٧', '7').replace('٨', '8').replace('٩', '9')
+        val normalizedMessage = lastUserMessage.normalizePersianDigits()
         val numberRegex = "(\\d+)".toRegex()
         val numbers = numberRegex.findAll(normalizedMessage).mapNotNull { it.value.toLongOrNull() }.toList()
 
@@ -231,7 +238,7 @@ class GeminiAgentClient(
 
         if (lower.contains("سلام") || lower.contains("درود") || lower.contains("hi") || lower.contains("hello")) {
             return AgentResponse(
-                text = "سلام! من دستیار هوشمند مالی شما در ExpenseShare هستم. می‌توانید هر هزینه‌ای مثل «شام ۳۵۰ هزار تومان» را بگویید، عکس فاکتور بفرستید، یا بگویید «وضعیت بدهی‌های من را بگو»."
+                text = "سلام! من ایجنت هوشمند شما در ExpenseShare هستم. می‌توانید هر هزینه‌ای مثل «شام ۳۵۰ هزار تومان» را بگویید، عکس فاکتور بفرستید، یا بگویید «وضعیت بدهی‌های من را بگو»."
             )
         }
 

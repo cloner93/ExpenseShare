@@ -8,6 +8,7 @@ import kotlinx.serialization.json.JsonObject
 data class AgentMessage(
     val role: String,
     val content: String,
+    val imageBase64: String? = null,
     val toolCallId: String? = null,
     val toolName: String? = null
 )

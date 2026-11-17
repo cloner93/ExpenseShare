@@ -13,6 +13,7 @@ import kotlinx.serialization.json.put
 import org.milad.expense_share.ai.client.AgentSocketClient
 import org.milad.expense_share.ai.model.AgentServerMessage
 import org.milad.expense_share.ai.ui.ChatUiMessage
+import org.milad.expense_share.normalizePersianDigits
 
 sealed interface AgentChatAction : BaseViewAction {
     data class SendTextMessage(val text: String) : AgentChatAction
@@ -29,8 +30,8 @@ data class AgentChatState(
     val messages: List<ChatUiMessage> = listOf(
         ChatUiMessage(
             id = "welcome",
-            role = "assistant",
-            content = "سلام! من دستیار هوشمند شما در ExpenseShare هستم.\nمی‌توانید به زبان محاوره‌ای هزینه‌ها را بگویید، فاکتور بفرستید، یا وضعیت بدهی‌ها را بپرسید."
+            role = "agent",
+            content = "سلام! من ایجنت هوشمند ExpenseShare هستم.\nمی‌توانید به زبان محاوره‌ای هزینه‌ها را بگویید، فاکتور بفرستید، یا وضعیت بدهی‌ها را بپرسید."
         )
     ),
     val isThinking: Boolean = false,
@@ -163,8 +164,8 @@ class AgentChatViewModel(
                     it.copy(
                         isThinking = false,
                         messages = it.messages + ChatUiMessage(
-                            id = "bot-receipt-${System.currentTimeMillis()}",
-                            role = "assistant",
+                            id = "agent-receipt-${System.currentTimeMillis()}",
+                            role = "agent",
                             content = "اقلام فاکتور با موفقیت استخراج شد. لطفاً پیش‌نویس زیر را تایید کنید:",
                             cardType = "ACTION_DRAFT",
                             draftId = "draft-receipt-local",
@@ -220,15 +221,15 @@ class AgentChatViewModel(
                 val newMessages = viewState.value.messages.toMutableList()
                 val lastMsg = newMessages.lastOrNull()
 
-                if (lastMsg != null && lastMsg.role == "assistant" && lastMsg.cardType == null && !lastMsg.isThinking) {
+                if (lastMsg != null && (lastMsg.role == "agent" || lastMsg.role == "assistant") && lastMsg.cardType == null && !lastMsg.isThinking) {
                     newMessages[newMessages.lastIndex] = lastMsg.copy(
                         content = lastMsg.content + message.text
                     )
                 } else if (message.text.isNotBlank()) {
                     newMessages.add(
                         ChatUiMessage(
-                            id = "bot-${System.currentTimeMillis()}",
-                            role = "assistant",
+                            id = "agent-${System.currentTimeMillis()}",
+                            role = "agent",
                             content = message.text
                         )
                     )
@@ -246,7 +247,7 @@ class AgentChatViewModel(
             is AgentServerMessage.GenerativeCard -> {
                 val cardMessage = ChatUiMessage(
                     id = "card-${System.currentTimeMillis()}",
-                    role = "assistant",
+                    role = "agent",
                     content = "",
                     cardType = message.cardType,
                     draftId = message.draftId,
@@ -264,7 +265,7 @@ class AgentChatViewModel(
             is AgentServerMessage.ActionExecuted -> {
                 val statusMessage = ChatUiMessage(
                     id = "exec-${System.currentTimeMillis()}",
-                    role = "assistant",
+                    role = "agent",
                     content = message.message
                 )
                 setState {
@@ -293,10 +294,7 @@ class AgentChatViewModel(
 
         val response = if (lower.contains("خرج") || lower.contains("شام") || lower.contains("هزینه") || lower.contains("پول") || lower.contains("دنگ") || lower.contains("تاکسی") || lower.contains("پیتزا")) {
             val numberRegex = "(\\d+)".toRegex()
-            val amount = numberRegex.find(
-                trimmed.replace('۰', '0').replace('۱', '1').replace('۲', '2').replace('۳', '3').replace('۴', '4')
-                    .replace('۵', '5').replace('۶', '6').replace('۷', '7').replace('۸', '8').replace('۹', '9')
-            )?.value?.toLongOrNull() ?: 250000L
+            val amount = numberRegex.find(trimmed.normalizePersianDigits())?.value?.toLongOrNull() ?: 250000L
 
             val draftData = buildJsonObject {
                 put("actionType", "CREATE_TRANSACTION")
@@ -308,8 +306,8 @@ class AgentChatViewModel(
                 })
             }
             ChatUiMessage(
-                id = "bot-${System.currentTimeMillis()}",
-                role = "assistant",
+                id = "agent-${System.currentTimeMillis()}",
+                role = "agent",
                 content = "پیش‌نویس هزینه بر اساس درخواست شما تهیه شد. آیا مایل به ثبت نهایی هستید؟",
                 cardType = "ACTION_DRAFT",
                 draftId = "draft-${System.currentTimeMillis()}",
@@ -317,14 +315,14 @@ class AgentChatViewModel(
             )
         } else if (lower.contains("سلام") || lower.contains("درود") || lower.contains("hi") || lower.contains("hello")) {
             ChatUiMessage(
-                id = "bot-${System.currentTimeMillis()}",
-                role = "assistant",
-                content = "سلام! من دستیار هوشمند شما در ExpenseShare هستم. چطور می‌توانم در مدیریت هزینه‌ها و دنگ‌ها کمکتان کنم؟"
+                id = "agent-${System.currentTimeMillis()}",
+                role = "agent",
+                content = "سلام! من ایجنت هوشمند ExpenseShare هستم. چطور می‌توانم در مدیریت هزینه‌ها و دنگ‌ها کمکتان کنم؟"
             )
         } else {
             ChatUiMessage(
-                id = "bot-${System.currentTimeMillis()}",
-                role = "assistant",
+                id = "agent-${System.currentTimeMillis()}",
+                role = "agent",
                 content = "پیام شما دریافت شد. در صورت قطع موقت اتصال می‌توانید از فرم‌های سنتی استفاده کنید یا دکمه تلاش مجدد را بزنید."
             )
         }

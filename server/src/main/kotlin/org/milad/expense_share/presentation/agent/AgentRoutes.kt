@@ -69,32 +69,34 @@ fun Route.agentRoutes(
                 val userId = call.principal<JWTPrincipal>().getUserId()
                     ?: return@webSocket close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Unauthorized"))
 
-                println("[AgentRoutes] WebSocket client connected. userId=$userId")
+                val logger = call.application.environment.log
+                logger.info("[AgentRoutes] WebSocket client connected. userId=$userId")
                 val context = AgentSecurityContext(userId = userId)
 
                 suspend fun emitEvent(event: AgentServerEvent) {
                     val messageJson = json.encodeToString(AgentServerEvent.serializer(), event)
-                    println("[AgentRoutes] Emitting event to client: $messageJson")
+                    logger.debug("[AgentRoutes] Emitting event to client: $messageJson")
                     send(Frame.Text(messageJson))
                 }
 
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
                         val text = frame.readText()
-                        println("[AgentRoutes] Received text frame from client: $text")
+                        logger.debug("[AgentRoutes] Received text frame from client: $text")
                         try {
                             val clientEvent = try {
                                 json.decodeFromString<AgentClientEvent>(text)
                             } catch (e: Exception) {
                                 json.decodeFromString<AgentClientEvent.SendMessage>(text)
                             }
-                            println("[AgentRoutes] Decoded clientEvent: $clientEvent")
+                            logger.debug("[AgentRoutes] Decoded clientEvent: $clientEvent")
                             when (clientEvent) {
                                 is AgentClientEvent.SendMessage -> {
                                     orchestrator.handleUserMessage(
                                         sessionId = clientEvent.sessionId,
                                         userText = clientEvent.text,
                                         context = context,
+                                        imageBase64 = clientEvent.imageBase64,
                                         onEvent = { emitEvent(it) }
                                     )
                                 }
@@ -109,6 +111,12 @@ fun Route.agentRoutes(
                                     )
                                 }
                                 is AgentClientEvent.CancelDraft -> {
+                                    conversationRepository.ensureSession(clientEvent.sessionId, context.userId)
+                                    conversationRepository.saveMessage(
+                                        sessionId = clientEvent.sessionId,
+                                        role = "agent",
+                                        content = "اقدام با شناسه ${clientEvent.draftId} توسط کاربر لغو گردید."
+                                    )
                                     emitEvent(AgentServerEvent.ActionExecuted(
                                         draftId = clientEvent.draftId,
                                         success = false,

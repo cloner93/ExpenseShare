@@ -80,9 +80,9 @@ fun SettlementProposalCard(
                 ) {
                     Text(
                         text = when {
-                            isConfirmed -> "پرداخت ثبت شد"
+                            isConfirmed -> "تسویه ثبت شد"
                             isCancelled -> "لغو شد"
-                            else -> "آماده پرداخت"
+                            else -> "آماده تسویه"
                         },
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall

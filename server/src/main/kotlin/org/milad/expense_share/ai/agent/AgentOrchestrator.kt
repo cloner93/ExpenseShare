@@ -17,6 +17,7 @@ class AgentOrchestrator(
         sessionId: String,
         userText: String,
         context: AgentSecurityContext,
+        imageBase64: String? = null,
         onEvent: suspend (AgentServerEvent) -> Unit
     ) {
         conversationRepository.ensureSession(sessionId, context.userId)
@@ -24,16 +25,25 @@ class AgentOrchestrator(
 
         onEvent(AgentServerEvent.Thinking("در حال تحلیل پیام..."))
 
-        val history = conversationRepository.getMessages(sessionId).map {
+        val rawHistory = conversationRepository.getMessages(sessionId).map {
             AgentMessage(role = it.role, content = it.content)
+        }
+        val history = if (!imageBase64.isNullOrBlank() && rawHistory.isNotEmpty()) {
+            rawHistory.dropLast(1) + rawHistory.last().copy(imageBase64 = imageBase64)
+        } else {
+            rawHistory
         }
 
         val tools = mcpServer.listTools()
         val agentResponse = agentClient.generateResponse(history, tools)
 
         if (agentResponse.toolCalls.isNotEmpty()) {
+            val textSummaries = mutableListOf<String>()
+            var draftActionCard: JsonObject? = null
+            var draftActionId: String? = null
+
             for (toolCall in agentResponse.toolCalls) {
-                onEvent(AgentServerEvent.Thinking("در حال فراخوانی ابزار: ${toolCall.name}..."))
+                onEvent(AgentServerEvent.Thinking("در حال اجرای ابزار: ${toolCall.name}..."))
                 val toolResult = mcpServer.executeTool(toolCall.name, toolCall.arguments, context)
 
                 if (toolResult.draftAction != null) {
@@ -44,6 +54,8 @@ class AgentOrchestrator(
                         put("requiresConfirmation", draft.requiresConfirmation)
                         put("payload", draft.payload)
                     }
+                    draftActionCard = cardData
+                    draftActionId = draft.draftId
 
                     onEvent(
                         AgentServerEvent.GenerativeCard(
@@ -52,31 +64,38 @@ class AgentOrchestrator(
                             data = cardData
                         )
                     )
-
-                    conversationRepository.saveMessage(
-                        sessionId = sessionId,
-                        role = "assistant",
-                        content = agentResponse.text,
-                        a2uiPayload = cardData.toString()
-                    )
-                    return
                 }
 
                 if (!toolResult.isError) {
                     val summaryText = toolResult.content.firstOrNull()?.text ?: ""
-                    onEvent(AgentServerEvent.MessageChunk(summaryText, isFinal = true))
-                    conversationRepository.saveMessage(sessionId, "assistant", summaryText)
-                    return
+                    if (summaryText.isNotBlank()) {
+                        textSummaries.add(summaryText)
+                    }
                 } else {
-                    val err = toolResult.content.firstOrNull()?.text ?: "خطا در پردازش"
+                    val err = toolResult.content.firstOrNull()?.text ?: "خطا در پردازش ابزار"
                     onEvent(AgentServerEvent.Error(err))
-                    return
                 }
             }
+
+            if (draftActionCard != null) {
+                conversationRepository.saveMessage(
+                    sessionId = sessionId,
+                    role = "agent",
+                    content = agentResponse.text.ifBlank { "پیش‌نویس اقدام برای تایید آماده شد." },
+                    a2uiPayload = draftActionCard.toString()
+                )
+            }
+
+            if (textSummaries.isNotEmpty()) {
+                val fullSummary = textSummaries.joinToString("\n\n")
+                onEvent(AgentServerEvent.MessageChunk(fullSummary, isFinal = true))
+                conversationRepository.saveMessage(sessionId, "agent", fullSummary)
+            }
+            return
         }
 
         onEvent(AgentServerEvent.MessageChunk(agentResponse.text, isFinal = true))
-        conversationRepository.saveMessage(sessionId, "assistant", agentResponse.text)
+        conversationRepository.saveMessage(sessionId, "agent", agentResponse.text)
     }
 
     suspend fun handleDraftConfirmation(
@@ -91,7 +110,7 @@ class AgentOrchestrator(
 
         val toolToExecute = when (actionType) {
             "CREATE_TRANSACTION" -> "execute_expense_draft"
-            "PAY_SETTLEMENT" -> "execute_settlement_draft"
+            "RECORD_SETTLEMENT", "PAY_SETTLEMENT" -> "execute_settlement_draft"
             "CREATE_GROUP" -> "execute_create_group_draft"
             else -> null
         }
@@ -115,7 +134,7 @@ class AgentOrchestrator(
         conversationRepository.ensureSession(sessionId, context.userId)
         conversationRepository.saveMessage(
             sessionId = sessionId,
-            role = "assistant",
+            role = "agent",
             content = "نتیجه اقدام: $message"
         )
     }

@@ -132,7 +132,7 @@ class McpServerImpl(
                 put("properties", buildJsonObject {
                     put("settlementId", buildJsonObject {
                         put("type", "integer")
-                        put("description", "The settlement ID to pay")
+                        put("description", "The settlement ID to resolve")
                     })
                     put("groupId", buildJsonObject {
                         put("type", "integer")
@@ -147,7 +147,7 @@ class McpServerImpl(
         ),
         McpTool(
             name = "execute_settlement_draft",
-            description = "Execute a confirmed settlement payment. Only called after explicit user approval.",
+            description = "Execute a confirmed settlement resolution. Only called after explicit user approval.",
             inputSchema = buildJsonObject {
                 put("type", "object")
                 put("properties", buildJsonObject {
@@ -315,15 +315,47 @@ class McpServerImpl(
     }
 
     private fun handleProposeExpense(arguments: JsonObject, context: AgentSecurityContext): McpToolResult {
-        val requestedGroupId = arguments["groupId"]?.jsonPrimitive?.intOrNull
-        val groupId = requestedGroupId ?: run {
-            val userGroups = groupService.getUserGroups(context.userId).getOrNull() ?: emptyList()
-            userGroups.firstOrNull()?.id ?: return McpToolResult.error("شما عضو هیچ گروهی نیستید. لطفاً ابتدا یک گروه ایجاد کنید.")
-        }
         val title = arguments["title"]?.jsonPrimitive?.contentOrNull
             ?: return McpToolResult.error("Missing 'title'")
         val amountValue = arguments["amount"]?.jsonPrimitive?.longOrNull
             ?: return McpToolResult.error("Missing 'amount'")
+
+        val requestedGroupId = arguments["groupId"]?.jsonPrimitive?.intOrNull
+        val groupId = requestedGroupId ?: run {
+            val userGroups = groupService.getUserGroups(context.userId).getOrNull() ?: emptyList()
+            if (userGroups.isEmpty()) {
+                return McpToolResult.error("شما عضو هیچ گروهی نیستید. لطفاً ابتدا یک گروه ایجاد کنید.")
+            }
+            if (userGroups.size > 1) {
+                val chips = userGroups.map { g ->
+                    buildJsonObject {
+                        put("id", g.id.toString())
+                        put("label", g.name)
+                        put("actionPayload", buildJsonObject {
+                            put("groupId", g.id)
+                            put("title", title)
+                            put("amount", amountValue)
+                        })
+                    }
+                }
+                return McpToolResult(
+                    isError = false,
+                    content = listOf(McpContent(text = "هزینه «$title» در کدام گروه ثبت شود؟")),
+                    draftAction = ActionDraftPayload(
+                        draftId = UUID.randomUUID().toString(),
+                        actionType = "DISAMBIGUATION",
+                        summary = "انتخاب گروه برای ثبت هزینه «$title»",
+                        requiresConfirmation = false,
+                        payload = buildJsonObject {
+                            put("prompt", "هزینه «$title» در کدام گروه ثبت شود؟")
+                            put("options", JsonArray(userGroups.map { JsonPrimitive(it.name) }))
+                            put("chips", JsonArray(chips))
+                        }
+                    )
+                )
+            }
+            userGroups.first().id
+        }
         val description = arguments["description"]?.jsonPrimitive?.contentOrNull ?: ""
         val payerId = arguments["payerId"]?.jsonPrimitive?.intOrNull ?: context.userId
 
