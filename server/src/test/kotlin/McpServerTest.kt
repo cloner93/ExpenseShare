@@ -87,6 +87,22 @@ class McpServerTest : DescribeSpec({
             result.isError shouldBe true
             result.content.first().text shouldBe "Access denied: You are not a member of group #99"
         }
+
+        it("denies execute_expense_draft if confirming user is not in the group") {
+            every { groupService.getUsersOfGroup(99) } returns listOf(user2)
+
+            val args = buildJsonObject {
+                put("draftId", "draft-123")
+                put("groupId", 99)
+                put("title", "Lunch")
+                put("amount", 100000L)
+                put("payerId", 2)
+            }
+            val result = mcpServer.executeTool("execute_expense_draft", args, AgentSecurityContext(userId = 1))
+
+            result.isError shouldBe true
+            result.content.first().text shouldBe "Access denied: You are not a member of group #99"
+        }
     }
 
     describe("Action Draft Lifecycle") {

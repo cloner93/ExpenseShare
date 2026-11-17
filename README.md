@@ -148,6 +148,12 @@ Folder:
 ./gradlew :server:run
 ```
 
+### Local Development & Database Configuration
+- **PostgreSQL Database**: `jdbc:postgresql://localhost:5432/expenseshare` (Default user: `postgres`, Password: `miladmilad` or `$DB_PASSWORD`).
+- **Local Server Base URL**: `http://localhost:8082/` (Android Emulator: `http://10.0.2.2:8082/` via `adb reverse tcp:8082 tcp:8082` or `-Dexpense_share.base_url=http://10.0.2.2:8082/`).
+- **Production Server Base URL**: `https://expenseshare-server.liara.run/`.
+- **Gemini AI API Key**: Set `GEMINI_API_KEY` in environment for Gemini models (`gemini-3.1-flash-lite`); heuristic fallback runs automatically if blank.
+
 ### Tests (Kotest)
 ```
 ./gradlew kotest
